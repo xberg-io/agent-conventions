@@ -16,7 +16,7 @@ priority: medium
 - Java JDK 22+ (optional, for Java binding)
 - .NET 8.0+ SDK (optional, for C# binding)
 - Task (task runner)
-- prek (pre-commit hook manager)
+- Poly (multi-language linter and formatter)
 
 ## Quick Setup
 
@@ -26,8 +26,6 @@ priority: medium
 # Install all dependencies
 task setup
 
-# Install pre-commit hooks
-task pre-commit:install
 ```
 
 ## Running Tests
@@ -90,6 +88,6 @@ task update
 ## Editing & Committing
 
 1. Edit source files (Rust, Python, TypeScript, Ruby, PHP, etc.)
-1. prek will auto-format on commit
+1. Run `poly fmt --fix .` and `poly lint .` to format and lint code
 1. If hooks reject, fix issues and retry git commit
 1. Never use --no-verify; enforce code quality

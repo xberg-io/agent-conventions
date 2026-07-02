@@ -9,6 +9,6 @@ priority: high
 - Do not compile bindings or run verification from `task alef:generate`.
 - Use `task alef:format` when Alef post-generation formatting is needed.
 - Use `task alef:build` or `task build:bindings` when binding compilation is needed; use `task build:all` for core plus bindings.
-- Use `task format` or `prek run --all-files` for repository formatting. `task format` excludes Alef post-generation formatting.
+- Use `task format` or `poly fmt --fix .` for repository formatting. `task format` excludes Alef post-generation formatting.
 - Generated e2e suites use canonical tasks: `task e2e:generate`, `task e2e:build`, `task e2e:test`, and `task e2e:all`. Do not add legacy aliases.
 - Commit generator inputs and regenerated output together.
