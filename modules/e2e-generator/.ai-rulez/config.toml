@@ -1,0 +1,5 @@
+version = "4.0"
+name = "xberg-e2e-generator"
+description = "Shared e2e-generator module for xberg-io AI governance"
+gitignore = true
+presets = ["codex"]
