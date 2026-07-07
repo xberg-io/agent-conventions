@@ -16,6 +16,7 @@ Poly is a single-binary multi-language linter and formatter. It bundles language
 ## Configuration
 
 Per-repo `poly.toml` defines linting and formatting rules:
+
 - `[discovery]` — exclude globs
 - `[lint.<lang>.<tool>]` — select/ignore rules, settings like `pydocstyle_convention`, `line_length`
 - `[per-file-ignores]` — file-specific exemptions

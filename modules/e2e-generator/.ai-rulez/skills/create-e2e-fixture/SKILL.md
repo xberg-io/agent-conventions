@@ -10,6 +10,7 @@ priority: medium
 1. **Identify the test case**: What behavior needs testing across language bindings?
 1. **Choose category**: smoke, basic, parsing, edge-case, error-handling, or platform-specific.
 1. **Write fixture JSON**:
+
    ```json
    {
      "id": "descriptive_snake_case_name",
@@ -23,6 +24,7 @@ priority: medium
      "tags": ["regression"]
    }
    ```
+
 1. **Add to fixtures directory**: Place in appropriate category file or subdirectory.
 1. **Regenerate**: Run `task generate:e2e`.
 1. **Verify**: Run `task test:e2e` to confirm all languages pass.

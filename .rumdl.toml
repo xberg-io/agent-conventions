@@ -13,17 +13,7 @@ exclude = ["node_modules", "target", "dist", "vendor", ".ai-rulez"]
 # MD046: Code block style (docs tooling can indent fenced blocks)
 # MD051: Link fragment checking (docs generators may rewrite anchors)
 # MD076: Blank lines between list items
-disable = [
-  "MD012",
-  "MD013",
-  "MD024",
-  "MD033",
-  "MD036",
-  "MD041",
-  "MD046",
-  "MD051",
-  "MD076",
-]
+disable = ["MD012", "MD013", "MD024", "MD033", "MD036", "MD041", "MD046", "MD051", "MD076"]
 
 [MD024]
 siblings_only = true

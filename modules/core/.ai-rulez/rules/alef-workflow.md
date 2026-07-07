@@ -5,7 +5,7 @@ priority: high
 # Alef Workflow
 
 - Treat Alef-managed binding files as generated output. Change Rust source, README templates, fixtures, or `alef.toml` instead of hand-editing generated packages.
-- Use `task alef:generate` for fast regeneration. It must run `alef all --clean --format=false`.
+- Use `task alef:generate` for fast regeneration. It must run `alef all --clean`.
 - Do not compile bindings or run verification from `task alef:generate`.
 - Use `task alef:format` when Alef post-generation formatting is needed.
 - Use `task alef:build` or `task build:bindings` when binding compilation is needed; use `task build:all` for core plus bindings.

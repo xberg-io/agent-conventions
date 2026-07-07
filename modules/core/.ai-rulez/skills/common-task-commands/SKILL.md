@@ -17,7 +17,7 @@ priority: critical
 
 Build commands respect `BUILD_PROFILE` (dev/release/ci). Append `:dev` or `:release` for explicit mode.
 
-**Alef Generation**: `task alef:generate` runs `alef all --clean --format=false` for fast regeneration. It does not build bindings and does not run post-generation formatters.
+**Alef Generation**: `task alef:generate` runs `alef all --clean` for fast regeneration. It does not build bindings and does not run post-generation formatters.
 
 **Alef Formatting**: `task alef:format` runs Alef post-generation formatters explicitly. `task format` excludes Alef formatting.
 

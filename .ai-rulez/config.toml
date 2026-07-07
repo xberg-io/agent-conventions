@@ -5,14 +5,7 @@ gitignore = true
 
 presets = ["claude", "codex", "copilot", "cursor", "antigravity"]
 
-builtins = [
-  "!git-workflow",
-  "!testing",
-  "code-quality",
-  "security",
-  "token-efficiency",
-  "default-commands",
-]
+builtins = ["!git-workflow", "!testing", "code-quality", "security", "token-efficiency", "default-commands"]
 
 [[marketplaces]]
 name = "basemind"
