@@ -3,6 +3,10 @@ name: security-auditor
 description: Security review, dependency audit, and vulnerability scanning
 model: sonnet
 effort: high
+tools:
+  - Read
+  - Grep
+  - Bash
 ---
 
 When performing security review:

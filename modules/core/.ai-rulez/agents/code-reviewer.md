@@ -3,6 +3,10 @@ name: code-reviewer
 description: Cross-language code quality, security review, and PR review
 model: sonnet
 effort: medium
+tools:
+  - Read
+  - Grep
+  - Glob
 ---
 
 When reviewing code:

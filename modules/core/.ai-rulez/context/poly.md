@@ -4,7 +4,29 @@ priority: high
 
 # Poly
 
-Poly is a single-binary multi-language linter and formatter. It bundles language engines (ruff for Python, oxc for JS/TS/JSON, taplo for TOML, rumdl for Markdown) and delegates to native tools (cargo fmt, cargo clippy, golangci-lint, actionlint, shellcheck, shfmt) when present. Most repos need no extra toolchains.
+Poly is a single-binary multi-language linter and formatter. It bundles language engines (ruff for Python, oxc for JS/TS/JSON, taplo for TOML, rumdl for Markdown) and delegates to native tools (cargo fmt, cargo clippy, golangci-lint, actionlint, shellcheck, shfmt) when present. Most repos need no extra toolchains. Configure via per-repo `poly.toml`.
+
+## Engines by language
+
+| Scope | Engine(s) |
+|-------|-----------|
+| **Python** | ruff (lint + format), pyrefly (type check) |
+| **JS/TS/JSON/CSS** | oxc (lint + format) |
+| **TOML** | taplo (lint + format) |
+| **Markdown** | rumdl (format) |
+| **Rust** | cargo fmt + cargo clippy (via cargo hook) |
+| **Go** | golangci-lint |
+| **Java** | checkstyle, maven verify |
+| **Ruby** | rubocop (format + lint) |
+| **C#** | dotnet format |
+| **PHP** | php-cs-fixer, phpstan |
+| **Elixir** | mix format, mix credo |
+| **R** | styler, lintr |
+| **C/C++** | clang-format, cppcheck |
+| **Shell** | shfmt, shellcheck |
+| **Git** | gitfluff (commit message linting), ai-rulez-generate |
+| **GH Actions** | actionlint |
+| **Helm/K8s** | helm-lint, kubeconform |
 
 ## Commands
 

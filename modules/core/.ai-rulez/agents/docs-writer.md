@@ -3,6 +3,12 @@ name: docs-writer
 description: API documentation, READMEs, code examples, and technical writing across all languages
 model: sonnet
 effort: low
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Edit
+  - Write
 ---
 
 When writing documentation:
