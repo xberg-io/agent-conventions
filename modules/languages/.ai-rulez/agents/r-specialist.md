@@ -1,7 +1,7 @@
 ---
 name: r-specialist
 description: R and native extension binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: csharp-specialist
 description: C# and P/Invoke/native AOT binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

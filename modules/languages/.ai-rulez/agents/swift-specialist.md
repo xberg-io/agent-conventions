@@ -1,7 +1,7 @@
 ---
 name: swift-specialist
 description: Swift and C FFI binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

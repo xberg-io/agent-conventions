@@ -3,7 +3,7 @@ name = "ai-rulez"
 description = "Shared AI governance modules for xberg.io polyglot projects"
 gitignore = true
 
-presets = ["claude", "codex", "copilot", "cursor", "antigravity"]
+presets = ["claude", "codex"]
 
 builtins = ["!git-workflow", "!testing", "code-quality", "security", "token-efficiency", "default-commands"]
 

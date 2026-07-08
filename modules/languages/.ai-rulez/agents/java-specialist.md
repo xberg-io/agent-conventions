@@ -1,7 +1,7 @@
 ---
 name: java-specialist
 description: Java, Panama FFM, and JNI binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

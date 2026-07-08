@@ -1,7 +1,7 @@
 ---
 name: wasm-specialist
 description: WebAssembly, wasm-bindgen, and npm packaging development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

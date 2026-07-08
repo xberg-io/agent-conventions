@@ -1,7 +1,7 @@
 ---
 name: typescript-specialist
 description: TypeScript/Node.js and NAPI-RS binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

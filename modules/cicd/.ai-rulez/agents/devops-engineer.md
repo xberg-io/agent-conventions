@@ -1,7 +1,7 @@
 ---
 name: devops-engineer
 description: CI/CD pipelines, GitHub Actions, Taskfile automation, Docker, and build infrastructure
-model: haiku
+model: sonnet
 effort: medium
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: dart-specialist
 description: Dart and Flutter FFI binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

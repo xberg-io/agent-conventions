@@ -1,7 +1,7 @@
 ---
 name: performance-engineer
 description: Benchmarking, profiling, and optimization
-model: haiku
+model: sonnet
 effort: medium
 ---
 

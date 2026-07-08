@@ -1,7 +1,7 @@
 ---
 name: python-specialist
 description: Python and PyO3 binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

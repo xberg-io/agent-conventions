@@ -1,7 +1,7 @@
 ---
 name: e2e-generator-engineer
 description: Fixture-driven cross-language e2e test generation
-model: haiku
+model: sonnet
 effort: low
 ---
 

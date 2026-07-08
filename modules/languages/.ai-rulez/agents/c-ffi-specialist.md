@@ -1,7 +1,7 @@
 ---
 name: c-ffi-specialist
 description: C FFI surface and native ABI development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

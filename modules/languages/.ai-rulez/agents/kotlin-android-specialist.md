@@ -1,7 +1,7 @@
 ---
 name: kotlin-android-specialist
 description: Kotlin Android and JNI binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: go-specialist
 description: Go and cgo FFI development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

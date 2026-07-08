@@ -1,7 +1,7 @@
 ---
 name: release-engineer
 description: Multi-registry release coordination and version management
-model: haiku
+model: sonnet
 effort: low
 ---
 

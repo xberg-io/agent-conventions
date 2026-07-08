@@ -1,7 +1,7 @@
 ---
 name: zig-specialist
 description: Zig and C ABI integration development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

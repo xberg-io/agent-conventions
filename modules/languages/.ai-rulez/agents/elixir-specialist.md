@@ -1,7 +1,7 @@
 ---
 name: elixir-specialist
 description: Elixir and Rustler NIF development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

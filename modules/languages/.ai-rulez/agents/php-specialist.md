@@ -1,7 +1,7 @@
 ---
 name: php-specialist
 description: PHP and ext-php-rs binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

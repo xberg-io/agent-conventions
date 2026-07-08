@@ -1,7 +1,7 @@
 ---
 name: ruby-specialist
 description: Ruby and Magnus binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 

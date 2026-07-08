@@ -1,7 +1,7 @@
 ---
 name: jni-specialist
 description: JNI and JVM native binding development
-model: haiku
+model: sonnet
 effort: medium
 ---
 
