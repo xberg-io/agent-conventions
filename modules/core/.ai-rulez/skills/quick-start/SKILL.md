@@ -60,13 +60,10 @@ task build
 task build:bindings
 task build:all
 
-# Regenerate Alef-managed files without formatting
+# Regenerate Alef-managed files
 task alef:generate
 
-# Run Alef formatting explicitly when needed
-task alef:format
-
-# Format repo code; excludes Alef formatting
+# Format repo code (poly handles all formatting)
 task format
 
 # Lint everything
