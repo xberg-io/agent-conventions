@@ -1,18 +1,7 @@
-# rumdl - Rust-based markdown formatter
-# https://github.com/rvben/rumdl
 
 respect-gitignore = true
 exclude = ["node_modules", "target", "dist", "vendor", ".ai-rulez"]
 
-# MD012: Multiple consecutive blank lines
-# MD013: Line length (tables/code can be long)
-# MD024: Duplicate headings (configured below with siblings_only)
-# MD033: Inline HTML (used in docs)
-# MD036: Emphasis as heading (intentional style in docs/READMEs)
-# MD041: First line H1 not required
-# MD046: Code block style (docs tooling can indent fenced blocks)
-# MD051: Link fragment checking (docs generators may rewrite anchors)
-# MD076: Blank lines between list items
 disable = ["MD012", "MD013", "MD024", "MD033", "MD036", "MD041", "MD046", "MD051", "MD076"]
 
 [MD024]

@@ -18,8 +18,6 @@ description = "GitHub integration for repository operations and automation"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-github"]
 transport = "stdio"
-# Disabled by default so recursive workspace generation does not require a
-# local GITHUB_TOKEN. Enable locally when generating MCP config for this repo.
 enabled = false
 
 [mcp_servers.env]
