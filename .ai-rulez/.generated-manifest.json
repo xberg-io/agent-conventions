@@ -6,7 +6,9 @@
     ".claude/agents/security-auditor.md",
     ".claude/plugins.json",
     ".claude/settings.json",
+    ".claude/skills/dependency-awareness/SKILL.md",
     ".claude/skills/iterate/SKILL.md",
+    ".claude/skills/owasp-quick-reference/SKILL.md",
     ".claude/skills/parallelize/SKILL.md",
     ".codex/agents/code-reviewer.toml",
     ".codex/agents/docs-writer.toml",
@@ -14,6 +16,8 @@
     ".codex/commands/iterate.md",
     ".codex/commands/parallelize.md",
     ".codex/plugins.json",
+    ".codex/skills/dependency-awareness/SKILL.md",
+    ".codex/skills/owasp-quick-reference/SKILL.md",
     ".mcp.json",
     "AGENTS.md",
     "CLAUDE.md"

@@ -1,7 +1,7 @@
-# AI-Rulez
+# agent-conventions
 
-Shared AI governance modules for xberg.io polyglot projects. Include modules by `path`; consumer repos
-generate local AGENTS.md from these sources.
+Shared agent-conventions modules for xberg.io polyglot projects. Include modules by `path`; consumer
+repos generate local AGENTS.md from these sources.
 
 ## Available Modules
 
@@ -9,9 +9,11 @@ generate local AGENTS.md from these sources.
 
 - **Agents** (7): code-reviewer, polyglot-architect, rust-core-engineer, ffi-engineer, docs-writer,
   security-auditor, performance-engineer
-- **Rules** (12): Rust conventions, bindings, FFI interop, Alef workflow, commit procedure, git hygiene, test guidance
-- **Contexts** (5): prek, polyrepo-structure, pre-commit-tooling, taskfile-structure, xberg-brand-and-docs
-- **Skills** (2): common-task-commands, quick-start
+- **Rules** (8): atomic-commits, branch-hygiene, commit-messages, commit-procedure, safe-git-operations,
+  tdd-workflow, test-alongside-code, verify-before-acting
+- **Context** (1): polyrepo-structure
+- **Skills** (8): common-task-commands, quick-start, alef-workflow, basemind-tools, binding-architecture,
+  poly-lint-format, taskfile-structure, xberg-brand-and-docs
 
 ### `modules/languages` — Repos with language bindings
 
@@ -21,32 +23,32 @@ generate local AGENTS.md from these sources.
 ### `modules/cicd` — Most repos need this
 
 - **Agents** (2): release-engineer, devops-engineer
-- **Rules** (3): CI/CD pipelines, GitHub workflows, task automation
+- **Skills** (2): cicd-pipeline-standards, gh-workflows
 
 ### `modules/e2e-generator` — Repos with `tools/e2e-generator/`
 
 - **Agents** (1): e2e-generator-engineer
-- **Rules** (3): conventions, fixture schema, generated code policy
-- **Skills** (2): create-e2e-fixture, add-language-generator
+- **Rules** (1): generated-code-policy
+- **Skills** (4): create-e2e-fixture, add-language-generator, e2e-generator-conventions, fixture-schema-design
 
 ### `modules/infrastructure` — Deployed services only
 
-- **Rules** (3): Docker, GCloud, monitoring
+- **Skills** (3): containerization-docker, gcloud-conventions, monitoring-observability
 
 ## Usage
 
 ```yaml
 includes:
   - name: xberg-core
-    source: https://github.com/xberg-io/ai-rulez.git
+    source: https://github.com/xberg-io/agent-conventions.git
     path: modules/core
     merge_strategy: local-override
   - name: xberg-languages
-    source: https://github.com/xberg-io/ai-rulez.git
+    source: https://github.com/xberg-io/agent-conventions.git
     path: modules/languages
     merge_strategy: local-override
   - name: xberg-cicd
-    source: https://github.com/xberg-io/ai-rulez.git
+    source: https://github.com/xberg-io/agent-conventions.git
     path: modules/cicd
     merge_strategy: local-override
 ```

@@ -1,12 +1,13 @@
 version = "4.0"
-name = "ai-rulez"
-description = "Shared AI governance modules for xberg.io polyglot projects"
+name = "agent-conventions"
+description = "Shared agent-conventions modules for xberg.io polyglot projects"
 gitignore = true
 
 presets = ["claude", "codex"]
 
 builtins = ["!git-workflow", "!testing", "code-quality", "security", "token-efficiency", "default-commands"]
 
+compact = true
 [[marketplaces]]
 name = "basemind"
 source = "Goldziher/basemind"
