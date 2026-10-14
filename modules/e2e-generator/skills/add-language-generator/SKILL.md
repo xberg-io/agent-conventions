@@ -1,6 +1,12 @@
 ---
-name: add-language-generator
+type: Playbook
+title: Add Language Generator
 description: How to add a new target language to Alef-based e2e test generation — generator wiring, output layout, and registration. Load when extending e2e generation to a new language binding.
+x-ai-rulez:
+  kind: skill
+  id: add-language-generator
+  metadata:
+    name: add-language-generator
 ---
 
 # Add Language Generator

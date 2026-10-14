@@ -1,6 +1,12 @@
 ---
-name: alef-workflow
+type: Playbook
+title: Alef Workflow
 description: How to work with Alef-generated binding files and the task commands that regenerate, build, format, and verify them. Load when editing bindings, running task alef:*, or regenerating generated packages/e2e suites.
+x-ai-rulez:
+  kind: skill
+  id: alef-workflow
+  metadata:
+    name: alef-workflow
 ---
 
 # Alef Workflow

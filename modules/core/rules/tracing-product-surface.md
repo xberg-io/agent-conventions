@@ -1,5 +1,11 @@
 ---
-priority: high
+type: Decision
+title: Tracing Product Surface
+x-ai-rulez:
+  kind: rule
+  id: tracing-product-surface
+  metadata:
+    priority: high
 ---
 
 Tracing is a first-class, user-facing product feature, not incidental logging. Every core library emits spans and events always-on (no feature gate — spans are near-zero cost without a subscriber), so traceability is uniform across the whole stack from libraries up through `xberg-enterprise`'s OTLP export.

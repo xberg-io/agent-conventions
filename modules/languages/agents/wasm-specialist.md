@@ -1,8 +1,14 @@
 ---
-name: wasm-specialist
+type: Reference
+title: Wasm Specialist
 description: WebAssembly, wasm-bindgen, and npm packaging development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: wasm-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: wasm-specialist
 ---
 
 1. wasm-bindgen: #[wasm_bindgen] for type exposure, JsValue for dynamic types

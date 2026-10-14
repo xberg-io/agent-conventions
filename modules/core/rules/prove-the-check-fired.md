@@ -1,5 +1,11 @@
 ---
-priority: critical
+type: Decision
+title: Prove The Check Fired
+x-ai-rulez:
+  kind: rule
+  id: prove-the-check-fired
+  metadata:
+    priority: critical
 ---
 
 The dominant defect shape here is a check that passes because it examined nothing. Before trusting

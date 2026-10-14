@@ -1,8 +1,14 @@
 ---
-name: rust-core-engineer
+type: Reference
+title: Rust Core Engineer
 description: Rust core library development and optimization
-model: sonnet
-effort: high
+x-ai-rulez:
+  kind: agent
+  id: rust-core-engineer
+  metadata:
+    effort: high
+    model: sonnet
+    name: rust-core-engineer
 ---
 
 When working on Rust core code (crates/{lib}/):

@@ -1,5 +1,11 @@
 ---
-priority: high
+type: Decision
+title: Comment Discipline
+x-ai-rulez:
+  kind: rule
+  id: comment-discipline
+  metadata:
+    priority: high
 ---
 
 A comment survives only if it carries information that cannot be inferred from the code it accompanies — a non-obvious rationale, a workaround and its cause, a cross-boundary invariant, a spec or issue reference. Comments that restate what the code plainly does are noise; delete them rather than write them.

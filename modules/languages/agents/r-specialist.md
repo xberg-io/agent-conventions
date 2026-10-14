@@ -1,8 +1,14 @@
 ---
-name: r-specialist
+type: Reference
+title: R Specialist
 description: R and native extension binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: r-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: r-specialist
 ---
 
 1. Prefer extendr for Rust-backed R packages; use .Call only when a C ABI layer is required

@@ -1,8 +1,14 @@
 ---
-name: elixir-specialist
+type: Reference
+title: Elixir Specialist
 description: Elixir and Rustler NIF development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: elixir-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: elixir-specialist
 ---
 
 1. Rustler: #[rustler::nif] for NIF functions, Encoder/Decoder traits for type mapping

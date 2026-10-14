@@ -74,6 +74,7 @@ lint = { exclude = [
   "vendor/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
 ] }
 fmt = { exclude = [
   "**/*.lock",
@@ -90,6 +91,7 @@ fmt = { exclude = [
   "vendor/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
 ] }
 commit = { stages = ["commit-msg"] }
 file_safety = { exclude = [
@@ -107,6 +109,7 @@ file_safety = { exclude = [
   "vendor/**",
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
+  "/.ai-rulez/.generated-manifest.json",
 ] }
 
 [tools.actionlint]
@@ -129,5 +132,8 @@ enabled = true
 [[hooks.sources]]
 id = "ai-rulez"
 git = "https://github.com/Goldziher/ai-rulez.git"
-revision = "v4.9.3"
+revision = "ee42eef34f2922e4e75b75f25b1215b9492bb1aa"
 hooks = ["ai-rulez-validate"]
+
+[discovery]
+exclude = ["/.ai-rulez/.generated-manifest.json"]

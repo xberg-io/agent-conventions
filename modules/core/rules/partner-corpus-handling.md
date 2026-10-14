@@ -1,5 +1,11 @@
 ---
-priority: critical
+type: Decision
+title: Partner Corpus Handling
+x-ai-rulez:
+  kind: rule
+  id: partner-corpus-handling
+  metadata:
+    priority: critical
 ---
 
 Design-partner document corpora arrive under a commercial agreement, but that says nothing about

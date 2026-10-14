@@ -1,6 +1,12 @@
 ---
-name: quick-start
+type: Playbook
+title: Quick Start
 description: Developer quick-start for xberg-io repos — prerequisites, initial setup, and the core build/test/lint workflow. Load when onboarding to a repo or setting up a local dev environment for the first time.
+x-ai-rulez:
+  kind: skill
+  id: quick-start
+  metadata:
+    name: quick-start
 ---
 
 # Developer Quick Start

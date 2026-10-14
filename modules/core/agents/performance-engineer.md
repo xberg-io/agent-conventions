@@ -1,8 +1,14 @@
 ---
-name: performance-engineer
+type: Reference
+title: Performance Engineer
 description: Benchmarking, profiling, and optimization
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: performance-engineer
+  metadata:
+    effort: medium
+    model: sonnet
+    name: performance-engineer
 ---
 
 When optimizing performance:

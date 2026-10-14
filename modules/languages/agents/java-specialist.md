@@ -1,8 +1,14 @@
 ---
-name: java-specialist
+type: Reference
+title: Java Specialist
 description: Java, Panama FFM, and JNI binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: java-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: java-specialist
 ---
 
 1. Panama FFM (Java 21+): Linker.downcallHandle + FunctionDescriptor for native calls

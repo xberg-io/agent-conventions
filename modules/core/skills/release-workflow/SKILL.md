@@ -1,12 +1,12 @@
 ---
-name: release-workflow
-description: >-
-  Release/publish a Rust core crate or CLI in an xberg-io polyglot repo
-  (crawlberg, html-to-markdown, xberg, tree-sitter-language-pack, liter-llm).
-  Load when releasing or publishing a Rust crate or CLI — cutting a new version,
-  tagging, running `gh release create`, installing the released build locally,
-  and cleaning up. Repo-agnostic; for repo-specific task names check the repo's
-  own release-workflow skill and Taskfile.
+type: Playbook
+title: Release Workflow
+description: Release/publish a Rust core crate or CLI in an xberg-io polyglot repo (crawlberg, html-to-markdown, xberg, tree-sitter-language-pack, liter-llm). Load when releasing or publishing a Rust crate or CLI — cutting a new version, tagging, running `gh release create`, installing the released build locally, and cleaning up. Repo-agnostic; for repo-specific task names check the repo's own release-workflow skill and Taskfile.
+x-ai-rulez:
+  kind: skill
+  id: release-workflow
+  metadata:
+    name: release-workflow
 ---
 
 # Rust Crate / CLI Release Workflow (shared)
@@ -46,6 +46,25 @@ task test             # tests pass
 
 Apply formatting with `poly fmt --fix .` (or `task format`) and re-stage. Fix any
 lint or test failure at its source — do not release past a failure.
+
+If the repo carries a coding-agent plugin with its own version pin
+(`plugin/.ai-rulez/config.plugins.toml` `[plugin].version`, checked by its
+version-sync script), run its `--check` mode here too,
+against the version set in step 1:
+
+```bash
+python3 scripts/sync_plugin_version.py --check   # or the repo's equivalent
+```
+
+Step 1's version task (`version:set` / `version:sync` / `version:bump:*`) already
+chains this sync — but a narrower, similarly-named task (e.g. an `alef:sync` that
+only runs `alef sync-versions`, without the plugin step) is an easy trap, and
+running it instead silently leaves the plugin pin behind. This is not
+hypothetical: it produced a real drift (`[plugin].version` vs `Cargo.toml`) in two
+sibling repos on the same release day. Whatever CI runs post-tag as
+`--expect <version>` to gate `publish.yaml`, run here as `--check` before you tag —
+a gate that can only fire after the tag is cut turns every drift into a full
+re-run of the publish flow.
 
 ## 4. Commit, tag, and publish the GitHub release
 

@@ -1,8 +1,14 @@
 ---
-name: zig-specialist
+type: Reference
+title: Zig Specialist
 description: Zig and C ABI integration development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: zig-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: zig-specialist
 ---
 
 1. Use @cImport with generated C headers; keep Zig wrappers separate from raw extern declarations

@@ -1,8 +1,14 @@
 ---
-name: jni-specialist
+type: Reference
+title: Jni Specialist
 description: JNI and JVM native binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: jni-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: jni-specialist
 ---
 
 1. Keep JNI as glue: validate handles, convert types, call Rust core or C ABI, convert errors

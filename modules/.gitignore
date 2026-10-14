@@ -1,0 +1,13 @@
+# BEGIN ai-rulez (DO NOT EDIT - managed by ai-rulez)
+.agents/skills/
+.opencode/agents/
+.pi/agents/
+.pi/prompts/
+infrastructure/.generated-manifest.json
+infrastructure/local/
+# END ai-rulez
+/core/.generated-manifest.json
+/cicd/.generated-manifest.json
+/languages/.generated-manifest.json
+/infrastructure/.generated-manifest.json
+/e2e-generator/.generated-manifest.json

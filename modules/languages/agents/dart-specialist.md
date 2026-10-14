@@ -1,8 +1,14 @@
 ---
-name: dart-specialist
+type: Reference
+title: Dart Specialist
 description: Dart and Flutter FFI binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: dart-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: dart-specialist
 ---
 
 1. dart:ffi with DynamicLibrary.open/process, NativeCallable only when Dart callbacks are required

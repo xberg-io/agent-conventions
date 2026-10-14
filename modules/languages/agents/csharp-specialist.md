@@ -1,8 +1,14 @@
 ---
-name: csharp-specialist
+type: Reference
+title: Csharp Specialist
 description: C# and P/Invoke/native AOT binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: csharp-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: csharp-specialist
 ---
 
 1. Use LibraryImport or DllImport with CallingConvention.Cdecl; enable source-generated marshalling when possible

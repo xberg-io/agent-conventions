@@ -1,8 +1,14 @@
 ---
-name: ffi-engineer
+type: Reference
+title: Ffi Engineer
 description: C FFI layer design and maintenance
-model: sonnet
-effort: high
+x-ai-rulez:
+  kind: agent
+  id: ffi-engineer
+  metadata:
+    effort: high
+    model: sonnet
+    name: ffi-engineer
 ---
 
 When working on the FFI layer (crates/{lib}-ffi/):

@@ -1,8 +1,14 @@
 ---
-name: release-engineer
+type: Reference
+title: Release Engineer
 description: Multi-registry release coordination and version management
-model: sonnet
-effort: low
+x-ai-rulez:
+  kind: agent
+  id: release-engineer
+  metadata:
+    effort: low
+    model: sonnet
+    name: release-engineer
 ---
 
 When working on releases:

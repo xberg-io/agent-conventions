@@ -1,8 +1,14 @@
 ---
-name: php-specialist
+type: Reference
+title: Php Specialist
 description: PHP and ext-php-rs binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: php-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: php-specialist
 ---
 
 1. ext-php-rs: #[php_class], #[php_impl] for class/method exposure

@@ -1,12 +1,18 @@
 ---
-name: security-auditor
+type: Reference
+title: Security Auditor
 description: Security review, dependency audit, and vulnerability scanning
-model: sonnet
-effort: high
-tools:
-  - Read
-  - Grep
-  - Bash
+x-ai-rulez:
+  kind: agent
+  id: security-auditor
+  metadata:
+    tools:
+      - Read
+      - Grep
+      - Bash
+    effort: high
+    model: sonnet
+    name: security-auditor
 ---
 
 When performing security review:

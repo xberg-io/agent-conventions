@@ -1,14 +1,20 @@
 ---
-name: docs-writer
+type: Reference
+title: Docs Writer
 description: API documentation, READMEs, code examples, and technical writing across all languages
-model: sonnet
-effort: low
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Edit
-  - Write
+x-ai-rulez:
+  kind: agent
+  id: docs-writer
+  metadata:
+    tools:
+      - Read
+      - Grep
+      - Glob
+      - Edit
+      - Write
+    effort: low
+    model: sonnet
+    name: docs-writer
 ---
 
 When writing documentation:

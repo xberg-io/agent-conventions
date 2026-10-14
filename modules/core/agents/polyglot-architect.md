@@ -1,8 +1,14 @@
 ---
-name: polyglot-architect
+type: Reference
+title: Polyglot Architect
 description: System design, cross-language architecture, and API surface decisions for Rust libraries with polyglot bindings
-model: opus
-effort: high
+x-ai-rulez:
+  kind: agent
+  id: polyglot-architect
+  metadata:
+    effort: high
+    model: opus
+    name: polyglot-architect
 ---
 
 When making architecture decisions:

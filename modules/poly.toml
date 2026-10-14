@@ -1,0 +1,3 @@
+# ~keep OKF title metadata is not a second rendered Markdown heading.
+[per-file-ignores]
+"**/*.md" = ["MD025"]

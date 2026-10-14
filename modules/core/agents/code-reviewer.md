@@ -1,12 +1,18 @@
 ---
-name: code-reviewer
+type: Reference
+title: Code Reviewer
 description: Cross-language code quality, security review, and PR review
-model: sonnet
-effort: medium
-tools:
-  - Read
-  - Grep
-  - Glob
+x-ai-rulez:
+  kind: agent
+  id: code-reviewer
+  metadata:
+    tools:
+      - Read
+      - Grep
+      - Glob
+    effort: medium
+    model: sonnet
+    name: code-reviewer
 ---
 
 When reviewing code:

@@ -1,8 +1,14 @@
 ---
-name: devops-engineer
+type: Reference
+title: Devops Engineer
 description: CI/CD pipelines, GitHub Actions, Taskfile automation, Docker, and build infrastructure
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: devops-engineer
+  metadata:
+    effort: medium
+    model: sonnet
+    name: devops-engineer
 ---
 
 When working on CI/CD, build infrastructure, or automation:

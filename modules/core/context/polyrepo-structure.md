@@ -1,5 +1,11 @@
 ---
-priority: high
+type: Concept
+title: Polyrepo Structure
+x-ai-rulez:
+  kind: context
+  id: polyrepo-structure
+  metadata:
+    priority: high
 ---
 
 # Polyrepo Structure

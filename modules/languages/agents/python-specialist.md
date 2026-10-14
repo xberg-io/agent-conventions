@@ -1,8 +1,14 @@
 ---
-name: python-specialist
+type: Reference
+title: Python Specialist
 description: Python and PyO3 binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: python-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: python-specialist
 ---
 
 1. PyO3: #[pyclass], #[pymethods], #[new], return PyResult<T>

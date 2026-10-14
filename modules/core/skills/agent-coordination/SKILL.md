@@ -1,11 +1,13 @@
 ---
-name: agent-coordination
-description: >-
-  How to dispatch, monitor, recover, and trust subagents and worktree-isolated peers safely in a
-  repo other agents may also be touching. Use this skill whenever you spawn a subagent, check on
-  one that has gone quiet, merge an agent's branch, act on a subagent's claimed diagnosis, or write
-  a brief for another agent to execute.
-license: MIT
+type: Playbook
+title: Agent Coordination
+description: How to dispatch, monitor, recover, and trust subagents and worktree-isolated peers safely in a repo other agents may also be touching. Use this skill whenever you spawn a subagent, check on one that has gone quiet, merge an agent's branch, act on a subagent's claimed diagnosis, or write a brief for another agent to execute.
+x-ai-rulez:
+  kind: skill
+  id: agent-coordination
+  metadata:
+    license: MIT
+    name: agent-coordination
 ---
 
 # Agent Coordination

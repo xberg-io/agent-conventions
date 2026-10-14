@@ -1,8 +1,14 @@
 ---
-name: go-specialist
+type: Reference
+title: Go Specialist
 description: Go and cgo FFI development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: go-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: go-specialist
 ---
 
 1. cgo: #include "lib.h", link via #cgo LDFLAGS

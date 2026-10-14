@@ -1,0 +1,15 @@
+name = "public-skills"
+
+[outputs.skills]
+mode = "per_item_file"
+dir = "skills"
+filename = "{id}/SKILL.md"
+resources = true
+
+[outputs.skills.body]
+sections = ["frontmatter", "content", "resource_index"]
+
+[outputs.skills.frontmatter]
+fields = ["description"]
+name_first = true
+quoted_fields = ["description"]

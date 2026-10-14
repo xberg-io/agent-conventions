@@ -1,5 +1,11 @@
 ---
-priority: high
+type: Decision
+title: Extraction Measurement Hygiene
+x-ai-rulez:
+  kind: rule
+  id: extraction-measurement-hygiene
+  metadata:
+    priority: high
 ---
 
 Rules for any A/B or sweep that measures xberg extraction output. Each of these has silently

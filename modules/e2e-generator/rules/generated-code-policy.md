@@ -1,5 +1,11 @@
 ---
-priority: critical
+type: Decision
+title: Generated Code Policy
+x-ai-rulez:
+  kind: rule
+  id: generated-code-policy
+  metadata:
+    priority: critical
 ---
 
 - All files in e2e/ are generated — DO NOT EDIT, they include a generated-code header

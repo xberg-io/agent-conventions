@@ -1,5 +1,11 @@
 ---
-priority: high
+type: Decision
+title: Measurement Discipline
+x-ai-rulez:
+  kind: rule
+  id: measurement-discipline
+  metadata:
+    priority: high
 ---
 
 Quality comparisons decide whether fixes ship. Three errors have each produced a confidently wrong

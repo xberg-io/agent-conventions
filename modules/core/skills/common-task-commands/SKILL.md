@@ -1,6 +1,12 @@
 ---
-name: common-task-commands
+type: Playbook
+title: Common Task Commands
 description: Common Taskfile commands across xberg-io repos — setup, build, test, lint, format, coverage, and bench. Load when running or discovering task commands, or unsure which task drives a build/test/lint step.
+x-ai-rulez:
+  kind: skill
+  id: common-task-commands
+  metadata:
+    name: common-task-commands
 ---
 
 # Common Task Commands

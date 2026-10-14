@@ -1,5 +1,11 @@
 ---
-priority: critical
+type: Decision
+title: Targeted Verification
+x-ai-rulez:
+  kind: rule
+  id: targeted-verification
+  metadata:
+    priority: critical
 ---
 
 Verify assumptions before acting by checking the current branch, working directory, and relevant files. Write or

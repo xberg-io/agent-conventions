@@ -1,5 +1,11 @@
 ---
-priority: critical
+type: Decision
+title: Commit Procedure
+x-ai-rulez:
+  kind: rule
+  id: commit-procedure
+  metadata:
+    priority: critical
 ---
 
 Commit procedure is lightweight by default.

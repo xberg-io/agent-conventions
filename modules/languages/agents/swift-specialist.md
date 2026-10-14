@@ -1,8 +1,14 @@
 ---
-name: swift-specialist
+type: Reference
+title: Swift Specialist
 description: Swift and C FFI binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: swift-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: swift-specialist
 ---
 
 1. Import generated C headers through a module map or SwiftPM system library target

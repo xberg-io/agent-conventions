@@ -1,11 +1,13 @@
 ---
-name: scoop-distribution
-description: >-
-  Maintain the Windows Scoop release channel: the per-repo manifest template and config, the
-  publish-scoop-manifest job, and the shared xberg-io/scoop-bucket. Use this skill when editing
-  anything under scripts/publish/*.json.tmpl or scripts/publish/scoop.json, when adding a CLI to
-  the bucket, or when a Scoop install fails after a release.
-license: MIT
+type: Playbook
+title: Scoop Distribution
+description: 'Maintain the Windows Scoop release channel: the per-repo manifest template and config, the publish-scoop-manifest job, and the shared xberg-io/scoop-bucket. Use this skill when editing anything under scripts/publish/*.json.tmpl or scripts/publish/scoop.json, when adding a CLI to the bucket, or when a Scoop install fails after a release.'
+x-ai-rulez:
+  kind: skill
+  id: scoop-distribution
+  metadata:
+    license: MIT
+    name: scoop-distribution
 ---
 
 # Scoop Distribution
@@ -17,6 +19,8 @@ release of the owning repo overwrites it wholesale.
 
 Per repo:
 
+<!-- ~keep The example manifest is supplied by the consuming product repository. -->
+<!-- ai-rulez-lint-ignore: AR402 ~keep -->
 - `scripts/publish/scoop.json` — which manifests to render, and which release asset each SHA
   placeholder binds to
 - `scripts/publish/<app>.json.tmpl` — the manifest template

@@ -9,11 +9,13 @@ repos generate local AGENTS.md from these sources.
 
 - **Agents** (7): code-reviewer, polyglot-architect, rust-core-engineer, ffi-engineer, docs-writer,
   security-auditor, performance-engineer
-- **Rules** (8): atomic-commits, branch-hygiene, commit-messages, commit-procedure, safe-git-operations,
-  tdd-workflow, test-alongside-code, verify-before-acting
+- **Rules** (13): atomic-commits, branch-hygiene, comment-discipline, commit-messages, commit-procedure,
+  extraction-measurement-hygiene, logging-tracing, measurement-discipline, partner-corpus-handling,
+  prove-the-check-fired, safe-git-operations, targeted-verification, tracing-product-surface
 - **Context** (1): polyrepo-structure
-- **Skills** (8): common-task-commands, quick-start, alef-workflow, basemind-tools, binding-architecture,
-  poly-lint-format, taskfile-structure, xberg-brand-and-docs
+- **Skills** (12): agent-coordination, alef-workflow, basemind-tools, binding-architecture,
+  common-task-commands, feature-flag-conventions, poly-lint-format, quick-start, release-workflow,
+  taskfile-structure, tracing-conventions, xberg-brand-and-docs
 
 ### `modules/languages` — Repos with language bindings
 
@@ -23,7 +25,7 @@ repos generate local AGENTS.md from these sources.
 ### `modules/cicd` — Most repos need this
 
 - **Agents** (2): release-engineer, devops-engineer
-- **Skills** (2): cicd-pipeline-standards, gh-workflows
+- **Skills** (4): cicd-pipeline-standards, consumer-release-gates, gh-workflows, scoop-distribution
 
 ### `modules/e2e-generator` — Repos with `tools/e2e-generator/`
 
@@ -37,23 +39,62 @@ repos generate local AGENTS.md from these sources.
 
 ## Usage
 
-```yaml
-includes:
-  - name: xberg-core
-    source: https://github.com/xberg-io/agent-conventions.git
-    path: modules/core
-    merge_strategy: local-override
-  - name: xberg-languages
-    source: https://github.com/xberg-io/agent-conventions.git
-    path: modules/languages
-    merge_strategy: local-override
-  - name: xberg-cicd
-    source: https://github.com/xberg-io/agent-conventions.git
-    path: modules/cicd
-    merge_strategy: local-override
+```toml
+version = "5.0"
+name = "your-project"
+presets = ["claude", "codex", "opencode", "pi"]
+default_layers = ["plugins"]
+
+[[includes]]
+name = "xberg-core"
+source = "https://github.com/xberg-io/agent-conventions.git"
+path = "modules/core"
+merge_strategy = "local-override"
+
+[[includes]]
+name = "xberg-languages"
+source = "https://github.com/xberg-io/agent-conventions.git"
+path = "modules/languages"
+merge_strategy = "local-override"
+
+[[includes]]
+name = "xberg-cicd"
+source = "https://github.com/xberg-io/agent-conventions.git"
+path = "modules/cicd"
+merge_strategy = "local-override"
 ```
 
-Run `ai-rulez generate` from each consumer repo after updating include pins or local rule sources.
+Put the example in `.ai-rulez/config.toml`. Put marketplace and plugin declarations in
+`.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
+your repository uses. Use the reviewed ai-rulez CLI, based on 5.2.1 and pinned by source revision in `poly.toml`,
+to validate and regenerate after editing sources:
+
+```sh
+ai-rulez validate --no-local
+ai-rulez generate --no-local --strict-config
+task governance:check
+```
+
+Consumers generate local harness files from these modules. Product plugin content is maintained
+separately under each product's `plugin/.ai-rulez/`; its public `skills/` export contains product
+integration instructions. It does not expose this repository's internal contributor conventions.
+Reviewed Poly hooks validate staged source configuration; `task governance:check` checks the
+materialized local output. See [CONTRIBUTING.md](CONTRIBUTING.md) for editing and hook setup.
+
+## Installable skills
+
+The public [`skills/`](skills/) directory contains 29 Agent Skills: 23 maintained in these modules
+and six built-in governance skills. A native ai-rulez provider projects their consumer frontmatter
+and supporting resources; edit the source modules and run `task skills:generate`, then
+`task skills:check`. The generated export is committed and checked in CI.
+
+```sh
+npx skills add xberg-io/agent-conventions --skill release-workflow
+```
+
+For Codex, a skill can also be copied into your project’s `.agents/skills/` or your user skills
+directory. These skills describe repository development and release conventions; product SDK
+skills live in each product repository.
 
 ## Consumer Configurations
 

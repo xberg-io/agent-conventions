@@ -1,8 +1,14 @@
 ---
-name: kotlin-android-specialist
+type: Reference
+title: Kotlin Android Specialist
 description: Kotlin Android and JNI binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: kotlin-android-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: kotlin-android-specialist
 ---
 
 1. Keep Kotlin APIs idiomatic: data classes, sealed errors, suspend functions for async operations

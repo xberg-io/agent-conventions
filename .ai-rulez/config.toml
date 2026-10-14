@@ -1,17 +1,21 @@
-version = "4.0"
+version = "5.0"
 name = "agent-conventions"
 description = "Shared agent-conventions modules for xberg.io polyglot projects"
 gitignore = true
+gitignore_exclude = [".ai-rulez/.generated-manifest.json", "skills/"]
 
-presets = ["claude", "codex"]
+presets = [
+  "claude",
+  "codex",
+  "opencode",
+  "pi",
+  { name = "public-skills", provider = ".ai-rulez/providers/public-skills.toml" },
+]
 
 builtins = ["!git-workflow", "!testing", "code-quality", "security", "token-efficiency", "default-commands"]
 
 compact = true
-[[marketplaces]]
-name = "basemind"
-source = "Goldziher/basemind"
-type = "github"
+default_layers = ["plugins"]
 
 [[mcp_servers]]
 name = "github"
@@ -27,13 +31,38 @@ GITHUB_PERSONAL_ACCESS_TOKEN = "${GITHUB_TOKEN}"
 [[mcp_servers]]
 name = "ai-rulez"
 description = "AI-Rulez MCP server for configuration management"
-command = "npx"
-args = ["-y", "ai-rulez@latest", "mcp"]
+command = "ai-rulez"
+args = ["mcp"]
 transport = "stdio"
 enabled = true
 
-[[plugins]]
-marketplace = "basemind"
-name = "basemind"
-scope = "project"
-enabled = true
+[mcp]
+self_server = false
+
+[lock]
+include_outputs = false
+
+[[includes]]
+name = "public-core"
+source = "modules/core"
+include = ["skills"]
+
+[[includes]]
+name = "public-cicd"
+source = "modules/cicd"
+include = ["skills"]
+
+[[includes]]
+name = "public-languages"
+source = "modules/languages"
+include = ["skills"]
+
+[[includes]]
+name = "public-infrastructure"
+source = "modules/infrastructure"
+include = ["skills"]
+
+[[includes]]
+name = "public-e2e-generator"
+source = "modules/e2e-generator"
+include = ["skills"]

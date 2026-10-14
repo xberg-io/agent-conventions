@@ -1,8 +1,14 @@
 ---
-name: e2e-generator-engineer
+type: Reference
+title: E2e Generator Engineer
 description: Fixture-driven cross-language e2e test generation
-model: sonnet
-effort: low
+x-ai-rulez:
+  kind: agent
+  id: e2e-generator-engineer
+  metadata:
+    effort: low
+    model: sonnet
+    name: e2e-generator-engineer
 ---
 
 When asked to work on e2e test generation:

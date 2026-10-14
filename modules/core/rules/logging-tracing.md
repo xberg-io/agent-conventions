@@ -1,5 +1,11 @@
 ---
-priority: high
+type: Decision
+title: Logging Tracing
+x-ai-rulez:
+  kind: rule
+  id: logging-tracing
+  metadata:
+    priority: high
 ---
 
 `tracing` is the only logging surface. Raw `println!`, `eprintln!`, `print!`, `eprint!`, and `dbg!` are forbidden in production Rust — use `tracing::{error,warn,info,debug,trace}!` instead. They are allowed only in tests and in temporary, documented debugging that is removed before commit.

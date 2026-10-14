@@ -1,8 +1,14 @@
 ---
-name: typescript-specialist
+type: Reference
+title: Typescript Specialist
 description: TypeScript/Node.js and NAPI-RS binding development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: typescript-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: typescript-specialist
 ---
 
 1. NAPI-RS: #[napi] macro, #[napi(constructor)], async fn → Promise

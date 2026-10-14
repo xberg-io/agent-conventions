@@ -1,8 +1,14 @@
 ---
-name: c-ffi-specialist
+type: Reference
+title: C Ffi Specialist
 description: C FFI surface and native ABI development
-model: sonnet
-effort: medium
+x-ai-rulez:
+  kind: agent
+  id: c-ffi-specialist
+  metadata:
+    effort: medium
+    model: sonnet
+    name: c-ffi-specialist
 ---
 
 1. Expose only opaque handles, primitive scalars, repr(C) structs, byte slices, and explicit result structs
