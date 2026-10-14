@@ -66,7 +66,7 @@ merge_strategy = "local-override"
 
 Put the example in `.ai-rulez/config.toml`. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
-your repository uses. Use ai-rulez 5.3.0, pinned by release version in CI,
+your repository uses. Use the reviewed ai-rulez 5.3.0 source build, pinned by commit in CI,
 to validate and regenerate after editing sources:
 
 ```sh
