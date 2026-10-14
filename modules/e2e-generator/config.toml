@@ -7,3 +7,7 @@ presets = ["claude", "codex", "opencode", "pi"]
 
 [mcp]
 self_server = false
+
+# ~keep Shared task examples describe consumer Taskfiles, not the producer governance tasks.
+[lint.severity]
+AR403 = "off"
