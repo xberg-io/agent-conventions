@@ -7,6 +7,7 @@
 * [common-task-commands](common-task-commands/index.md)
 * [feature-flag-conventions](feature-flag-conventions/index.md)
 * [poly-lint-format](poly-lint-format/index.md)
+* [python-conventions](python-conventions/index.md)
 * [quick-start](quick-start/index.md)
 * [release-workflow](release-workflow/index.md)
 * [taskfile-structure](taskfile-structure/index.md)

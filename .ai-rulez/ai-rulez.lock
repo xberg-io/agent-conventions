@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.3.0'
+ai_rulez_version = '5.6.0'
 scope = 'all'
-tree = 'sha256:b26e3c8cc375a3ee04c55c235d1a35493faca9ebb5cf2c4fafe3d5acdec31988'
+tree = 'sha256:98e15ea3932f67554473cc00144ec82709c6995b6f9531a1ccf8bc94de2f2307'
 
 [[served]]
 name = 'add-language-generator'
@@ -46,13 +46,19 @@ digest = 'sha256:19ec99e9ed91962ed2ae78991ca76687b64d7072ff930419965743f443dae48
 name = 'code-quality-standards'
 source = 'builtin://universal/code-quality/skills/code-quality-standards/SKILL.md'
 commit = ''
-digest = 'sha256:0126cc7c038b3e343ee56866949865dd799bde0de4884ba0bdfeb28655fa8134'
+digest = 'sha256:8e01021ac23e15b01cac75b4ee9c1971a4c57a7d949d390fb4e0b6943f91afe2'
 
 [[served]]
 name = 'common-task-commands'
 source = 'include:public-core/skills/common-task-commands/SKILL.md'
 commit = ''
 digest = 'sha256:383829527b247c8a2afdb87c0823428060a4515ec91f1f8706ecdee9f5b4cd4d'
+
+[[served]]
+name = 'config-placement'
+source = 'builtin://universal/ai-governance/skills/config-placement/SKILL.md'
+commit = ''
+digest = 'sha256:dd198e7e6c233cc4509b95b165f10054849cf77c394d54d1f59045857d88191a'
 
 [[served]]
 name = 'consumer-release-gates'
@@ -148,7 +154,13 @@ digest = 'sha256:2700d984ba10baa2e16ed19b48cc8fd5f7351776f2ce03f6712394d3912f91c
 name = 'poly-lint-format'
 source = 'include:public-core/skills/poly-lint-format/SKILL.md'
 commit = ''
-digest = 'sha256:0745bfb2faba77cbc8ac60ad2079f157c0d16fb17f9b30b9e167ca260502247c'
+digest = 'sha256:8ca1487ade0fae35c823cd6bdf9b8f870299812945327378db9f73a5217b75f6'
+
+[[served]]
+name = 'python-conventions'
+source = 'include:public-core/skills/python-conventions/SKILL.md'
+commit = ''
+digest = 'sha256:99d3a30509f467f242ad60142c3a3005eced0a0d13510f2d0bc8ed312856bad2'
 
 [[served]]
 name = 'quick-start'
@@ -167,6 +179,12 @@ name = 'scoop-distribution'
 source = 'include:public-cicd/skills/scoop-distribution/SKILL.md'
 commit = ''
 digest = 'sha256:dbe8c54b7ec4653bde6ef3bee2c3f9ed068c69e79e7e22389215dd2646ad5d9e'
+
+[[served]]
+name = 'skill-authoring'
+source = 'builtin://universal/ai-governance/skills/skill-authoring/SKILL.md'
+commit = ''
+digest = 'sha256:7ab2b543dc6608f204c957fedfc55ae902d22fda9dc8a52252330ff9b1406ff1'
 
 [[served]]
 name = 'task-runner'
@@ -202,7 +220,7 @@ digest = 'sha256:b58cd33d0dfe16fbcdad61420664fc303af8dddcf8a6f7ad7c86ef4e334cb53
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:7c0edae1416c37c9fc4c55c46de0188bac454944ac69d5e6117a39b8c0825cf0'
+digest = 'sha256:9938aa76472f6c8a89d555634be005831be1082a6b20a73de41be5a0d173043c'
 
 [[item]]
 kind = 'local-include'
@@ -220,7 +238,7 @@ digest = 'sha256:cd2d00a2c910222666db78f9795c1458f7890b2aac1a8501948b8aadf8f7c7f
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:66283f4c7cd6f77ec0273ef9c1c9a2c805ea973a7b5f8d629ee186d226ff4ca2'
+digest = 'sha256:764c8ca88238753d5c550dca24b63ab8c73109ff97399d31358765f3861a08eb'
 
 [[item]]
 kind = 'rule'

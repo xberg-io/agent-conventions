@@ -10,6 +10,7 @@
 * [Measurement Discipline](measurement-discipline.md)
 * [Partner Corpus Handling](partner-corpus-handling.md)
 * [Prove The Check Fired](prove-the-check-fired.md)
+* [Python Type Checking](python-type-checking.md)
 * [Safe Git Operations](safe-git-operations.md)
 * [Targeted Verification](targeted-verification.md)
 * [Tracing Product Surface](tracing-product-surface.md)

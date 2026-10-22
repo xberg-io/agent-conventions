@@ -17,3 +17,5 @@ x-ai-rulez:
 1. Async: pyo3_asyncio::tokio::future_into_py, blocking wrapper for sync callers
 1. Build: maturin develop (local), maturin build --release (dist)
 1. Test: pytest, package: uv + pyproject.toml, distribute on PyPI
+
+1. Type checking: Pyrefly only (`pyrefly check`) in local tasks, generated scaffolds, and CI

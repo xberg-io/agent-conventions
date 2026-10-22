@@ -35,6 +35,10 @@ Poly is a single-binary multi-language linter and formatter. It bundles language
 | **GH Actions** | actionlint |
 | **Helm/K8s** | helm-lint, kubeconform |
 
+## Python type checking
+
+Pyrefly is the organization's only Python static type checker. Use `pyrefly check` in CI, local tasks, and generated scaffolds; keep its configuration and development dependency aligned with the Python package. Ruff handles lint and format.
+
 ## Commands
 
 - Lint: `poly lint .`

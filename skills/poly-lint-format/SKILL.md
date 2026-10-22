@@ -1,7 +1,7 @@
 ---
 name: poly-lint-format
 description: "Reference for poly, the single-binary multi-language linter and formatter — per-language engines, the lint/fmt commands, poly.toml configuration, severity behavior, and the shared CI validation workflow. Load when linting or formatting code, configuring poly.toml, or wiring poly into CI."
-# Content-Hash: blake3:9bae5bd7fb54d4b421b91a45221756ba0c80e2d9e0c36a2eacf2c784e82b1178
+# Content-Hash: blake3:66504cdee7ab222122922325847734a52602ab22ae7c3860788caddc7bf0c9ef
 ---
 
 # Poly
@@ -29,6 +29,10 @@ Poly is a single-binary multi-language linter and formatter. It bundles language
 | **Git** | gitfluff (commit message linting), ai-rulez-generate |
 | **GH Actions** | actionlint |
 | **Helm/K8s** | helm-lint, kubeconform |
+
+## Python type checking
+
+Pyrefly is the organization's only Python static type checker. Use `pyrefly check` in CI, local tasks, and generated scaffolds; keep its configuration and development dependency aligned with the Python package. Ruff handles lint and format.
 
 ## Commands
 
