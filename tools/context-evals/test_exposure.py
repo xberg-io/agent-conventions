@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import exposure
+import probe
 
 DOMAINS = {
     "domain": {"alpha": {"terms": ["alpha-corpus"]}, "beta": {"terms": ["beta"]}},
@@ -80,6 +81,15 @@ class ExposureTest(unittest.TestCase):
         report = exposure.claude(self.repo)
         exposure.check_leaks(self.repo, report, {**DOMAINS, "repos": {}}, [])
         self.assertEqual(report.leaks, [])
+
+    def test_probe_plants_one_distinct_sentinel_per_artifact(self) -> None:
+        write(self.repo, "crates/a/src/lib.rs", "")
+        tokens = probe.plant(self.repo, "crates/a/src/lib.rs")
+        self.assertEqual(len(set(tokens.values())), 5)
+        self.assertTrue(all(probe.SENTINEL.fullmatch(t) for t in tokens.values()))
+        scoped = (self.repo / ".claude/rules/probe-scoped.md").read_text()
+        self.assertIn('"crates/a/src/**"', scoped)
+        self.assertIn(tokens["nested"], (self.repo / "crates/a/src/CLAUDE.md").read_text())
 
 
 if __name__ == "__main__":

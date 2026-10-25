@@ -27,6 +27,21 @@ leak remains, for CI.
 
 Tests: `python3 -m unittest discover tools/context-evals`.
 
+## Probing a real session
+
+`probe.py` calibrates the static numbers against Claude Code itself (issue #3, section 4.1). It copies a consumer
+checkout to a temporary directory, plants a sentinel in the root `CLAUDE.md`, an unscoped and a glob-scoped rule, a
+skill description and a nested `CLAUDE.md`, then runs `claude -p` with a fresh config directory and only project
+settings: once with a trivial prompt (what loads at start, and its token cost) and once after reading a file in the
+scoped directory (what loads on demand). Run it on your own machine with `ANTHROPIC_API_KEY` set, never inside
+another agent session:
+
+```sh
+python3 tools/context-evals/probe.py ../xberg --scoped-file crates/xberg/src/lib.rs --repeats 3 --json probe.json
+```
+
+Record the results with the Claude Code version in `docs/load-mechanics.md`.
+
 ## Baseline
 
 [`baseline-2026-10-25.md`](baseline-2026-10-25.md): every consumer at agent-conventions `2011d3d` (sceptre `adb0caa`),
