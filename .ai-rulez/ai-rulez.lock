@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.6.3'
 scope = 'all'
-tree = 'sha256:f751d9557dcb585874859765f2471dc497ec5cd6820ab9d3f16db831c3cece35'
+tree = 'sha256:781d4b4d101873e04c5629aad8bfadb543ce76464355462db5df4be8a0163bc9'
 
 [[served]]
 name = 'add-language-generator'
@@ -22,7 +22,7 @@ digest = 'sha256:30ea1d640c9a49c62038c7393ca4509b79fe9a864bf93f80650422de835e27f
 name = 'alef-workflow'
 source = 'include:public-core/skills/alef-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:4cdae745139f7fc4f83b0b254385f54b814edad3c1d49431f9f5c16da3a27262'
+digest = 'sha256:b19e7c27b904796b5526bbf06df35f067259a0ee89606de97bcea6c71bcef38d'
 
 [[served]]
 name = 'basemind-tools'
@@ -34,7 +34,7 @@ digest = 'sha256:2fe74c0c9cc8d1e73024cb80c747de336ec01841b78d54133353b255186d33e
 name = 'binding-architecture'
 source = 'include:public-core/skills/binding-architecture/SKILL.md'
 commit = ''
-digest = 'sha256:a7d4236cb1ec53e1bbde23953e45e7641ee605de10a0201cc0198b28c9ca1c29'
+digest = 'sha256:6f2fdbd9135cc10f3f511e5daf3545070a31dd7afd7715621c1bbe02f8b338ad'
 
 [[served]]
 name = 'cicd-pipeline-standards'
@@ -178,7 +178,7 @@ digest = 'sha256:9f3cadda648798b049869c463d7a69f6f7b5953bcad2a43ea02e645d1ec3e19
 name = 'taskfile-structure'
 source = 'include:public-core/skills/taskfile-structure/SKILL.md'
 commit = ''
-digest = 'sha256:525322f0a6bbb1e91c78a9287bd6d965815d7ef184df5eb924fc921d48b07a85'
+digest = 'sha256:af754c1d0b31ec1c9e8a68f1c67d9a2c63afb24b49bd82c3f7b66d6f1d78ca05'
 
 [[served]]
 name = 'tracing-conventions'
@@ -202,7 +202,7 @@ digest = 'sha256:f23ee5dd7f848991d196fdf930dc8bdd917243bcbeac7d7b3b6c654ed50dcd1
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:e9cf8777c5e04cf409292ab200383b2ff78b53c14b3904f17f8a020acfa34186'
+digest = 'sha256:3dadea73a17aea206f977215aa1821d72a28c08d0d7ab124cbe93ea733f7af84'
 
 [[item]]
 kind = 'local-include'

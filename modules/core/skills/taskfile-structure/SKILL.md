@@ -1,7 +1,7 @@
 ---
 type: Playbook
 title: Taskfile Structure
-description: "Taskfile conventions: task discovery, common and language tasks, build profiles, alef and e2e task families, setup, lock files. Use when running, adding or choosing task commands, or setting up a repo."
+description: "Taskfile conventions: task discovery, common and per-language tasks, build profiles, code-generation and e2e task families, setup, lock files. Use when running, adding or choosing task commands, or setting up a repo."
 x-ai-rulez:
   kind: skill
   id: taskfile-structure

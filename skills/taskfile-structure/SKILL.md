@@ -1,6 +1,6 @@
 ---
 name: taskfile-structure
-description: "Taskfile conventions: task discovery, common and language tasks, build profiles, alef and e2e task families, setup, lock files. Use when running, adding or choosing task commands, or setting up a repo."
+description: "Taskfile conventions: task discovery, common and per-language tasks, build profiles, code-generation and e2e task families, setup, lock files. Use when running, adding or choosing task commands, or setting up a repo."
 # Content-Hash: blake3:7d8946af7d6e3d7f188aac7f13d78f2deb46d11539a9e23388c8c5bab2beba5a
 ---
 

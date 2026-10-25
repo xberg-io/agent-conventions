@@ -2,6 +2,15 @@
 type: Playbook
 title: Alef Workflow
 description: How to work with Alef-generated binding files and the task commands that regenerate, build, format, and verify them. Load when editing bindings, running task alef:*, or regenerating generated packages/e2e suites.
+paths:
+  - "alef.toml"
+  - "crates/*-ffi/**"
+  - "crates/*-py/**"
+  - "crates/*-node/**"
+  - "crates/*-php/**"
+  - "crates/*-jni/**"
+  - "crates/*-wasm/**"
+  - "packages/**"
 x-ai-rulez:
   kind: skill
   id: alef-workflow
