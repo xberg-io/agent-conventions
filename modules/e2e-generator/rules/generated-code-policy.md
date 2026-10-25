@@ -1,6 +1,9 @@
 ---
 type: Decision
 title: Generated Code Policy
+paths:
+  - "e2e/**"
+  - "fixtures/**"
 x-ai-rulez:
   kind: rule
   id: generated-code-policy

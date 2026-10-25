@@ -5,13 +5,9 @@ x-ai-rulez:
   kind: rule
   id: commit-procedure
   metadata:
-    priority: critical
+    priority: high
 ---
 
-Commit procedure is lightweight by default.
-
-- Do not run `cargo check`, `cargo test`, or the full test suite as mandatory commit steps.
-- Run `poly lint .` (and `poly fmt --check .`) before committing. Re-stage files if hooks rewrite them.
-- Run targeted verification when it is relevant to the change, requested by the user, or required by a release procedure.
-- Do not run `git pull --rebase`, `git rebase`, or `git merge` after committing unless the user explicitly asks for it.
-- Before pushing, check remote freshness with `git fetch` and inspect divergence. If the branch has diverged, ask the user how to reconcile it.
+- Before committing, run `poly lint .` and `poly fmt --check .`; re-stage files a hook rewrote. A full build or test suite is not a commit step unless the user or a release procedure asks for it.
+- Do not rebase or merge after committing unless the user asks. Before pushing, `git fetch` and inspect divergence; if the branch has diverged, ask how to reconcile.
+- Use descriptive branch names; keep branches short-lived.

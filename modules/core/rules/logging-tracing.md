@@ -1,6 +1,9 @@
 ---
 type: Decision
-title: Logging Tracing
+title: Logging and Tracing
+paths:
+  - "**/*.rs"
+  - "**/Cargo.toml"
 x-ai-rulez:
   kind: rule
   id: logging-tracing
@@ -8,11 +11,8 @@ x-ai-rulez:
     priority: high
 ---
 
-`tracing` is the only logging surface. Raw `println!`, `eprintln!`, `print!`, `eprint!`, and `dbg!` are forbidden in production Rust — use `tracing::{error,warn,info,debug,trace}!` instead. They are allowed only in tests and in temporary, documented debugging that is removed before commit.
-
-Two exemptions are not debugging and opt back in locally, each with a one-line justification:
-
-- A CLI's actual machine-readable **result** output to stdout: keep the write and add `#[expect(clippy::print_stdout)]` (or `print_stderr`) at the call or module, with a `reason`. An interactive prompt a user must see without a subscriber installed is likewise legitimate output, not a diagnostic.
-- Build-script `cargo:` directives (`println!` in `build.rs`) are exempt natively.
-
-Enforcement is per-repo clippy config: `[workspace.lints.clippy]` (or `[lints.clippy]` for single-crate repos) sets `print_stdout`, `print_stderr`, and `dbg_macro` to `deny`. Each member crate must opt in via `[lints]\nworkspace = true`, or the deny is inert. Test and integration-test files that print carry a top-of-file `#![allow(clippy::print_stdout, clippy::print_stderr, clippy::dbg_macro)]` (integration tests are separate crates and do not inherit a library's crate-root allow).
+- `tracing` is the only logging surface. `println!`, `eprintln!`, `print!`, `eprint!` and `dbg!` are denied in production code (clippy `print_stdout`, `print_stderr`, `dbg_macro` set to `deny` in `[workspace.lints.clippy]`, and every member crate opts in with `[lints] workspace = true`).
+- Exempt: a CLI's machine-readable result on stdout or an interactive prompt (`#[expect(clippy::print_stdout, reason = "...")]`), and `cargo:` directives in `build.rs`. Test files that print carry a file-level `#![allow(...)]`.
+- Libraries emit spans and events always-on and never install a subscriber; CLIs and services install it (OTLP behind the `otel` feature).
+- Levels: `ERROR` unrecoverable or data loss, `WARN` degraded but continuing, `INFO` sparse state changes, `DEBUG` flow detail, `TRACE` per item.
+- Span names, targets and field keys are public API: choose them deliberately and keep them stable. `#[tracing::instrument]` on public entry points with `skip`/`skip_all` for large arguments. Details: the `tracing-conventions` skill.

@@ -8,4 +8,4 @@ x-ai-rulez:
     priority: high
 ---
 
-Use conventional commits: `feat: add user auth`, `fix: handle null input`, `chore: update deps`, `refactor: extract parser`, `docs: add API guide`, `test: cover edge case`. First line under 72 characters, imperative mood. Add a scope when useful, such as `fix(api): handle empty input`.
+One logical change per commit; never mix unrelated changes. Conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`) with an optional scope (`fix(api): handle empty input`). First line under 72 characters, imperative mood; the body says why.

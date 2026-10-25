@@ -1,16 +1,9 @@
 # Concepts
 
-* [Atomic Commits](atomic-commits.md)
-* [Branch Hygiene](branch-hygiene.md)
 * [Comment Discipline](comment-discipline.md)
 * [Commit Messages](commit-messages.md)
 * [Commit Procedure](commit-procedure.md)
-* [Extraction Measurement Hygiene](extraction-measurement-hygiene.md)
-* [Logging Tracing](logging-tracing.md)
-* [Measurement Discipline](measurement-discipline.md)
-* [Partner Corpus Handling](partner-corpus-handling.md)
+* [Logging and Tracing](logging-tracing.md)
 * [Prove The Check Fired](prove-the-check-fired.md)
-* [Python Type Checking](python-type-checking.md)
 * [Safe Git Operations](safe-git-operations.md)
 * [Targeted Verification](targeted-verification.md)
-* [Tracing Product Surface](tracing-product-surface.md)

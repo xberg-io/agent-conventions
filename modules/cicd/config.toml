@@ -10,4 +10,6 @@ self_server = false
 
 # ~keep Shared task examples describe consumer Taskfiles, not the producer governance tasks.
 [lint.severity]
+# ~keep Shared globs target consumer layouts (crates/*-py, packages/<lang>, e2e/); they match in the consumers, not here.
+AR101 = "off"
 AR403 = "off"
