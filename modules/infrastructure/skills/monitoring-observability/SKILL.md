@@ -1,7 +1,7 @@
 ---
 type: Playbook
 title: Monitoring Observability
-description: Observability conventions for xberg-io services — structured JSON logging, tracing spans and context fields, log-level semantics, Prometheus metric types and cardinality rules, and health endpoints wired to K8s probes. Load when adding logging, tracing, metrics, or health checks to a service.
+description: "Service observability: structured JSON logs, tracing context, Prometheus metric types and cardinality, health endpoints wired to probes. Use when adding logs, metrics or health checks to a service."
 x-ai-rulez:
   kind: skill
   id: monitoring-observability

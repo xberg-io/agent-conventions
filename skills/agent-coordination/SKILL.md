@@ -1,6 +1,6 @@
 ---
 name: agent-coordination
-description: "How to dispatch, monitor, recover, and trust subagents and worktree-isolated peers safely in a repo other agents may also be touching. Use this skill whenever you spawn a subagent, check on one that has gone quiet, merge an agent's branch, act on a subagent's claimed diagnosis, or write a brief for another agent to execute."
+description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
 # Content-Hash: blake3:44cf48e367b5d69be5c1631f94aa4126d18082ab510422a67f4734fa85ae0732
 ---
 

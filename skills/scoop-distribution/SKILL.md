@@ -1,6 +1,6 @@
 ---
 name: scoop-distribution
-description: "Maintain the Windows Scoop release channel: the per-repo manifest template and config, the publish-scoop-manifest job, and the shared xberg-io/scoop-bucket. Use this skill when editing anything under scripts/publish/*.json.tmpl or scripts/publish/scoop.json, when adding a CLI to the bucket, or when a Scoop install fails after a release."
+description: "Windows Scoop channel: manifest templates in scripts/publish, the publish-scoop-manifest job, the shared scoop-bucket. Use when editing Scoop manifests, adding a CLI to the bucket, or debugging a Scoop install."
 # Content-Hash: blake3:3aad612c9c568cd24b7c90cf438607ab59978c5ae5ce59f63150e1d22c9afab6
 ---
 

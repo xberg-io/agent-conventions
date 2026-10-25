@@ -1,6 +1,6 @@
 ---
 name: basemind-tools
-description: "How to use basemind's MCP tools and CLI for structural and historical code questions instead of grep, file reads, and naked git. Load when navigating the codebase, finding definitions or call sites, exploring git history, or coordinating with other agents in the repo."
+description: "basemind MCP tools and CLI for code structure, references and git history instead of grep and raw git, plus agent coordination. Use when navigating code or history in a repo where basemind is available."
 # Content-Hash: blake3:8fc1c8394ff373583f8b3c227c6b9df7133af797849f689732e1864efb1180e0
 ---
 

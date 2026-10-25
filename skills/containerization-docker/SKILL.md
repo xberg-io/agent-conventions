@@ -1,6 +1,6 @@
 ---
 name: containerization-docker
-description: "Docker image conventions for xberg-io services — multi-stage builds, layer caching, security hardening (non-root, vulnerability scanning, no baked secrets), signal handling and healthchecks, and tagging. Load when writing or editing Dockerfiles, container build pipelines, or image release tagging."
+description: "Dockerfile conventions: multi-stage builds, layer caching, non-root, image scanning, no baked secrets, signals and healthchecks, tagging. Use when writing Dockerfiles or container build pipelines."
 # Content-Hash: blake3:c0e0710fc69f004c55ff1a4ca553a83d9f24e337dfa2ea5de904e93111617eb4
 ---
 

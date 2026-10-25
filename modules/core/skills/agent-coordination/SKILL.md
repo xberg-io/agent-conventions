@@ -1,7 +1,7 @@
 ---
 type: Playbook
 title: Agent Coordination
-description: How to dispatch, monitor, recover, and trust subagents and worktree-isolated peers safely in a repo other agents may also be touching. Use this skill whenever you spawn a subagent, check on one that has gone quiet, merge an agent's branch, act on a subagent's claimed diagnosis, or write a brief for another agent to execute.
+description: Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent.
 x-ai-rulez:
   kind: skill
   id: agent-coordination

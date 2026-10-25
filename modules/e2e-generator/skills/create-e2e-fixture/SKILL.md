@@ -2,6 +2,9 @@
 type: Playbook
 title: Create E2e Fixture
 description: How to author a new e2e test fixture for cross-language test generation — fixture fields, assertion types, and id conventions. Load when adding or editing e2e fixtures consumed by the generator.
+paths:
+  - "fixtures/**"
+  - "e2e/**"
 x-ai-rulez:
   kind: skill
   id: create-e2e-fixture

@@ -1,6 +1,6 @@
 ---
 name: fixture-schema-design
-description: "Schema for e2e test fixtures — required fields, the supported assertion types, skip conditions, id uniqueness rules, and how fixture files are organized by category. Load when authoring or editing e2e fixtures, choosing assertion types, or structuring fixture files."
+description: "Schema for e2e fixtures: required fields, assertion types, skip conditions, id uniqueness, file organization. Use when authoring or restructuring e2e fixture files."
 # Content-Hash: blake3:26c50c6d55998da38169484cccfba7ddf7aad5d8c2abb85191629403f03142f5
 ---
 

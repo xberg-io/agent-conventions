@@ -1,7 +1,10 @@
 ---
 type: Playbook
 title: Tracing Conventions
-description: The canonical contract for tracing as a first-class product observability surface across xberg-io Rust libraries and services — level semantics, span/field naming, instrumentation patterns, and how xberg-enterprise consumes library spans over OTLP. Load when adding or reviewing tracing instrumentation, designing spans/events, wiring a subscriber, or reconciling observability features.
+description: "Rust tracing contract: level semantics, span and field naming, emit-vs-install, instrumentation checklist. Use when adding spans or events, wiring a subscriber, or reviewing instrumentation."
+paths:
+  - "**/*.rs"
+  - "**/Cargo.toml"
 x-ai-rulez:
   kind: skill
   id: tracing-conventions
@@ -11,11 +14,9 @@ x-ai-rulez:
 
 # Tracing conventions
 
-`tracing` is the single logging surface and a **user-facing product feature**. Libraries emit spans and events always-on; consumers (CLIs, services, `xberg-enterprise`) install the subscriber and export. This skill is the canonical contract referenced by the `logging-tracing` and `tracing-product-surface` rules.
+`tracing` is the single logging surface and a **user-facing product feature**. Libraries emit spans and events always-on; consumers (CLIs, services) install the subscriber and export. This skill is the full contract behind the Rust logging rule.
 
 ## Level semantics (authoritative)
-
-Hoisted from `xberg-enterprise/crates/observability/src/telemetry.rs`:
 
 | Level | Meaning |
 |-------|---------|
@@ -31,7 +32,7 @@ Hoisted from `xberg-enterprise/crates/observability/src/telemetry.rs`:
 
 - **Libraries emit only.** Never call `tracing_subscriber::*` or install a global subscriber in a library — that steals the choice from the consumer and breaks composition. Add `tracing` as a **non-optional** dependency; spans compile to near-zero cost when no subscriber is attached.
 - **CLIs and services install.** Initialize `tracing-subscriber` (env-filtered, stderr) once in `main`. The OTLP/OpenTelemetry export layer lives behind the `otel` feature (see the `feature-flag-conventions` skill), on top of the always-on `tracing`.
-- **`xberg-enterprise`** is the reference consumer: `init_telemetry` wires the fmt layer, the OTLP tracer/metrics providers (when `OTEL_EXPORTER_OTLP_ENDPOINT` is set), a `GoldenSignalsLayer`, HTTP context propagation, and a panic hook that routes panics through `tracing::error!` with a forced backtrace. Library spans surface through this stack automatically once the library emits them.
+- A service's telemetry init wires the fmt layer, OTLP tracer and metrics providers (when `OTEL_EXPORTER_OTLP_ENDPOINT` is set), context propagation, and a panic hook that logs through `tracing::error!`. Library spans surface through it once the library emits them.
 
 ## Span and field naming (semver-relevant)
 

@@ -1,6 +1,6 @@
 ---
 name: xberg-brand-and-docs
-description: "Canonical xberg.io brand, product catalog, docs-site (Astro Starlight + @xberg-io/docs-theme), alef badge, docs task commands, prose style, Google Analytics IDs, brand assets, and README-template policy. Load when writing READMEs or docs, editing docs-site config, adding the ecosystem block or alef badge, or touching brand/analytics wiring."
+description: "xberg.io brand, product catalog, docs site (Astro Starlight, @xberg-io/docs-theme), README template, badges, analytics IDs. Use when writing READMEs or docs, or editing docs-site config."
 # Content-Hash: blake3:1dd67e54aa8238cf3ca224f017a47293fcafdcfdab299a9491c9135cf99614cb
 ---
 

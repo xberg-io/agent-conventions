@@ -1,6 +1,6 @@
 ---
 name: gh-workflows
-description: "Conventions for using the gh CLI to manage PRs, issues, CI runs, and releases — squash merges, issue linking, monitoring and reruns, generated release notes. Load when creating or merging PRs, filing issues, monitoring/rerunning CI, or cutting a GitHub release."
+description: "gh CLI conventions for PRs, issues, CI runs and releases: squash merges, issue links, monitoring and reruns, generated release notes. Use when opening or merging PRs, filing issues or watching CI."
 # Content-Hash: blake3:c4149f5792535d49a84d0dd488ef1f659d3325c19b6a1901df24c1c5bdff4889
 ---
 

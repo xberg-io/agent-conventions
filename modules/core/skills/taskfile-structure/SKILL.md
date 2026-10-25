@@ -1,7 +1,7 @@
 ---
 type: Playbook
 title: Taskfile Structure
-description: Standard Taskfile conventions across xberg-io repos — task discovery, common and language-scoped tasks, build profiles, the alef and e2e task families, lock-file discipline. Load when running or adding tasks, choosing between task commands, or deciding how to build/test/regenerate a repo.
+description: "Taskfile conventions: task discovery, common and language tasks, build profiles, alef and e2e task families, setup, lock files. Use when running, adding or choosing task commands, or setting up a repo."
 x-ai-rulez:
   kind: skill
   id: taskfile-structure
@@ -16,10 +16,9 @@ All repos use [Taskfile.yaml](https://taskfile.dev) with the `task` CLI. Always 
 - **Discovery:** `task --list` shows all available tasks
 - **Common tasks:** `task setup`, `task build`, `task test`, `task lint`, `task format`, `task cov:all`, and a repo-specific benchmark task (e.g. `benchmark:run`, `bench:run`, `rust:bench` — check `task --list`)
 - **Language-scoped:** namespaced per language, but the set is NOT uniform -- only some
-  languages expose a given verb. In xberg, `task rust:test`, `task swift:test`,
-  `task dart:test` and `task zig:test` exist while `python:test`/`node:test` do not
-  (those run under `task test:bindings`, which drives them via alef). Check
-  `task --list` rather than assuming `<lang>:<verb>` resolves.
+  languages expose a given verb (for example `rust:test` and `swift:test` exist
+  while Python and Node tests run under `task test:bindings`, driven by alef).
+  Check `task --list` rather than assuming `<lang>:<verb>` resolves.
 - **Core build:** `task build` is core-only. Use `task build:bindings` for language bindings and `task build:all` for core plus bindings.
 - **Build profiles:** `BUILD_PROFILE` supports dev/release/ci variants — `BUILD_PROFILE=release task build`, `task build:release`, or matching explicit binding/all variants.
 - **Alef regeneration:** `task alef:generate` runs `alef all --clean`; it regenerates Alef-managed files without compiling bindings. Formatting is handled solely by poly (`task format` / `poly fmt --fix .`) — there is no separate Alef formatting task.
@@ -28,3 +27,6 @@ All repos use [Taskfile.yaml](https://taskfile.dev) with the `task` CLI. Always 
 - **E2E tasks:** repos with generated e2e suites expose `task e2e:generate`, `task e2e:build`, `task e2e:test`, and `task e2e:all`. Do not add legacy aliases.
 - **Lock files:** always commit lock files (uv.lock, pnpm-lock.yaml, go.sum, Cargo.lock, composer.lock) for reproducible builds.
 - **Discipline:** never use manual commands instead of `task`, never hardcode paths, never skip lock-file commits.
+- **Coverage:** `task cov:rust`, `task cov:all`. **Maintenance:** `task update`, `task clean`, `task versions:sync`.
+- **Before committing:** `poly fmt --fix .` and `poly lint .` (or `task format` / `task lint`); never `--no-verify`.
+- **Toolchain:** Rust stable, Python 3.10+ with uv, Node with pnpm, plus `task` and `poly`; per-language toolchains only for the bindings you touch. `task setup` installs the rest.

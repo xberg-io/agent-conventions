@@ -1,6 +1,6 @@
 ---
 name: gcloud-conventions
-description: "Google Cloud conventions for xberg-io — project and region, the standard service set, resource naming, workload identity federation over service account keys, least-privilege IAM, and gcloud-CLI-only operations. Load when provisioning or configuring GCP resources, naming services/buckets, or setting up auth and IAM."
+description: "Google Cloud conventions: project and region, service set, resource naming, workload identity federation, least-privilege IAM, gcloud-only operations. Use when provisioning GCP resources or setting up auth."
 # Content-Hash: blake3:f2e9fd6957316ff2ef19d1bf3c0737a96eed2002d28e9554837b2f2d082cd4c7
 ---
 

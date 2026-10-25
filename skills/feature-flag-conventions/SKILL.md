@@ -1,6 +1,6 @@
 ---
 name: feature-flag-conventions
-description: "The shared Cargo feature-flag naming and semantics contract across xberg-io Rust libraries — the same flag names mean the same thing everywhere (otel, mcp/mcp-http, mimalloc/jemalloc, acceleration). Load when adding, renaming, or reviewing a crate's [features], or reconciling a library's flags with the rest of the stack."
+description: "Shared Cargo feature-flag names and semantics across the Rust libraries (otel, mcp, mcp-http, mimalloc, jemalloc, acceleration). Use when adding, renaming or reviewing a crate's [features]."
 # Content-Hash: blake3:9bc2024b7a9918a97ffdff9c7d0312b6c8364de6919eef6ccea0b1109d62b964
 ---
 
