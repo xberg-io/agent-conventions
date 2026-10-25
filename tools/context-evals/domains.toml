@@ -1,0 +1,112 @@
+# Organisation taxonomy for the context harness (issue #3, section 5.1).
+#
+# [domain.<name>]: one domain per product repo plus cross-cutting domains. `terms` are words that
+# identify the domain; an always-visible artifact in a repo that does not own the domain must not use
+# them. [repos.<name>].domains lists the domains a consumer owns. [[accept]] records a reasoned
+# exception: every entry needs a `reason`.
+
+[domain.xberg]
+owner = "@xberg-io/xberg"
+paths = ["xberg/"]
+terms = [
+  "xberg",
+  "partner corpus",
+  "partner-corpus",
+  "extraction benchmark",
+  "ground truth",
+  "OCR",
+  "Pdfium",
+  "hOCR",
+  "test_documents",
+]
+
+[domain.crawlberg]
+owner = "@xberg-io/crawlberg"
+paths = ["crawlberg/"]
+terms = ["crawlberg", "crawler", "web_crawl"]
+
+[domain.html-to-markdown]
+owner = "@xberg-io/html-to-markdown"
+paths = ["html-to-markdown/"]
+terms = ["html-to-markdown"]
+
+[domain.liter-llm]
+owner = "@xberg-io/liter-llm"
+paths = ["liter-llm/"]
+terms = ["liter-llm"]
+
+[domain.tree-sitter-language-pack]
+owner = "@xberg-io/tree-sitter-language-pack"
+paths = ["tree-sitter-language-pack/"]
+terms = ["tree-sitter-language-pack"]
+
+[domain.sceptre]
+owner = "@xberg-io/sceptre"
+paths = ["sceptre/"]
+terms = ["sceptre"]
+
+[domain.enterprise]
+owner = "@xberg-io/xberg-enterprise"
+paths = ["xberg-enterprise/"]
+terms = ["xberg-enterprise", "OTLP", "Helm", "ArgoCD", "Mimir"]
+
+[domain.bindings]
+# Polyglot binding generation: owned by repos that generate language bindings with alef.
+owner = "@xberg-io/alef"
+paths = ["alef/", "packages/", "crates/*-ffi/", "crates/*-py/", "crates/*-node/"]
+terms = ["alef", "PyO3", "napi-rs", "Magnus", "Rustler", "ext-php-rs", "cbindgen", "jni-rs", "extendr"]
+
+[domain.e2e-generator]
+owner = "@xberg-io/alef"
+paths = ["tools/e2e-generator/", "fixtures/"]
+terms = ["e2e fixture", "e2e-generator"]
+
+[domain.infrastructure]
+owner = "@xberg-io/infra"
+paths = ["deploy/", "charts/", "Dockerfile"]
+terms = ["gcloud", "Kubernetes", "K8s", "Prometheus"]
+
+[domain.basemind]
+# A developer tool; only repos that enable its MCP server should mention it at start.
+owner = "@xberg-io/agent-conventions"
+terms = ["basemind"]
+
+[repos.xberg]
+domains = ["xberg", "bindings", "e2e-generator", "infrastructure"]
+
+[repos.crawlberg]
+domains = ["crawlberg", "bindings", "e2e-generator"]
+
+[repos.html-to-markdown]
+domains = ["html-to-markdown", "bindings", "e2e-generator", "infrastructure"]
+
+[repos.liter-llm]
+domains = ["liter-llm", "bindings", "e2e-generator"]
+
+[repos.tree-sitter-language-pack]
+domains = ["tree-sitter-language-pack", "bindings", "e2e-generator"]
+
+[repos.sceptre]
+domains = ["sceptre"]
+
+[repos.xberg-enterprise]
+domains = ["enterprise", "infrastructure", "xberg"]
+
+[repos.alef]
+domains = ["bindings", "e2e-generator"]
+
+[repos.actions]
+domains = ["bindings", "infrastructure"]
+
+[repos.ai-rulez]
+domains = []
+
+[repos.agent-conventions]
+domains = ["basemind"]
+
+# The org name and the brand skill legitimately say "xberg" (xberg-io, xberg.io) everywhere; the
+# leak check targets product knowledge, so the org prefix is accepted in the brand skill only.
+[[accept]]
+term = "xberg"
+artifact = "skill:xberg-brand-and-docs"
+reason = "Org-wide brand skill: the name is the routing key, not product knowledge."

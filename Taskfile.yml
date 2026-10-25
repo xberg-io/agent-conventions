@@ -43,3 +43,13 @@ tasks:
     cmds:
       - ai-rulez lock --check
       - ai-rulez generate --check --no-local --strict-config
+
+  context:test:
+    desc: Unit-test the context harness
+    cmds:
+      - python3 -m unittest discover tools/context-evals
+
+  context:exposure:
+    desc: "Report start context and leaks for consumer checkouts (task context:exposure -- ../xberg ../sceptre)"
+    cmds:
+      - python3 tools/context-evals/exposure.py {{.CLI_ARGS}}
