@@ -30,4 +30,6 @@ Tests: `python3 -m unittest discover tools/context-evals`.
 ## Baseline
 
 [`baseline-2026-10-25.md`](baseline-2026-10-25.md): every consumer at agent-conventions `2011d3d` (sceptre `adb0caa`),
+
+[`after-2026-10-25.md`](after-2026-10-25.md): the same consumers after the module restructure and the per-repo pass.
 generated with `npx -y ai-rulez@latest generate` (5.6.3).
