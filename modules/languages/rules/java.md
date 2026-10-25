@@ -7,6 +7,9 @@ paths:
   - "**/build.gradle*"
   - "crates/*-jni/**"
   - "packages/java/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: java

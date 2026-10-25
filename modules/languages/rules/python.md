@@ -7,6 +7,9 @@ paths:
   - "**/pyproject.toml"
   - "crates/*-py/**"
   - "packages/python/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: python

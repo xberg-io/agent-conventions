@@ -7,6 +7,9 @@ paths:
   - "**/*.gemspec"
   - "**/*.rbs"
   - "packages/ruby/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: ruby

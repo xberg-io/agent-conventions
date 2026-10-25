@@ -52,7 +52,9 @@ reaches it. Place each rule, skill or agent at the first level that fits:
 1. True for every file and task in the repo: an always-on rule. Keep it short.
 2. Tied to a file type or a directory: a rule with `paths:` globs, or a skill with `paths:`. Shared modules use the
    org's repeatable layout (`crates/<name>-<lang>/`, `packages/<lang>/`, `e2e/`, `fixtures/`, `alef.toml`) so one
-   definition gates correctly in every repo.
+   definition gates correctly in every repo. Shared glob-scoped rules set `targets` to the rules folders
+   (`.claude/rules/`, `.github/instructions/`): presets without path scoping (Codex, OpenCode, Pi) would inline them
+   into `AGENTS.md`, where they cost every session and push the file past Codex's 32 KiB read limit.
 3. An area with its own skills, agents and toolchain that people work in directly (an integration package, a docs
    site, a tool): a nested `.ai-rulez/` in that directory, generated with `ai-rulez generate --recursive`. It writes a
    nested `CLAUDE.md`/`AGENTS.md` and nested skills that load only inside that tree. Set `builtins = false` there so the

@@ -5,6 +5,9 @@ paths:
   - "**/*.go"
   - "**/go.mod"
   - "packages/go/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: go

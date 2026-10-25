@@ -9,6 +9,9 @@ paths:
   - "crates/*-node/**"
   - "packages/node/**"
   - "packages/typescript/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: typescript

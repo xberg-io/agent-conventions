@@ -5,6 +5,9 @@ paths:
   - "crates/*-ffi/**"
   - "**/*.h"
   - "**/cbindgen.toml"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: c-ffi

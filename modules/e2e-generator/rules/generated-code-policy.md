@@ -4,6 +4,9 @@ title: Generated Code Policy
 paths:
   - "e2e/**"
   - "fixtures/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: generated-code-policy

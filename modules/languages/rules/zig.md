@@ -5,6 +5,9 @@ paths:
   - "**/*.zig"
   - "**/build.zig.zon"
   - "packages/zig/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: zig

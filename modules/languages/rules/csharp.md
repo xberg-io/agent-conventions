@@ -5,6 +5,9 @@ paths:
   - "**/*.cs"
   - "**/*.csproj"
   - "packages/csharp/**"
+targets:
+  - ".claude/rules/"
+  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: csharp
