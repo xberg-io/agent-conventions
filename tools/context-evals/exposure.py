@@ -56,7 +56,8 @@ class PresetReport:
     accepted: list[Leak] = field(default_factory=list)
 
     def start_bytes(self) -> int:
-        return sum(i.bytes for i in self.items if not i.gated and not i.user_only)
+        # An inlined rule is a section of a root file already counted under "instructions".
+        return sum(i.bytes for i in self.items if not i.gated and not i.user_only and i.kind != "inlined-rule")
 
     def count(self, kind: str) -> int:
         return sum(1 for i in self.items if i.kind == kind)
@@ -107,11 +108,22 @@ def read(path: Path) -> str:
     return COMMENT.sub("", path.read_text(encoding="utf-8", errors="replace"))
 
 
+def metadata(file: Path) -> dict[str, str]:
+    text = file.read_text(encoding="utf-8", errors="replace")
+    if file.suffix == ".toml":
+        try:
+            data = tomllib.loads(text)
+        except tomllib.TOMLDecodeError:
+            return {}
+        return {k: str(v) for k, v in data.items() if isinstance(v, str | bool)}
+    return frontmatter(text)
+
+
 def listing(kind: str, directory: Path, repo: Path, pattern: str) -> list[Item]:
     """A skill or agent costs its name and description at start; the body loads on use."""
     items = []
     for file in sorted(directory.glob(pattern)):
-        meta = frontmatter(file.read_text(encoding="utf-8", errors="replace"))
+        meta = metadata(file)
         name = meta.get("name") or (file.parent.name if kind == "skill" else file.stem)
         description = meta.get("description", "")
         items.append(

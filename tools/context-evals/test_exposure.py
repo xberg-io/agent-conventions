@@ -38,6 +38,13 @@ class ExposureTest(unittest.TestCase):
         report = exposure.claude(self.repo)
         self.assertEqual(report.summary()["inlined_rules"], 2)
         self.assertIn("AGENTS.md", [i.path for i in report.items if i.kind == "instructions"])
+        root_bytes = sum(i.bytes for i in report.items if i.kind == "instructions")
+        self.assertEqual(report.start_bytes(), root_bytes)
+
+    def test_codex_agents_are_read_from_toml(self) -> None:
+        write(self.repo, ".codex/agents/rev.toml", 'name = "rev"\ndescription = "Reviews diffs"\n')
+        agents = [i for i in exposure.codex(self.repo).items if i.kind == "agent"]
+        self.assertEqual([(a.name, a.description) for a in agents], [("rev", "Reviews diffs")])
 
     def test_standalone_claude_md_ignores_agents_md(self) -> None:
         write(self.repo, "CLAUDE.md", "# repo\n\n## Rules\n\n### one\n\nx\n")
