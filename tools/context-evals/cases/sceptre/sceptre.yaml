@@ -1,0 +1,330 @@
+# Seed cases for the sceptre repository (issue #3, section 5.2): one positive case per path-scoped rule,
+# negatives on trigger words shared with xberg (OCR, release, benchmark, tests, bindings) and a few no-hint prompts.
+
+# --- path-scoped rules -------------------------------------------------------------------------
+
+- id: sceptre-adr-reverse-decision
+  domain: sceptre
+  repo: sceptre
+  cwd: adrs
+  persona: maintainer
+  prompt: "We want to drop the opt-in beam search decoder from ADR 0036. Can I edit 0036 to say we no longer do it?"
+  behaviour: answer
+  criteria:
+    - id: new-adr
+      check: "The answer says not to rewrite the accepted ADR; add a new ADR that supersedes 0036."
+    - id: status
+      check: "The answer says to set 0036's status to superseded by the new ADR's number."
+  reference:
+    facts:
+      - "ADRs live under adrs/ as NNNN-title.md; superseded ADRs carry a status like 'superseded by 0031' (see 0009)."
+    sources: [adrs/0036-opt-in-ctc-beam-search-decoding.md, adrs/0009-candle-evaluation-ort-primary.md, adrs/README.md]
+  sandbox: result
+
+- id: sceptre-backend-seam-direct-ort
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/detect
+  persona: contributor
+  prompt: "To shave latency in detect/craft.rs, can I create an ort::Session directly instead of going through the backend layer?"
+  behaviour: answer
+  expect: ['ModelBackend']
+  criteria:
+    - id: seam
+      check: "The answer says all model execution goes through the inference::ModelBackend trait and detection code must not call ort directly."
+    - id: pure-rust
+      check: "The answer notes that tract and candle backends must keep working, which a direct ort call would bypass."
+  reference:
+    facts: ["inference/mod.rs defines pub trait ModelBackend: Send + Sync; ort_backend.rs and tract_backend.rs implement it."]
+    sources: [crates/sceptre/src/inference/mod.rs, crates/sceptre/src/inference/ort_backend.rs, crates/sceptre/src/inference/tract_backend.rs]
+  sandbox: result
+
+- id: sceptre-backend-seam-candle-architecture
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/inference
+  persona: maintainer
+  prompt: "I re-exported the recognizer with an extra BiLSTM layer. ort and tract pass; which backend do I still need to update?"
+  behaviour: answer
+  expect: ['(?i)candle']
+  criteria:
+    - id: candle
+      check: "The answer says candle hand-writes the networks instead of interpreting the ONNX graph, so an architecture change must be reflected in inference/candle/ (crnn_net)."
+    - id: network-kind
+      check: "The answer mentions NetworkKind on BackendOptions validating the graph."
+  reference:
+    facts: ["inference/candle/ holds crnn_net.rs, craft_net.rs, bilstm.rs; NetworkKind is a field of BackendOptions in inference/mod.rs."]
+    sources: [crates/sceptre/src/inference/mod.rs, crates/sceptre/src/inference/candle/crnn_net.rs]
+  sandbox: result
+
+- id: sceptre-backend-seam-accelerator-fallback
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/config
+  prompt: "If a user requests CUDA with the tract backend, should we log a warning and run on CPU?"
+  behaviour: answer
+  expect: ['hardware_accelerators']
+  criteria:
+    - id: reject
+      check: "The answer says an unsupported accelerator request is rejected by validation, never silently degraded to CPU."
+    - id: table
+      check: "The answer says support is the per-backend table Backend::hardware_accelerators."
+  reference:
+    facts: ["config/model.rs: any pairing outside Backend::hardware_accelerators is rejected by validation rather than silently degraded to the CPU."]
+    sources: [crates/sceptre/src/config/model.rs]
+  sandbox: result
+
+- id: sceptre-code-style-config-precedence
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/config
+  prompt: "In what order do defaults, the config file, environment variables and CLI flags override each other, and what happens to a misspelled key in the config file?"
+  behaviour: answer
+  expect: ['(?i)deny_unknown_fields|reject']
+  criteria:
+    - id: order
+      check: "The answer gives defaults < config file < environment < flags."
+    - id: typo
+      check: "The answer says unknown keys are rejected because the config structs use #[serde(deny_unknown_fields)]."
+  reference:
+    facts: ["config/mod.rs documents the precedence and deny_unknown_fields + default."]
+    sources: [crates/sceptre/src/config/mod.rs, crates/sceptre/src/config/detection.rs]
+  sandbox: result
+
+- id: sceptre-code-style-stdout
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src
+  prompt: "Can I add a println! in the recognizer to dump per-line timings while I debug?"
+  behaviour: answer
+  expect: ['(?i)tracing']
+  criteria:
+    - id: denied
+      check: "The answer says print_stdout/print_stderr are denied at the workspace level."
+    - id: tracing
+      check: "The answer recommends tracing (to stderr) instead."
+  reference:
+    facts: ["Root Cargo.toml lints: print_stdout = \"deny\", print_stderr = \"deny\"."]
+    sources: [Cargo.toml]
+  sandbox: result
+
+- id: sceptre-crate-layout-flag-mapping
+  domain: sceptre
+  repo: sceptre
+  cwd: crates
+  prompt: "I'm adding a --max-megapixels CLI flag. Which file maps CLI flags onto OcrConfig?"
+  behaviour: answer
+  expect: ['overrides\.rs']
+  criteria:
+    - id: overrides
+      check: "The answer names crates/sceptre-cli/src/overrides.rs."
+  reference:
+    facts: ["crates/sceptre-cli/src has main.rs, cli.rs, overrides.rs and style.rs; DetectionConfig has max_megapixels."]
+    sources: [crates/sceptre-cli/src/overrides.rs, crates/sceptre/src/config/detection.rs]
+  sandbox: result
+
+- id: sceptre-mcp-add-parameter
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/mcp
+  persona: contributor
+  prompt: "I want to add an optional `languages` parameter to the readtext MCP tool. What do I touch, in what order?"
+  behaviour: answer
+  expect: ['types\.rs', 'tools\.rs', 'server\.rs']
+  criteria:
+    - id: order
+      check: "The answer lists mcp/types.rs, then mcp/tools.rs, then mcp/server.rs, then a smoke test under tests/, then the README tool table."
+    - id: optional
+      check: "The answer says the parameter is Option<T> with #[serde(default)] to stay backward-compatible."
+  reference:
+    facts: ["mcp/tools.rs defines the readtext tool; tests/mcp_smoke.rs is the smoke test; README.md has the tool table."]
+    sources: [crates/sceptre/src/mcp/tools.rs, crates/sceptre/src/mcp/types.rs, crates/sceptre/tests/mcp_smoke.rs, README.md]
+  sandbox: result
+
+- id: sceptre-module-size-cap
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/recognize
+  prompt: "recognize/recognizer.rs is about to cross 1000 lines and a test fails. Can I bump the limit to 1200?"
+  behaviour: answer
+  expect: ['max_lines']
+  criteria:
+    - id: no-raise
+      check: "The answer says never raise the cap; split the file into submodules or extract helpers."
+    - id: test
+      check: "The answer names the max_lines integration test (crates/sceptre/tests/max_lines.rs)."
+  reference:
+    facts: ["tests/max_lines.rs: const MAX_LINES: usize = 1000."]
+    sources: [crates/sceptre/tests/max_lines.rs]
+  sandbox: result
+
+- id: sceptre-ocr-detection-defaults
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/detect
+  prompt: "What are the default CRAFT text_threshold, link_threshold, low_text and canvas_size?"
+  behaviour: answer
+  expect: ['0\.7', '0\.4', '2560']
+  criteria:
+    - id: values
+      check: "The answer gives text_threshold 0.7, link_threshold 0.4, low_text 0.4, canvas_size 2560."
+  reference:
+    facts: ["DetectionConfig::default sets text_threshold 0.7, link_threshold 0.4, low_text 0.4, canvas_size 2560, mag_ratio 1.0."]
+    sources: [crates/sceptre/src/config/detection.rs]
+  sandbox: result
+
+- id: sceptre-ocr-ctc-blank
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/recognize
+  prompt: "When I add a new charset, which CTC class index is the blank, and what input height does the recognizer expect?"
+  behaviour: answer
+  expect: ['\b0\b|zero', '\b64\b']
+  criteria:
+    - id: blank
+      check: "The answer says the blank is class index 0 (the class list is blank-prefixed)."
+    - id: height
+      check: "The answer says crops are resized to height 64."
+  reference:
+    facts: ["recognize/ctc.rs: blank class index 0; recognize/preprocess.rs: IMG_H = 64, normalisation (x-0.5)/0.5."]
+    sources: [crates/sceptre/src/recognize/ctc.rs, crates/sceptre/src/recognize/preprocess.rs]
+  sandbox: result
+
+- id: sceptre-ocr-gen1-scope
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/models
+  prompt: "Can we add EasyOCR's gen1 `english` recognizer to the model registry for users who want it?"
+  behaviour: answer
+  expect: ['(?i)gen2|_g2']
+  criteria:
+    - id: out-of-scope
+      check: "The answer says gen1 models are out of scope; the pipeline targets CRAFT plus gen2 (*_g2) recognizers."
+    - id: adr
+      check: "The answer says changing that scope needs a new ADR."
+  reference:
+    facts: ["models/registry.rs lists craft_mlt_25k and *_g2 recognizers only; ADR 0002 scopes out gen1."]
+    sources: [crates/sceptre/src/models/registry.rs, adrs/0002-scope-gen2-recognizers-and-craft.md]
+  sandbox: result
+
+- id: sceptre-ocr-model-cache
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre/src/models
+  prompt: "Where are the ONNX models cached on disk, and are downloads verified?"
+  behaviour: answer
+  expect: ['HF_HUB_CACHE|HF_HOME', '(?i)sha256']
+  criteria:
+    - id: hf-cache
+      check: "The answer says models go into the shared Hugging Face hub cache (HF_HUB_CACHE / HF_HOME / ~/.cache/huggingface/hub)."
+    - id: verified
+      check: "The answer says each file is sha256-verified."
+  reference:
+    facts: ["models/download.rs resolves HF_HUB_CACHE -> HUGGINGFACE_HUB_CACHE -> $HF_HOME/hub -> ~/.cache/huggingface/hub and verifies sha256."]
+    sources: [crates/sceptre/src/models/download.rs]
+  sandbox: result
+
+- id: sceptre-rust-checks-test-gate
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre
+  prompt: "I bumped the `image` crate. Do I need to run cargo test --workspace before every commit, and is there anything else to run after the dependency change?"
+  behaviour: answer
+  expect: ['cargo upgrade --incompatible']
+  criteria:
+    - id: release-gate
+      check: "The answer says cargo test --workspace is the release gate, not a per-commit gate (run it when the pipeline changes or before a release)."
+    - id: upgrade
+      check: "The answer says to run cargo upgrade --incompatible after a dependency change, then rebuild."
+  reference:
+    facts: ["Taskfile.yaml upgrade task runs cargo upgrade --incompatible."]
+    sources: [Taskfile.yaml, .ai-rulez/rules/rust-checks.md]
+  sandbox: result
+
+# --- negatives on shared trigger words ----------------------------------------------------------
+
+- id: sceptre-neg-release
+  domain: sceptre
+  repo: sceptre
+  cwd: .
+  persona: maintainer
+  prompt: "How do I cut a sceptre release and get it onto crates.io?"
+  behaviour: answer
+  must_not_use: [alef-workflow, consumer-release-gates]
+  must_not_mention: ['(?i)version:sync', '(?i)sync_integration_versions', '(?i)\bxberg\b(?![-.]io)']
+  expect: ['(?i)trusted publish|OIDC|id-token']
+  criteria:
+    - id: tag
+      check: "The answer says pushing a v* tag runs publish.yaml, which publishes sceptre then sceptre-cli via trusted publishing (no stored token)."
+    - id: dry-run
+      check: "The answer mentions task release:dry-run for local packaging validation."
+  reference:
+    facts: ["ADR 0023 supersedes 0020: tag-triggered publish of sceptre then sceptre-cli through crates-io-auth-action."]
+    sources: [adrs/0023-publish-to-crates-io-via-trusted-publishing.md, .github/workflows/publish.yaml, Taskfile.yaml]
+  sandbox: procedure
+
+- id: sceptre-neg-benchmark
+  domain: sceptre
+  repo: sceptre
+  cwd: benchmarks
+  prompt: "I re-ran the benchmarks. How do I update the numbers in the README?"
+  behaviour: answer
+  must_not_use: [alef-workflow]
+  must_not_mention: ['(?i)benchmark-harness', '(?i)ground[ _]truth', '(?i)\bxberg\b(?![-.]io)']
+  expect: ['latest\.json']
+  criteria:
+    - id: publish
+      check: "The answer says to publish through sceptre_rs_tools.publish (task python:publish) into benchmarks/published/latest.json, which renders the marked README regions, not to hand-edit numbers."
+    - id: check
+      check: "The answer mentions the --check / python:publish:check gate that fails on stale tables."
+  reference:
+    facts: ["ADR 0030: benchmarks/published/latest.json is the committed artifact; generated regions use marker pairs; python:publish:check runs in CI."]
+    sources: [adrs/0030-published-benchmark-artifact-and-drift-gate.md, benchmarks/published/latest.json, .task/python.yml]
+  sandbox: result
+
+- id: sceptre-neg-ocr-accuracy
+  domain: sceptre
+  repo: sceptre
+  cwd: .
+  prompt: "Small text in receipts is missed entirely. What knobs should I try first?"
+  behaviour: either
+  must_not_use: [alef-workflow, binding-architecture]
+  must_not_mention: ['(?i)tesseract', '(?i)\bhOCR\b', '(?i)pdfium', '(?i)\bpsm\b']
+  criteria:
+    - id: craft-knobs
+      check: "The answer discusses sceptre's CRAFT detection settings (such as low_text, text_threshold, canvas_size or mag_ratio) or asks for a sample image."
+  reference:
+    facts: ["DetectionConfig exposes text_threshold, link_threshold, low_text, canvas_size, mag_ratio, min_size."]
+    sources: [crates/sceptre/src/config/detection.rs]
+  sandbox: result
+
+- id: sceptre-neg-tests-no-e2e
+  domain: sceptre
+  repo: sceptre
+  cwd: crates/sceptre
+  prompt: "How do I check my change to the grouping code doesn't break parity with EasyOCR?"
+  behaviour: answer
+  must_not_use: [alef-workflow]
+  must_not_mention: ['(?i)e2e:generate', '(?i)\balef\b', '(?i)fixtures/']
+  criteria:
+    - id: golden
+      check: "The answer points to the golden parity tests (tier2_golden.rs with tests/data/golden), comparing per-line text and box IoU against EasyOCR output."
+  reference:
+    facts: ["crates/sceptre/tests/tier2_golden.rs and tests/data/golden hold the EasyOCR parity checks."]
+    sources: [crates/sceptre/tests/tier2_golden.rs, crates/sceptre/tests/data/golden]
+  sandbox: result
+
+- id: sceptre-nohint-mcp-subcommand
+  domain: sceptre
+  repo: sceptre
+  cwd: .
+  prompt: "How do I give an agent OCR over local images with this project?"
+  behaviour: answer
+  expect: ['readtext', '(?i)sceptre mcp']
+  criteria:
+    - id: mcp
+      check: "The answer says to run the sceptre mcp subcommand (mcp feature) and use its readtext tool."
+  reference:
+    facts: ["README.md documents the readtext tool with an image_path parameter, exposed by the mcp subcommand."]
+    sources: [README.md, crates/sceptre/src/mcp/tools.rs]
+  sandbox: result

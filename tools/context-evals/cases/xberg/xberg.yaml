@@ -1,0 +1,751 @@
+# Seed cases for the xberg product domain in the xberg repository (issue #3, section 5.2).
+# One positive case per repo-owned skill and path-scoped rule, cross-domain negatives and a behaviour sweep.
+
+# --- skills -------------------------------------------------------------------------------------
+
+- id: xberg-pipeline-fallback-parsing-error
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/core
+  persona: maintainer
+  prompt: >-
+    A corrupt DOCX fails in DocxExtractor with a Parsing error, and I expected the registry to fall back to the next
+    extractor for that MIME type. It never does. Is the fallback broken?
+  behaviour: answer
+  must_use: [extraction-pipeline-patterns]
+  expect: ['(?i)UnsupportedFormat', '(?i)Plugin']
+  criteria:
+    - id: not-a-bug
+      check: "The answer says the fallback did not run by design, not because of a bug."
+    - id: eligible-errors
+      check: "The answer states that only UnsupportedFormat and Plugin errors are fallback-eligible."
+    - id: names-predicate
+      check: "The answer names is_extractor_fallback_eligible or core/extractor/file.rs as where this is decided."
+  reference:
+    facts:
+      - "is_extractor_fallback_eligible matches only XbergError::UnsupportedFormat and XbergError::Plugin."
+      - "Parsing, Io, Ocr and Validation errors abort the extractor chain."
+    sources: [crates/xberg/src/core/extractor/file.rs]
+  sandbox: result
+
+- id: xberg-pipeline-cache-docker-build-id
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/cache
+  persona: maintainer
+  prompt: >-
+    I changed extractor output behaviour. Do I need to bump CACHE_SCHEMA_VERSION, or does the extraction cache key
+    already separate builds from different commits?
+  behaviour: answer
+  must_use: [extraction-pipeline-patterns]
+  expect: ['XBERG_BUILD_ID']
+  criteria:
+    - id: build-id-in-key
+      check: "The answer says the cache version tag includes XBERG_BUILD_ID, so builds from different commits get different entries."
+    - id: empty-build-id
+      check: "The answer says builds without git metadata (Docker builds or crates.io tarballs) get an empty XBERG_BUILD_ID, which is when a CACHE_SCHEMA_VERSION bump is needed."
+  reference:
+    facts:
+      - "cache/version.rs folds CACHE_SCHEMA_VERSION and XBERG_BUILD_ID into the cache version tag."
+      - "build.rs emits XBERG_BUILD_ID; .dockerignore excludes **/.git/, so Docker builds have no git metadata."
+    sources: [crates/xberg/src/cache/version.rs, crates/xberg/build.rs, .dockerignore]
+  sandbox: result
+
+- id: xberg-mcp-new-tool-contract
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/mcp
+  persona: contributor
+  prompt: "I'm adding a `summarize` tool to the MCP server. Which test pins the tool set, and how many tools does it list today?"
+  behaviour: answer
+  must_use: [api-server-mcp]
+  expect: ['test_all_tools_are_registered', '\b9\b|nine']
+  criteria:
+    - id: names-test
+      check: "The answer names test_all_tools_are_registered in mcp/server.rs and says to extend it."
+    - id: count
+      check: "The answer says the test currently lists nine tools."
+  reference:
+    facts:
+      - "test_all_tools_are_registered in mcp/server.rs lists extract, extract_batch, detect_mime_type, list_formats, cache_stats, cache_clear, get_version, cache_manifest, cache_warm."
+    sources: [crates/xberg/src/mcp/server.rs]
+  sandbox: result
+
+- id: xberg-api-no-extract-url-route
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/api
+  prompt: "Which REST route do I call to extract a document from a URL, and which one for a batch of files?"
+  behaviour: answer
+  must_use: [api-server-mcp]
+  must_not_mention: ['POST /extract-url', 'POST /batch\b']
+  expect: ['/extract-async']
+  criteria:
+    - id: url-is-field
+      check: "The answer says URL ingestion is a field on the POST /extract input, not a separate route."
+    - id: batch-is-async
+      check: "The answer says batches go through POST /extract-async and are polled at /jobs/{job_id}."
+  reference:
+    facts:
+      - "router.rs registers /extract, /extract-async, /jobs/{job_id}, /detect and others; there is no /extract-url or /batch route."
+    sources: [crates/xberg/src/api/router.rs]
+  sandbox: result
+
+- id: xberg-benchmark-ground-truth-source
+  domain: xberg
+  repo: xberg
+  cwd: tools/benchmark-harness
+  persona: maintainer
+  prompt: >-
+    The new HWP fixtures have no ground truth yet. Can I generate it by running the current xberg CLI over them and
+    saving the markdown?
+  behaviour: answer
+  must_use: [benchmark-workflow]
+  criteria:
+    - id: refuses-self-gt
+      check: "The answer says xberg's own extractor output must not be used as benchmark ground truth."
+    - id: source-field
+      check: "The answer says to record an independent source in the fixture's ground_truth.source field."
+    - id: tooling
+      check: "The answer points to generate_markdown_gt.py or the harness validate-gt command rather than an ad-hoc pipeline."
+  reference:
+    facts:
+      - "The fixture schema has ground_truth.source with values like manual, vision, pdf_text_layer, pandoc, python-docx."
+    sources:
+      - tools/benchmark-harness/README.md
+      - tools/benchmark-harness/scripts/generate_markdown_gt.py
+      - tools/benchmark-harness/src/validate_gt.rs
+  sandbox: result
+
+- id: xberg-benchmark-workflow-dispatch-only
+  domain: xberg
+  repo: xberg
+  cwd: .github/workflows
+  prompt: "Will the Benchmarks workflow catch a quality regression on my PR before it merges?"
+  behaviour: answer
+  must_use: [benchmark-workflow]
+  expect: ['(?i)workflow_dispatch|dispatch']
+  criteria:
+    - id: dispatch-only
+      check: "The answer says benchmarks.yaml is dispatch-only and does not run on push or gate merges."
+  reference:
+    facts: ["benchmarks.yaml triggers only on workflow_dispatch."]
+    sources: [.github/workflows/benchmarks.yaml]
+  sandbox: result
+
+- id: xberg-chunking-preset-without-embeddings
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/chunking
+  prompt: >-
+    I set `preset = "fast"` in the chunking config but my chunks are still 1000 characters. The build uses
+    `--features chunking`. Why?
+  behaviour: answer
+  must_use: [chunking-embeddings]
+  expect: ['(?i)embeddings']
+  criteria:
+    - id: feature-gate
+      check: "The answer says resolve_preset only applies presets under the embeddings feature and is a no-op otherwise."
+    - id: fix
+      check: "The answer says to enable the embeddings feature (or set max_chars explicitly)."
+  reference:
+    facts:
+      - "resolve_preset is cfg(feature = \"embeddings\"); the chunking-without-embeddings variant returns the config unchanged."
+      - "The default chunk size is 1000."
+    sources: [crates/xberg/src/core/config/processing.rs]
+  sandbox: result
+
+- id: xberg-config-discovery-order
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg-cli/src
+  prompt: "If a directory has both xberg.yaml and xberg.toml, which one does the CLI auto-discover, and where does it look if none is found?"
+  behaviour: answer
+  must_use: [config-loading-precedence]
+  expect: ['(?i)xberg\.toml']
+  criteria:
+    - id: toml-first
+      check: "The answer says xberg.toml wins, probing toml, yaml, yml, then json in each directory."
+    - id: walk-up-then-user-dir
+      check: "The answer says discovery walks up the parent directories, then falls back to the user config directory."
+  reference:
+    facts: ["discover() probes CONFIG_BASENAMES = [xberg.toml, xberg.yaml, xberg.yml, xberg.json]."]
+    sources: [crates/xberg/src/core/config/extraction/loaders.rs]
+  sandbox: result
+
+- id: xberg-config-duplicate-tesseract-default
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/core/config
+  persona: maintainer
+  prompt: >-
+    I changed the default `psm` in TesseractConfig and the CLI picks it up, but the Python binding still uses the old
+    value. What did I miss?
+  behaviour: answer
+  must_use: [config-loading-precedence]
+  expect: ['types/formats\.rs', 'ocr/types\.rs']
+  criteria:
+    - id: two-structs
+      check: "The answer says TesseractConfig is defined twice (public types/formats.rs and internal ocr/types.rs), each with its own Default."
+    - id: change-both
+      check: "The answer says both defaults must be changed."
+  reference:
+    facts: ["pub struct TesseractConfig exists in both crates/xberg/src/types/formats.rs and crates/xberg/src/ocr/types.rs."]
+    sources: [crates/xberg/src/types/formats.rs, crates/xberg/src/ocr/types.rs]
+  sandbox: result
+
+- id: xberg-crate-structure-new-member-docker
+  domain: xberg
+  repo: xberg
+  cwd: crates
+  persona: contributor
+  prompt: >-
+    I added crates/xberg-djvu to the workspace members and it builds locally, but every Docker image build now fails
+    with `failed to compute cache key: "/crates/xberg-djvu": not found`. Why?
+  behaviour: answer
+  must_use: [crate-structure]
+  expect: ['\.dockerignore', 'verify:docker-crates']
+  criteria:
+    - id: allowlist
+      check: "The answer says .dockerignore ignores everything and allowlists crates, so !crates/xberg-djvu/ must be added."
+    - id: verify-task
+      check: "The answer says to run task verify:docker-crates."
+  reference:
+    facts:
+      - ".dockerignore excludes everything and allowlists each crate with !crates/<name>/."
+      - "task verify:docker-crates runs scripts/ci/docker/check-dockerfile-crate-coverage.sh."
+    sources: [.dockerignore, Taskfile.yml]
+  sandbox: result
+
+- id: xberg-crate-structure-native-pdf-log-target
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg-native-pdf
+  prompt: "I want to silence the native PDF engine's debug logs with a tracing filter. What target string should I use?"
+  behaviour: answer
+  must_use: [crate-structure]
+  must_not_use: [alef-generated-bindings, alef-workflow]
+  expect: ['LOG_TARGET_ROOT']
+  criteria:
+    - id: constant
+      check: "The answer says to derive the filter from xberg_native_pdf::LOG_TARGET_ROOT rather than a string literal."
+  reference:
+    facts: ["crates/xberg-native-pdf/src/lib.rs defines pub const LOG_TARGET_ROOT: &str = module_path!()."]
+    sources: [crates/xberg-native-pdf/src/lib.rs]
+  sandbox: result
+
+- id: xberg-feature-parity-windows-target
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg
+  prompt: "I added a new `djvu` feature to `full` in crates/xberg/Cargo.toml and CI now fails a feature-parity check. What does it want?"
+  behaviour: answer
+  must_use: [feature-flag-policy]
+  expect: ['windows-target']
+  criteria:
+    - id: add-to-windows
+      check: "The answer says the feature must also be added to windows-target (and the other guarded subsets)."
+    - id: names-check
+      check: "The answer names task verify:feature-parity or scripts/ci/check-feature-parity.py."
+  reference:
+    facts: ["check-feature-parity.py guards windows-target against full; only heic may be missing."]
+    sources: [scripts/ci/check-feature-parity.py, Taskfile.yml]
+  sandbox: result
+
+- id: xberg-feature-sevenz-opt-level
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Can I raise the release opt-level override for sevenz-rust2 in the root Cargo.toml from 1 to 2? It looks like an oversight."
+  behaviour: answer
+  must_use: [feature-flag-policy]
+  expect: ['(?i)SIGBUS']
+  criteria:
+    - id: keep-opt-level-1
+      check: "The answer says no: opt-level 2 still crashed with SIGBUS in go:e2e."
+  reference:
+    facts: ["Cargo.toml: sevenz-rust2 requires opt-level=1 specifically (opt-level=2 still SIGBUS'd in go:e2e)."]
+    sources: [Cargo.toml]
+  sandbox: result
+
+- id: xberg-office-security-budget
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/extractors
+  prompt: "For a new ODG (OpenDocument drawing) extractor, should I validate the zip with ZipBombValidator like the archive extractor does?"
+  behaviour: answer
+  must_use: [format-specific-extraction]
+  expect: ['SecurityBudget']
+  criteria:
+    - id: budget
+      check: "The answer says Office/ODF XML extractors use SecurityBudget threaded through the XML walkers, not ZipBombValidator."
+    - id: alef-skip
+      check: "The answer mentions the extractor struct needs #[cfg_attr(alef, alef(skip))]."
+  reference:
+    facts: ["SecurityBudget and ZipBombValidator are defined in extractors/security.rs."]
+    sources: [crates/xberg/src/extractors/security.rs, crates/xberg/src/extractors/odt.rs]
+  sandbox: result
+
+- id: xberg-mime-add-format-registry
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/core
+  prompt: "Where do I add the .djvu extension so it maps to image/vnd.djvu? I can't find an insert into EXT_TO_MIME."
+  behaviour: answer
+  must_use: [mime-detection-routing]
+  expect: ['FORMATS', 'sync_supported_counts']
+  criteria:
+    - id: formats
+      check: "The answer says to add a FormatEntry to FORMATS in core/mime.rs, from which EXT_TO_MIME is derived."
+    - id: counts
+      check: "The answer says to run scripts/sync_supported_counts.py (sync, then verify)."
+  reference:
+    facts: ["EXT_TO_MIME and SUPPORTED_MIME_TYPES are derived from FORMATS."]
+    sources: [crates/xberg/src/core/mime.rs, scripts/sync_supported_counts.py]
+  sandbox: result
+
+- id: xberg-ocr-sceptre-backend-type
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/ocr
+  prompt: "I want to add a `Sceptre` variant to OcrBackendType so users can select it. Good idea?"
+  behaviour: answer
+  must_use: [ocr-pipeline-and-quality]
+  expect: ['Custom']
+  criteria:
+    - id: custom
+      check: "The answer says Sceptre is already selected by name through OcrBackendType::Custom, so no new variant is needed."
+  reference:
+    facts: ["OcrBackendType is Tesseract | PaddleOCR | Candle | Custom; Custom is the name-selected backend."]
+    sources: [crates/xberg/src/plugins/ocr.rs, crates/xberg/src/sceptre_ocr/tests.rs]
+  sandbox: result
+
+- id: xberg-ocr-font-size-comparison
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/ocr
+  persona: maintainer
+  prompt: "Can I flag headings by thresholding OCR font size at 14 pt, the same way for Tesseract and Paddle output?"
+  behaviour: answer
+  must_use: [ocr-pipeline-and-quality]
+  expect: ['(?i)x_fsize|hocr_font_info']
+  criteria:
+    - id: different-quantities
+      check: "The answer says Tesseract font size is hOCR typography while Paddle/Sceptre font size is a detection-box proxy, so one threshold does not fit both."
+    - id: font-info
+      check: "The answer says hocr_font_info must be enabled for Tesseract typography (otherwise sizes fall back to a default)."
+  reference:
+    facts: ["hocr_parser.rs reads x_fsize, which is present only when the hocr_font_info variable is enabled."]
+    sources: [crates/xberg/src/ocr/hocr_parser.rs]
+  sandbox: result
+
+- id: xberg-pdfium-capability-gap
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/extractors/pdf
+  prompt: "With `backend = \"pdfium\"` I get text but no annotations or attachments. Is the pdfium engine broken?"
+  behaviour: answer
+  must_use: [pdf-backends]
+  must_not_use: [ocr-pipeline-and-quality]
+  criteria:
+    - id: narrower
+      check: "The answer says the Pdfium backend intentionally supports a narrower surface (text, page count, Info metadata) and warns about the rest."
+    - id: native
+      check: "The answer says the native backend is the one with annotations, attachments and the full pipeline."
+  reference:
+    facts: ["pdfium_engine.rs implements the pdfium comparison backend behind pdf-pdfium."]
+    sources: [crates/xberg/src/extractors/pdf/pdfium_engine.rs, crates/xberg/Cargo.toml]
+  sandbox: result
+
+- id: xberg-plugin-internal-extractor-trait
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/plugins
+  prompt: "For a new in-crate extractor, do I implement DocumentExtractor or something else? And what happens if it has the same MIME and priority as an existing one?"
+  behaviour: answer
+  must_use: [plugin-architecture-patterns]
+  expect: ['InternalDocumentExtractor']
+  criteria:
+    - id: internal
+      check: "The answer says in-crate extractors implement InternalDocumentExtractor and get DocumentExtractor via a blanket impl."
+    - id: collision
+      check: "The answer says an equal MIME and priority registration replaces the earlier entry (with a warning), so priorities should differ."
+  reference:
+    facts: ["InternalDocumentExtractor and DocumentExtractor are both declared in plugins/extractor/trait.rs."]
+    sources: [crates/xberg/src/plugins/extractor/trait.rs, crates/xberg/src/plugins/registry/extractor.rs]
+  sandbox: result
+
+- id: xberg-polyrepo-ssrf-owner
+  domain: xberg
+  repo: xberg
+  cwd: .
+  persona: maintainer
+  prompt: "URL ingestion can be pointed at 169.254.169.254. Where should the SSRF fix go?"
+  behaviour: answer
+  must_use: [polyrepo-boundaries]
+  expect: ['(?i)crawlberg']
+  criteria:
+    - id: transport-owner
+      check: "The answer says SSRF protection belongs at the component performing the outbound request (crawlberg), with xberg free to add stricter policy."
+    - id: release-order
+      check: "The answer says the dependency fix ships and is published before xberg updates to it."
+  reference:
+    facts: ["polyrepo-boundaries assigns crawling, URL retrieval and SSRF at the transport to crawlberg."]
+    sources: [.ai-rulez/skills/polyrepo-boundaries/SKILL.md, crates/xberg/src/core/config/request_security.rs]
+  sandbox: result
+
+- id: xberg-test-corpus-worktree-control
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg
+  persona: maintainer
+  prompt: >-
+    I made a git worktree at the base commit as an A/B control, ran cargo test there, and everything passed in 0.00s.
+    So my change is what broke the HEIC tests?
+  behaviour: answer
+  must_use: [test-corpus]
+  expect: ['(?i)submodule|test_documents']
+  criteria:
+    - id: vacuous
+      check: "The answer says the worktree has an empty test_documents submodule, so fixture tests skipped and the control is vacuous."
+    - id: fix
+      check: "The answer gives a fix: symlink the main tree's test_documents into the worktree, or use a separate CARGO_TARGET_DIR in the main checkout."
+  reference:
+    facts:
+      - "test_documents is a submodule (.gitmodules)."
+      - "read_test_fixture prints SKIP: fixture ... not available and returns None when the file is absent."
+    sources: [.gitmodules, crates/xberg/src/utils/mod.rs]
+  sandbox: result
+
+- id: xberg-test-corpus-no-include-bytes
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/extraction
+  prompt: "In a unit test for the HEIC path, can I just `include_bytes!(\"../../../../test_documents/images/test.heic\")`?"
+  behaviour: answer
+  must_use: [test-corpus]
+  expect: ['read_test_fixture']
+  criteria:
+    - id: no-include
+      check: "The answer says not to include_bytes! a test_documents fixture because a missing fixture becomes a build failure."
+    - id: helper
+      check: "The answer recommends crate::utils::read_test_fixture and returning early on None."
+  reference:
+    facts: ["utils::read_test_fixture is pub(crate), cfg(test), and returns Option<Vec<u8>>."]
+    sources: [crates/xberg/src/utils/mod.rs]
+  sandbox: result
+
+- id: xberg-wasm-html-limit
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg-wasm
+  prompt: "A 3 MB HTML page fails to extract in the browser build but works natively. Why?"
+  behaviour: answer
+  must_use: [wasm-constraints]
+  expect: ['MAX_HTML_SIZE_BYTES|2\s?MB']
+  criteria:
+    - id: limit
+      check: "The answer cites the 2 MB MAX_HTML_SIZE_BYTES cap in extraction/html/stack_management.rs."
+  reference:
+    facts: ["MAX_HTML_SIZE_BYTES = 2 * 1024 * 1024 in crates/xberg/src/extraction/html/stack_management.rs."]
+    sources: [crates/xberg/src/extraction/html/stack_management.rs]
+  sandbox: result
+
+- id: xberg-release-version-sync
+  domain: xberg
+  repo: xberg
+  cwd: .
+  persona: maintainer
+  prompt: "I bumped the version in the root Cargo.toml to 1.5.0. What else has to change before I tag?"
+  behaviour: answer
+  must_use: [xberg-release]
+  expect: ['version:sync|versions:sync']
+  criteria:
+    - id: sync
+      check: "The answer says to run task version:sync rather than hand-editing manifests."
+    - id: integrations
+      check: "The answer says integrations and the Helm chart are synced by scripts/sync_integration_versions.py, not by alef."
+    - id: check
+      check: "The answer mentions task version:check to detect drift."
+  reference:
+    facts:
+      - ".task/tools/version-sync.yml sync runs alef sync-versions, python3 scripts/sync_integration_versions.py, then plugin:generate."
+    sources: [.task/tools/version-sync.yml, scripts/sync_integration_versions.py]
+  sandbox: result
+
+- id: xberg-ts-integration-lockfiles
+  domain: xberg
+  repo: xberg
+  cwd: integrations/node
+  prompt: "I need to bump a dependency in langchain-xberg. Should I run pnpm install at the repo root?"
+  behaviour: answer
+  must_use: [xberg-typescript-toolchain]
+  expect: ['(?i)npm']
+  criteria:
+    - id: own-lockfile
+      check: "The answer says packages under integrations/node are outside the pnpm workspace and use their own npm lockfile (package-lock.json)."
+  reference:
+    facts: ["integrations/node/langchain-xberg has its own package-lock.json."]
+    sources: [integrations/node/langchain-xberg/package-lock.json, pnpm-workspace.yaml]
+  sandbox: result
+
+# --- path-scoped rules -------------------------------------------------------------------------
+
+- id: xberg-rule-extraction-safety-max-pages
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/extractors
+  prompt: "A 4 KB PDF with 200k blank pages made OCR run for an hour despite max_archive_size and the byte limits. Which limit should have stopped it?"
+  behaviour: answer
+  expect: ['max_pages']
+  criteria:
+    - id: max-pages
+      check: "The answer says SecurityLimits.max_pages is the only guard on per-page work and defaults to None."
+  reference:
+    facts: ["extractors/security.rs: pub max_pages: Option<usize> bounds page work; byte limits do not."]
+    sources: [crates/xberg/src/extractors/security.rs]
+  sandbox: result
+
+- id: xberg-rule-api-compat-deprecation
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src
+  prompt: "I renamed the public `split_and_extract` to `extract_segments`. Can I just delete the old name in the next minor release?"
+  behaviour: answer
+  criteria:
+    - id: deprecate
+      check: "The answer says to keep the old public name deprecated for at least one minor version before removing it."
+    - id: changelog
+      check: "The answer says to document the change in CHANGELOG.md."
+  reference:
+    facts: ["api-compatibility applies to crates/xberg/src/**: breaking public changes need a major bump; deprecations last at least one minor version."]
+    sources: [.ai-rulez/rules/api-compatibility.md, crates/xberg/src/lib.rs, CHANGELOG.md]
+  sandbox: result
+
+- id: xberg-rule-async-select
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/extraction
+  prompt: "Should I use tokio::select! with a sleep branch to time out a slow extraction in extraction/?"
+  behaviour: answer
+  expect: ['tokio::time::timeout']
+  criteria:
+    - id: timeout
+      check: "The answer says to use tokio::time::timeout, and that tokio::select! is reserved for MCP server and API startup paths."
+  reference:
+    facts: ["tokio::select! appears only in api/startup.rs and mcp/server.rs."]
+    sources: [crates/xberg/src/api/startup.rs, crates/xberg/src/mcp/server.rs]
+  sandbox: result
+
+- id: xberg-rule-changelog-ci-entry
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Add a CHANGELOG.md entry for my change: I split ci-rust.yaml into two jobs and bumped the cargo-deny version."
+  behaviour: answer
+  criteria:
+    - id: no-entry
+      check: "The answer says CI and dependency-maintenance changes do not get a CHANGELOG entry because they are not user-visible."
+  reference:
+    facts: ["changelog-policy: omit CI, tests, generators and dependency maintenance unless users are affected."]
+    sources: [.ai-rulez/rules/changelog-policy.md, CHANGELOG.md]
+  sandbox: result
+
+- id: xberg-rule-measurement-ocr-no-cache
+  domain: xberg
+  repo: xberg
+  cwd: tools/ocr-measure
+  persona: maintainer
+  prompt: >-
+    My OCR sweep runs `xberg extract --ocr-no-cache true` with configs that only set `[ocr] language = "deu"`, but two
+    configs produce identical output. Why?
+  behaviour: answer
+  expect: ['tesseract_config']
+  criteria:
+    - id: noop
+      check: "The answer says --ocr-no-cache has no effect unless ocr.tesseract_config is set in the config."
+    - id: nested-language
+      check: "The answer says the [ocr.tesseract_config] block needs its own nested language, since the outer language is read only when tesseract_config is None."
+    - id: cache-dir
+      check: "The answer recommends a per-invocation XBERG_CACHE_DIR with a guard against an empty path."
+  reference:
+    facts: ["overrides/ocr.rs warns that --ocr-no-cache has no effect when no tesseract_config is set."]
+    sources: [crates/xberg-cli/src/commands/overrides/ocr.rs, crates/xberg-cli/src/commands/overrides/tests/ocr_basics.rs]
+  sandbox: procedure
+
+- id: xberg-rule-measurement-ratio-vs-count
+  domain: xberg
+  repo: xberg
+  cwd: tools/ocr-measure
+  persona: maintainer
+  prompt: "My OCR change raises the dictionary-valid-word ratio on 12 of 16 documents. Is that enough to ship it?"
+  behaviour: answer
+  criteria:
+    - id: absolute
+      check: "The answer says to judge by the absolute count of valid words, since a ratio rises when the change drops low-quality content."
+    - id: distribution
+      check: "The answer asks for the distribution (median, cases that moved the other way) or accepted-page comparison rather than a single headline."
+  reference:
+    facts: ["measurement-discipline: a ratio over output whose length changed can show improvement while content is deleted."]
+    sources: [.ai-rulez/rules/measurement-discipline.md]
+  sandbox: result
+
+- id: xberg-rule-partner-corpus-ids
+  domain: xberg
+  repo: xberg
+  cwd: tools/benchmark-harness
+  persona: maintainer
+  prompt: "I'm writing up OCR findings on the municipal partner corpus. How should I refer to individual documents in the doc?"
+  behaviour: answer
+  expect: ['sha1', 'relpath|relative']
+  criteria:
+    - id: opaque-id
+      check: "The answer says to use sha1(relpath)[:10] with relpath relative to the corpus root, not filenames."
+    - id: names
+      check: "The answer says private individuals' names in quoted text are written as [NAME]."
+  reference:
+    facts: ["partner-corpus-handling defines sha1(relpath)[:10] ids and [NAME] redaction for private individuals."]
+    sources: [.ai-rulez/rules/partner-corpus-handling.md, ATTRIBUTIONS.md]
+  sandbox: result
+
+# --- cross-domain negatives ---------------------------------------------------------------------
+
+- id: xberg-neg-unit-test-not-benchmark
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/extractors
+  prompt: "Write a unit test for the RTF extractor's handling of an empty \\par group."
+  behaviour: answer
+  must_not_use: [benchmark-workflow, alef-workflow]
+  must_not_mention: ['(?i)ground[ _]truth', '(?i)benchmark-harness']
+  criteria:
+    - id: unit-scope
+      check: "The answer proposes an ordinary Rust unit test next to the RTF extractor, not a benchmark fixture."
+  reference:
+    facts: ["The RTF extractor lives under crates/xberg/src/extractors/rtf/."]
+    sources: [crates/xberg/src/extractors/rtf]
+  sandbox: result
+
+- id: xberg-neg-metrics-not-enterprise
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/api
+  prompt: "How do I expose Prometheus metrics from the xberg API server?"
+  behaviour: answer
+  must_not_use: [gcloud-conventions]
+  must_not_mention: ['(?i)ArgoCD', '(?i)Mimir', '(?i)xberg-enterprise']
+  expect: ['/metrics']
+  criteria:
+    - id: feature
+      check: "The answer says GET /metrics is registered when the prometheus Cargo feature is enabled."
+  reference:
+    facts: ["router.rs adds /metrics under the prometheus feature; prometheus = [api, otel, ...] in crates/xberg/Cargo.toml."]
+    sources: [crates/xberg/src/api/router.rs, crates/xberg/Cargo.toml]
+  sandbox: result
+
+- id: xberg-neg-ocr-not-sceptre-internals
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg/src/ocr
+  prompt: "Tesseract misses small text on 150 DPI scans. What should I change in xberg's OCR preprocessing?"
+  behaviour: answer
+  must_use: [ocr-pipeline-and-quality]
+  must_not_mention: ['(?i)\bCRAFT\b', '(?i)link_threshold', '(?i)ModelBackend']
+  criteria:
+    - id: dpi
+      check: "The answer discusses the target DPI setting (300 standard, higher for small text) in xberg's OCR configuration."
+    - id: measure
+      check: "The answer says to verify the change with accepted-page or independently grounded comparison, with the OCR cache disabled."
+  reference:
+    facts: ["types/formats.rs documents target DPI: 300 is standard, 600 for small text."]
+    sources: [crates/xberg/src/types/formats.rs]
+  sandbox: result
+
+# --- behaviour sweep ----------------------------------------------------------------------------
+
+- id: xberg-ask-stale-results
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Why am I still getting the old results after my change?"
+  behaviour: either
+  criteria:
+    - id: cache-or-ask
+      check: "The answer either asks which surface (CLI extract, OCR, API, bindings) is stale, or explains that extraction and OCR caches key on XBERG_BUILD_ID and suggests disabling the cache."
+  reference:
+    facts: ["Extraction and OCR caches include XBERG_BUILD_ID in their version tag."]
+    sources: [crates/xberg/src/cache/version.rs]
+  sandbox: result
+
+- id: xberg-ask-add-backend
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Add a new backend."
+  behaviour: ask
+  criteria:
+    - id: clarifies-kind
+      check: "The answer asks which kind of backend is meant (OCR, PDF, embedding or other) before making changes."
+  reference:
+    facts: ["xberg has OCR backends (OcrBackend), PDF backends (PdfConfig.backend) and EmbeddingBackend plugins."]
+    sources: [crates/xberg/src/plugins/ocr.rs, crates/xberg/src/plugins/embedding.rs, crates/xberg/src/core/config/pdf.rs]
+  sandbox: result
+
+- id: xberg-ask-fix-tests
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "The tests are failing, fix them."
+  behaviour: ask
+  criteria:
+    - id: which
+      check: "The answer asks which tests or job are failing (or for the failure output) instead of guessing."
+  reference:
+    facts: ["xberg has Rust tests, generated e2e suites in e2e/ and benchmark-harness tests."]
+    sources: [e2e, Taskfile.yml]
+  sandbox: procedure
+
+- id: xberg-either-bump-version
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Bump the version."
+  behaviour: either
+  must_use: [xberg-release]
+  criteria:
+    - id: task
+      check: "The answer uses task version:bump:major|minor|patch or task version:set, or asks which bump level is wanted."
+  reference:
+    facts: [".task/tools/version-sync.yml defines bump:major, bump:minor, bump:patch, each followed by sync."]
+    sources: [.task/tools/version-sync.yml]
+  sandbox: procedure
+
+- id: xberg-nohint-long-extraction-route
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Some uploads take five minutes to process and the HTTP client times out. What should the client do instead?"
+  behaviour: answer
+  expect: ['/extract-async']
+  criteria:
+    - id: async
+      check: "The answer says to submit to POST /extract-async and poll GET /jobs/{job_id}."
+  reference:
+    facts: ["router.rs registers /extract-async and /jobs/{job_id} with status and cancel handlers."]
+    sources: [crates/xberg/src/api/router.rs]
+  sandbox: result
+
+- id: xberg-nohint-cors
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Our security review flagged that the server allows any origin. How do we lock that down?"
+  behaviour: answer
+  expect: ['XBERG_CORS_ORIGINS']
+  criteria:
+    - id: env
+      check: "The answer says to set XBERG_CORS_ORIGINS to a comma-separated list of allowed origins."
+  reference:
+    facts: ["router.rs warns about permissive CORS and points to XBERG_CORS_ORIGINS."]
+    sources: [crates/xberg/src/api/router.rs, crates/xberg/src/api/startup.rs]
+  sandbox: result
