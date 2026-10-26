@@ -6,9 +6,6 @@ paths:
   - "**/composer.json"
   - "crates/*-php/**"
   - "packages/php/**"
-targets:
-  - ".claude/rules/"
-  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: php

@@ -52,9 +52,9 @@ reaches it. Place each rule, skill or agent at the first level that fits:
 1. True for every file and task in the repo: an always-on rule. Keep it short.
 2. Tied to a file type or a directory: a rule with `paths:` globs, or a skill with `paths:`. Shared modules use the
    org's repeatable layout (`crates/<name>-<lang>/`, `packages/<lang>/`, `e2e/`, `fixtures/`, `alef.toml`) so one
-   definition gates correctly in every repo. Shared glob-scoped rules set `targets` to the rules folders
-   (`.claude/rules/`, `.github/instructions/`): presets without path scoping (Codex, OpenCode, Pi) would inline them
-   into `AGENTS.md`, where they cost every session and push the file past Codex's 32 KiB read limit.
+   definition gates correctly in every repo. Presets without path scoping (Codex, OpenCode, Pi) get each glob-scoped
+   rule as an on-demand skill in `.agents/skills` through `[rules] scoped_fallback = "skill"`, instead of having it
+   inlined into the shared `AGENTS.md`, where every preset would load it at start.
 3. An area with its own skills, agents and toolchain that people work in directly (an integration package, a docs
    site, a tool): a nested `.ai-rulez/` in that directory, generated with `ai-rulez generate --recursive`. It writes a
    nested `CLAUDE.md`/`AGENTS.md` and nested skills that load only inside that tree. Set `builtins = false` there so the
@@ -75,11 +75,13 @@ name = "your-project"
 presets = ["claude", "codex", "opencode", "pi"]
 default_layers = ["plugins"]
 compact = true
-# Claude reads a CLAUDE.md without the glob-scoped rules (they go to .claude/rules/ with `paths:`).
-# With the default `agents_md = true`, CLAUDE.md imports AGENTS.md, which inlines them for Codex.
-agents_md = false
 # The agent roster repeats the agent files in every root file; harnesses list agents natively.
 builtins = ["!agent-delegation", "!git-workflow"]
+
+# Glob-scoped rules stay out of the shared AGENTS.md (and so out of CLAUDE.md, which imports it): Claude
+# loads them from .claude/rules on a matching read, presets without a rules folder as path-gated skills.
+[rules]
+scoped_fallback = "skill"
 
 [[includes]]
 name = "xberg-core"
@@ -102,7 +104,7 @@ merge_strategy = "local-override"
 
 Put the example in `.ai-rulez/config.toml`. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
-your repository uses, pinned by `ref`. Use ai-rulez 5.6.3 or later (CI pins the release) to
+your repository uses, pinned by `ref`. Use ai-rulez 5.7.0 or later (CI pins the release) to
 validate and regenerate after editing sources:
 
 ```sh

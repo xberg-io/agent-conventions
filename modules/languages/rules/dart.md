@@ -5,9 +5,6 @@ paths:
   - "**/*.dart"
   - "**/pubspec.yaml"
   - "packages/dart/**"
-targets:
-  - ".claude/rules/"
-  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: dart

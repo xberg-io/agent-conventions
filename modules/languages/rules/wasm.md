@@ -4,9 +4,6 @@ title: WebAssembly Conventions
 paths:
   - "crates/*-wasm/**"
   - "packages/wasm/**"
-targets:
-  - ".claude/rules/"
-  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: wasm

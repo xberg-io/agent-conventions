@@ -4,9 +4,6 @@ title: Logging and Tracing
 paths:
   - "**/*.rs"
   - "**/Cargo.toml"
-targets:
-  - ".claude/rules/"
-  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: logging-tracing

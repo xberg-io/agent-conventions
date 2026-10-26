@@ -5,9 +5,6 @@ paths:
   - "**/*.ex"
   - "**/*.exs"
   - "packages/elixir/**"
-targets:
-  - ".claude/rules/"
-  - ".github/instructions/"
 x-ai-rulez:
   kind: rule
   id: elixir
