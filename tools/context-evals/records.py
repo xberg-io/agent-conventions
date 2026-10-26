@@ -73,6 +73,8 @@ class SessionRecord:
     turns: int = 0
     error: str = ""
     """Non-empty when the session itself failed (timeout, crash): a `harness` failure, never scored as a model miss."""
+    contaminated: list[str] = field(default_factory=list)
+    """Paths under the harness directory or the run directory that the session looked at; such a session is void."""
     version: int = RECORD_VERSION
 
     @property
