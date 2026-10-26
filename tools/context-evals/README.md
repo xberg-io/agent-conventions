@@ -48,3 +48,6 @@ Record the results with the Claude Code version in `docs/load-mechanics.md`.
 generated with `npx -y ai-rulez@latest generate` (5.6.3).
 
 [`after-2026-10-25.md`](after-2026-10-25.md): the same consumers after the module restructure and the per-repo pass.
+
+[`after-5.7.0-2026-10-26.md`](after-5.7.0-2026-10-26.md): the same consumers on ai-rulez 5.7.0 with
+`scoped_fallback = "skill"`, which gives Codex the glob-scoped rules as path-gated skills.
