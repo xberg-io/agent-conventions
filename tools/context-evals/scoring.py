@@ -110,9 +110,14 @@ def score(
     repeat: int,
     run_dir: str = "",
     error: str = "",
+    root: str | None = None,
 ) -> SessionRecord:
-    """One session's record. `context` holds the checkout's context files; `error` is a runner failure (timeout)."""
-    root = transcript.session_root(t, case.cwd)
+    """One session's record.
+
+    `context` holds the checkout's context files, `root` is the checkout path at run time (derived from the init
+    cwd when omitted) and `error` a runner failure such as a timeout.
+    """
+    root = transcript.session_root(t, case.cwd) if root is None else root
     loaded = transcript.inventory(t, context, case.cwd, root)
     used = list(dict.fromkeys(name for name, _ in t.skills_used()))
     contaminated = transcript.contaminated(t, root, run_dir)
