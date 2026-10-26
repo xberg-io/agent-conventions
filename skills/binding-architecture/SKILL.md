@@ -1,6 +1,6 @@
 ---
 name: binding-architecture
-description: "Polyglot binding layer and C FFI boundary: crate naming, distribution paths, ownership and null safety, error propagation, async. Use when designing or editing bindings, the C ABI or cbindgen headers."
+description: "Polyglot binding layer and C FFI boundary: crate naming, distribution paths, ownership and null safety, error propagation, async. Use when designing or editing bindings, the C ABI or generated C headers."
 # Content-Hash: blake3:5732d4229de8bd13f1444d11d920388141a6aa8f9d465387a47e05ea8e4baafe
 ---
 

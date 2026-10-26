@@ -1,6 +1,7 @@
 ---
 type: Decision
 title: C FFI Conventions
+description: "C ABI conventions for a Rust core: opaque handles, extern C exports, null and panic safety, allocate/free pairs, generated headers. Use when editing an FFI crate or a C header."
 paths:
   - "crates/*-ffi/**"
   - "**/*.h"

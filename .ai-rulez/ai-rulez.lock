@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:6ab1996d38d64580faa8e139a16f8f53c32f8ac4fa1c8a3b3fec590502e28314'
+tree = 'sha256:0009ddda7415d550fa3e3fb474ccb58f39ac7a526a63d657ec55a3ba0bf5b25b'
 
 [[served]]
 name = 'add-language-generator'
@@ -34,7 +34,7 @@ digest = 'sha256:2fe74c0c9cc8d1e73024cb80c747de336ec01841b78d54133353b255186d33e
 name = 'binding-architecture'
 source = 'include:public-core/skills/binding-architecture/SKILL.md'
 commit = ''
-digest = 'sha256:6f2fdbd9135cc10f3f511e5daf3545070a31dd7afd7715621c1bbe02f8b338ad'
+digest = 'sha256:e7cc85d44a7233bdf078d4ca612a2e692849ba05434d63ad25be8179d2a5e045'
 
 [[served]]
 name = 'cicd-pipeline-standards'
@@ -202,7 +202,7 @@ digest = 'sha256:f23ee5dd7f848991d196fdf930dc8bdd917243bcbeac7d7b3b6c654ed50dcd1
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:b5ff23b038dbc17dcfee809655a97d3be07f3c9462ad7875f5cfc4418cf24952'
+digest = 'sha256:cd57c62062177ee2510ac2cb3febeb6a3831f38db990213fe7232fd711f79f87'
 
 [[item]]
 kind = 'local-include'
@@ -220,7 +220,7 @@ digest = 'sha256:c4fbd8608f8f6173f480262854af838a85178327862a670d16b6abcf8b3ee73
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:98ceedcec761af8c13f097f285019eb9354b8ab0c44079dc696ddc53f4291448'
+digest = 'sha256:cbe47d688f39173424e9db56426c8be1ab7aafbba6ad356b8f6fc8177cb06493'
 
 [[item]]
 kind = 'rule'
