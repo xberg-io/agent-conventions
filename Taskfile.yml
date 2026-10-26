@@ -47,7 +47,12 @@ tasks:
   context:test:
     desc: Unit-test the context harness
     cmds:
-      - python3 -m unittest discover tools/context-evals
+      - uv run --no-project --with pyyaml==6.0.2 python -m unittest discover tools/context-evals
+
+  context:cases:
+    desc: "Validate the eval cases (task context:cases -- --repo-root ../xberg --repo xberg)"
+    cmds:
+      - uv run --no-project --with pyyaml==6.0.2 python tools/context-evals/harness.py validate-cases {{.CLI_ARGS}}
 
   context:exposure:
     desc: "Report start context and leaks for consumer checkouts (task context:exposure -- ../xberg ../sceptre)"

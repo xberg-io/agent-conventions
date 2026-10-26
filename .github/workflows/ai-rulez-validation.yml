@@ -56,5 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
       - name: Unit-test the context harness
-        run: python3 -m unittest discover tools/context-evals
+        run: uv run --no-project --python 3.12 --with pyyaml==6.0.2 python -m unittest discover tools/context-evals
+      - name: Validate the eval cases
+        run: uv run --no-project --python 3.12 --with pyyaml==6.0.2 python tools/context-evals/harness.py validate-cases
