@@ -1,0 +1,54 @@
+# Fixture corpus for the harness tests; it matches testkit.FILES and testdata/transcripts.
+- id: xberg-ocr-dpi
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg
+  persona: maintainer
+  prompt: "What DPI does OCR render pages at by default?"
+  behaviour: answer
+  must_use: [ocr-pipeline-and-quality]
+  must_not_use: [crawl-tuning]
+  must_not_mention: ["(?i)liter-llm"]
+  expect: ["(?i)tesseract", "300"]
+  criteria:
+    - id: names-dpi-default
+      check: "The answer states that the default OCR DPI is 300."
+    - id: names-engine
+      check: "The answer names Tesseract as the OCR engine."
+  reference:
+    facts: ["The default OCR DPI is 300.", "OCR uses Tesseract."]
+    sources: [crates/xberg/src/ocr/mod.rs]
+  sandbox: result
+- id: xberg-ocr-module
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg
+  prompt: "Where is DEFAULT_DPI defined in this crate?"
+  behaviour: answer
+  must_use: [ocr-pipeline-and-quality]
+  expect: ["src/ocr/mod\\.rs"]
+  criteria:
+    - id: names-file
+      check: "The answer names crates/xberg/src/ocr/mod.rs."
+  reference:
+    facts: ["DEFAULT_DPI is defined in crates/xberg/src/ocr/mod.rs."]
+    sources: [crates/xberg/src/ocr/mod.rs]
+  sandbox: result
+- id: xberg-fetch-location
+  domain: xberg
+  repo: xberg
+  cwd: crates/xberg
+  prompt: "Where is fetch() implemented?"
+  behaviour: answer
+  must_not_mention: ["(?i)\\bcrawler\\b"]
+  expect: ["fetch\\.rs"]
+  reference:
+    sources: [crates/xberg/src/web/fetch.rs]
+  sandbox: result
+- id: xberg-dpi-ambiguous
+  domain: xberg
+  repo: xberg
+  cwd: .
+  prompt: "Which DPI should I use?"
+  behaviour: ask
+  sandbox: procedure
