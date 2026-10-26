@@ -201,7 +201,11 @@ def codex(repo: Path) -> PresetReport:
     agents_md = repo / "AGENTS.md"
     if agents_md.exists():
         report.items += inlined_rules(read(agents_md))
-    report.items += listing("skill", repo / ".agents" / "skills", repo, "*/SKILL.md")
+    # Codex does not gate a skill by `paths:`: every skill in the tree is listed at start.
+    skills = listing("skill", repo / ".agents" / "skills", repo, "*/SKILL.md")
+    for skill in skills:
+        skill.gated = False
+    report.items += skills
     report.items += listing("agent", repo / ".codex" / "agents", repo, "*.toml")
     return report
 

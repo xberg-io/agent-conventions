@@ -47,6 +47,11 @@ class ExposureTest(unittest.TestCase):
         agents = [i for i in exposure.codex(self.repo).items if i.kind == "agent"]
         self.assertEqual([(a.name, a.description) for a in agents], [("rev", "Reviews diffs")])
 
+    def test_codex_lists_path_gated_skills(self) -> None:
+        write(self.repo, ".agents/skills/b/SKILL.md", "---\nname: b\ndescription: gated\npaths:\n  - 'x/**'\n---\n")
+        summary = exposure.codex(self.repo).summary()
+        self.assertEqual((summary["skills_gated"], summary["listing_bytes"]), (0, len("- b: gated\n")))
+
     def test_standalone_claude_md_ignores_agents_md(self) -> None:
         write(self.repo, "CLAUDE.md", "# repo\n\n## Rules\n\n### one\n\nx\n")
         write(self.repo, "AGENTS.md", "# repo\n\n## Rules\n\n### one\n\nx\n\n### scoped\n\ny\n")

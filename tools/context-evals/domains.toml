@@ -105,3 +105,16 @@ domains = []
 term = "xberg"
 artifact = "skill:xberg-brand-and-docs"
 reason = "Org-wide brand skill: the name is the routing key, not product knowledge."
+
+# Codex lists every skill at start whatever its `paths:`, so gated binding skills appear in its listing in repositories
+# without bindings; Claude Code and Cursor gate them. alef-workflow is about alef by definition.
+[[accept]]
+term = "alef"
+artifact = "skill:alef-workflow"
+reason = "Path-gated for Claude; Codex cannot gate skills by path, so it lists the name everywhere."
+
+# sceptre is an OCR engine: "OCR" in its own rules is its domain, not xberg's.
+[[accept]]
+term = "OCR"
+repo = "sceptre"
+reason = "sceptre's own subject; the term is shared with xberg's OCR work."
