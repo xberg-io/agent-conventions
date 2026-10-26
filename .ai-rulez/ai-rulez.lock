@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.6.3'
+ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:781d4b4d101873e04c5629aad8bfadb543ce76464355462db5df4be8a0163bc9'
+tree = 'sha256:6ab1996d38d64580faa8e139a16f8f53c32f8ac4fa1c8a3b3fec590502e28314'
 
 [[served]]
 name = 'add-language-generator'
@@ -46,13 +46,13 @@ digest = 'sha256:c28dc18d729b6694d34eb9cc85d3845360fdc170f17cfa12a8c21cae0b07207
 name = 'code-quality-standards'
 source = 'builtin://universal/code-quality/skills/code-quality-standards/SKILL.md'
 commit = ''
-digest = 'sha256:8e01021ac23e15b01cac75b4ee9c1971a4c57a7d949d390fb4e0b6943f91afe2'
+digest = 'sha256:fbb459dca3be6c91a4fe1944e844728c53e8856b517c5b122b8b2aeac566f666'
 
 [[served]]
 name = 'config-placement'
 source = 'builtin://universal/ai-governance/skills/config-placement/SKILL.md'
 commit = ''
-digest = 'sha256:dd198e7e6c233cc4509b95b165f10054849cf77c394d54d1f59045857d88191a'
+digest = 'sha256:31adedeec2e2f4e7e0cc802f32467ad38d6db4034df698dac1ee9b52b747fd00'
 
 [[served]]
 name = 'consumer-release-gates'
@@ -76,7 +76,7 @@ digest = 'sha256:01b910c035d3359bd0d84f52eeac8e26837c131b6f2aa3148b79c2c30b7f5f9
 name = 'dependency-awareness'
 source = 'builtin://universal/security/skills/dependency-awareness/SKILL.md'
 commit = ''
-digest = 'sha256:e108ed344fe20948fcbda61b96266026bb9b2318df089964c088c0455294f8d3'
+digest = 'sha256:8f41215233c26441abed2b18f35575ce6b5614f91d9bef4885d550322542d4a5'
 
 [[served]]
 name = 'e2e-generator-conventions'
@@ -88,7 +88,7 @@ digest = 'sha256:5f63fa5e71656d4ace7ff7f71634b2f49fdee12aba55726790dfd4423cd8669
 name = 'error-handling'
 source = 'builtin://universal/code-quality/skills/error-handling/SKILL.md'
 commit = ''
-digest = 'sha256:fddb5f980e8d98c91b459be578cdea7e0fc765d8219f66088892e936f0d1e349'
+digest = 'sha256:fbc7d452c7171e71341578b6c7a56fc2c87031c0ce15d35884bc3260e04ff68a'
 
 [[served]]
 name = 'feature-flag-conventions'
@@ -118,7 +118,7 @@ digest = 'sha256:d6d845b396eb32b6392b2fb1c1cf48dfa92d3155a86c6ef51342c7d520b4501
 name = 'incremental-approach'
 source = 'builtin://universal/token-efficiency/skills/incremental-approach/SKILL.md'
 commit = ''
-digest = 'sha256:ff56cbdc4813ee427a3b6f7d23f6b41b82b7c3cc8dc2b64ccd256a90e75e02f8'
+digest = 'sha256:b31111df0d7c3427e8ef3257fedeea76bc2430e4e132e7c986ab39d7c9b0d9c6'
 
 [[served]]
 name = 'iterate'
@@ -136,7 +136,7 @@ digest = 'sha256:6efc7965795869b92e35f64f39ac0f96cf3dfed2cbe8e1446c105e9fb4def36
 name = 'owasp-quick-reference'
 source = 'builtin://universal/security/skills/owasp-quick-reference/SKILL.md'
 commit = ''
-digest = 'sha256:de4f3b595b88e88d7bff0c342b5253637d08d79b3baebe888bd465f133ff512c'
+digest = 'sha256:195755e5e5628857b680bb0b0453c909f258a0c36ce3f1b8e1d746c7ea54bffc'
 
 [[served]]
 name = 'parallelize'
@@ -172,7 +172,7 @@ digest = 'sha256:7ab2b543dc6608f204c957fedfc55ae902d22fda9dc8a52252330ff9b1406ff
 name = 'task-runner'
 source = 'builtin://universal/token-efficiency/skills/task-runner/SKILL.md'
 commit = ''
-digest = 'sha256:9f3cadda648798b049869c463d7a69f6f7b5953bcad2a43ea02e645d1ec3e19b'
+digest = 'sha256:c57056e3a74a261b3a9d47638726c7d1f64c76b255838b6aaa3e635f3ffa8618'
 
 [[served]]
 name = 'taskfile-structure'
@@ -202,13 +202,13 @@ digest = 'sha256:f23ee5dd7f848991d196fdf930dc8bdd917243bcbeac7d7b3b6c654ed50dcd1
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:3dadea73a17aea206f977215aa1821d72a28c08d0d7ab124cbe93ea733f7af84'
+digest = 'sha256:b5ff23b038dbc17dcfee809655a97d3be07f3c9462ad7875f5cfc4418cf24952'
 
 [[item]]
 kind = 'local-include'
 id = 'public-e2e-generator'
 path = 'modules/e2e-generator'
-digest = 'sha256:6a88ea11f544e1ac0c1962f663715912c19aafc286db3a2e9695c1a72252f5e0'
+digest = 'sha256:829d5b37b4a4a4e80f3c9d917b156e53b749673871a4473966c21c441dee6763'
 
 [[item]]
 kind = 'local-include'
@@ -220,7 +220,7 @@ digest = 'sha256:c4fbd8608f8f6173f480262854af838a85178327862a670d16b6abcf8b3ee73
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:8276884309178d64adaa057dbb844dc901d9439b095fc5370f39feb346efe17c'
+digest = 'sha256:98ceedcec761af8c13f097f285019eb9354b8ab0c44079dc696ddc53f4291448'
 
 [[item]]
 kind = 'rule'

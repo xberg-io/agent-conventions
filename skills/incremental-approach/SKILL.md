@@ -1,6 +1,6 @@
 ---
 name: incremental-approach
-description: "Build in verified increments rather than one speculative block: smallest viable change first, verify, then extend; prototype the risky part before committing to a design; batch edits to one file into a single operation. Load when planning a large or multi-file change, when uncertain which of several approaches will work, or when tempted to generate a whole subsystem before running anything."
+description: "Build in verified increments: smallest change first, verify, then extend; prototype the risky part first; batch edits to one file. Use when planning a large or multi-file change or choosing between approaches."
 # Content-Hash: blake3:95041fb2a28e78eb25d36daa919c6057ee47a0c1b0f42ece17a87379b26bb938
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: config-placement
-description: "Where to put a new instruction in AI-assistant configuration (always-loaded root file, path-scoped rule, directory-level context file, skill, agent) and how to review a rule or skill. Load when adding or reviewing a rule, skill, agent or context file."
+description: "Where an instruction belongs in AI-assistant config: always-on root file, path-scoped rule, directory context file, skill or agent, and how to review one. Use when adding or reviewing a rule, skill, agent or context file."
 # Content-Hash: blake3:3de8acf80324f1d1b4125d6d6dcaf6a90fbfdeb35489d7ff9742dbddb3dc0451
 ---
 
