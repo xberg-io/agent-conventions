@@ -1,6 +1,6 @@
 # Concepts
 
-* [C FFI Conventions](c-ffi.md)
+* [C FFI Conventions](c-ffi.md) - C ABI conventions for a Rust core: opaque handles, extern C exports, null and panic safety, allocate/free pairs, generated headers. Use when editing an FFI crate or a C header.
 * [C# Conventions](csharp.md)
 * [Dart Conventions](dart.md)
 * [Elixir Conventions](elixir.md)
