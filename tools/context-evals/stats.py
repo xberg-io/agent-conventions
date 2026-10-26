@@ -102,8 +102,8 @@ def cluster_bootstrap(
     observed = fmean(v for g in groups for v in g)
     rng = random.Random(seed)
     stats = sorted(fmean([v for _ in groups for v in rng.choice(groups)]) for _ in range(resamples))
-    lo = stats[int(math.floor(alpha / 2 * (resamples - 1)))]
-    hi = stats[int(math.ceil((1 - alpha / 2) * (resamples - 1)))]
+    lo = stats[math.floor(alpha / 2 * (resamples - 1))]
+    hi = stats[math.ceil((1 - alpha / 2) * (resamples - 1))]
     p = sum(1 for s in stats if s <= 0) / resamples
     return Interval(observed, lo, hi, pstdev(stats), p, len(groups), len(cases))
 
