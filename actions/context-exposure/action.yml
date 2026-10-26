@@ -1,0 +1,33 @@
+name: Context exposure
+description: >-
+  Fail when a repository's generated agent context leaks another product's terms, exceeds its start-token budget,
+  or lists a skill or agent description over 250 characters. Run it after ai-rulez has generated the outputs.
+inputs:
+  budgets:
+    description: "Start-token budgets, one `preset=tokens` per line (claude, codex)."
+    required: true
+  repo-name:
+    description: Name the repository is listed under in domains.toml.
+    default: ${{ github.event.repository.name }}
+  working-directory:
+    description: Repository root holding the generated outputs.
+    default: .
+runs:
+  using: composite
+  steps:
+    - name: Check context exposure
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BUDGETS: ${{ inputs.budgets }}
+        REPO_NAME: ${{ inputs.repo-name }}
+        HARNESS: ${{ github.action_path }}/../../tools/context-evals
+      run: |
+        [ -n "$REPO_NAME" ] || { echo "::error::repo-name is empty"; exit 1; }
+        args=()
+        while read -r budget; do
+          [ -n "$budget" ] && args+=(--budget "$budget")
+        done <<< "$BUDGETS"
+        [ "${#args[@]}" -gt 0 ] || { echo "::error::no budgets given"; exit 1; }
+        python3 "$HARNESS/exposure.py" . --repo-name "$REPO_NAME" --domains "$HARNESS/domains.toml" \
+          --fail-on-leak --fail-on-long-descriptions "${args[@]}" --markdown "$GITHUB_STEP_SUMMARY"

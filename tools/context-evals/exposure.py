@@ -227,7 +227,7 @@ def always_visible_text(repo: Path, report: PresetReport) -> dict[str, str]:
 
 
 def check_leaks(repo: Path, report: PresetReport, domains: dict, accept: list[dict]) -> None:
-    owner = domains.get("repos", {}).get(repo.name, {}).get("domains", [])
+    owner = domains.get("repos", {}).get(report.repo, {}).get("domains", [])
     texts = always_visible_text(repo, report)
     for domain, spec in domains.get("domain", {}).items():
         if domain in owner:
@@ -242,7 +242,7 @@ def check_leaks(repo: Path, report: PresetReport, domains: dict, accept: list[di
                 accepted = any(
                     a.get("term", term) == term
                     and re.fullmatch(a.get("artifact", ".*"), artifact)
-                    and re.fullmatch(a.get("repo", ".*"), repo.name)
+                    and re.fullmatch(a.get("repo", ".*"), report.repo)
                     for a in accept
                 )
                 (report.accepted if accepted else report.leaks).append(leak)
@@ -284,6 +284,44 @@ def markdown(reports: list[PresetReport]) -> str:
     return "\n".join(out)
 
 
+def parse_budgets(values: list[str]) -> dict[str, int]:
+    """Parse `preset=tokens` budget arguments."""
+    budgets = {}
+    for value in values:
+        preset, _, tokens = value.partition("=")
+        if preset not in PRESETS or not tokens.isdigit():
+            raise SystemExit(f"--budget expects <preset>=<tokens> with preset in {sorted(PRESETS)}, got {value!r}")
+        budgets[preset] = int(tokens)
+    return budgets
+
+
+def gate(reports: list[PresetReport], budgets: dict[str, int], fail_on_leak: bool, fail_on_long: bool) -> list[str]:
+    """The reasons a CI run fails: leaks, start tokens over budget, listed descriptions over the limit."""
+    failures = []
+    for r in reports:
+        s = r.summary()
+        if fail_on_leak and r.leaks:
+            terms = sorted({f"{leak.term} ({leak.artifact})" for leak in r.leaks})
+            failures.append(f"{r.repo}/{r.preset}: {len(r.leaks)} leaked term(s): {', '.join(terms)}")
+        budget = budgets.get(r.preset)
+        if budget is not None and s["start_tokens"] > budget:
+            failures.append(f"{r.repo}/{r.preset}: {s['start_tokens']} start tokens, budget {budget}")
+        if fail_on_long:
+            long = [
+                i.name
+                for i in r.items
+                if i.kind in ("skill", "agent")
+                and not i.gated
+                and not i.user_only
+                and len(i.description) > DESCRIPTION_LIMIT
+            ]
+            if long:
+                failures.append(
+                    f"{r.repo}/{r.preset}: descriptions over {DESCRIPTION_LIMIT} characters: {', '.join(long)}"
+                )
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("repos", nargs="+", type=Path)
@@ -292,15 +330,33 @@ def main() -> int:
     parser.add_argument("--json", type=Path)
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--fail-on-leak", action="store_true")
+    parser.add_argument("--fail-on-long-descriptions", action="store_true")
+    parser.add_argument(
+        "--budget",
+        action="append",
+        default=[],
+        metavar="PRESET=TOKENS",
+        help="fail when a preset's estimated start tokens exceed TOKENS (repeatable)",
+    )
+    parser.add_argument("--repo-name", help="name to look the repository up by in domains.toml (one repo only)")
     args = parser.parse_args()
+    if args.repo_name and len(args.repos) != 1:
+        parser.error("--repo-name takes exactly one repository")
+    budgets = parse_budgets(args.budget)
 
     domains = tomllib.loads(args.domains.read_text()) if args.domains.exists() else {}
+    if args.fail_on_leak:
+        names = [args.repo_name] if args.repo_name else [r.resolve().name for r in args.repos]
+        unknown = [n for n in names if n not in domains.get("repos", {})]
+        if unknown:
+            parser.error(f"--fail-on-leak: {', '.join(unknown)} not listed under [repos] in {args.domains}")
     accept = domains.get("accept", [])
     reports = []
     for repo in args.repos:
         repo = repo.resolve()
         for preset in args.presets.split(","):
             report = PRESETS[preset](repo)
+            report.repo = args.repo_name or repo.name
             check_leaks(repo, report, domains, accept)
             reports.append(report)
 
@@ -312,7 +368,13 @@ def main() -> int:
     if args.json:
         payload = [{"summary": r.summary(), **asdict(r)} for r in reports]
         args.json.write_text(json.dumps(payload, indent=2) + "\n")
-    return 1 if args.fail_on_leak and any(r.leaks for r in reports) else 0
+    for r in reports:
+        s = r.summary()
+        print(f"{r.repo}/{r.preset}: {s['start_tokens']} start tokens, {len(r.items)} items, {len(r.leaks)} leaks")
+    failures = gate(reports, budgets, args.fail_on_leak, args.fail_on_long_descriptions)
+    for failure in failures:
+        print(f"::error::{failure}", file=sys.stderr)
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

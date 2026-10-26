@@ -23,7 +23,24 @@ Per repository and preset (`claude`, `codex`) it reports:
 
 `domains.toml` is the taxonomy: `[domain.<name>]` with owner, owning paths and terms; `[repos.<name>].domains` lists the
 domains a repository owns; `[[accept]]` records an exception with a written `reason`. `--fail-on-leak` exits 1 when a
-leak remains, for CI.
+leak remains; `--fail-on-long-descriptions` when a listed skill or agent description is over 250 characters;
+`--budget claude=N` (repeatable, per preset) when the estimated start tokens exceed `N`. `--repo-name` sets the name the
+repository is looked up by in `domains.toml`, and a name missing from `[repos]` is an error under `--fail-on-leak`.
+
+## CI gate
+
+Consumers run the checks after `validate-ai-rulez` has generated the outputs, with budgets about 10% above the last
+measurement, pinned to an agent-conventions commit:
+
+```yaml
+- uses: xberg-io/agent-conventions/actions/context-exposure@<sha>
+  with:
+    budgets: |
+      claude=4650
+      codex=7250
+```
+
+Raising a budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
 
 Tests: `python3 -m unittest discover tools/context-evals`.
 

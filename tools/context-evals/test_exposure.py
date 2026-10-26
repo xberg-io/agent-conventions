@@ -87,6 +87,29 @@ class ExposureTest(unittest.TestCase):
         exposure.check_leaks(self.repo, report, {**DOMAINS, "repos": {}}, [])
         self.assertEqual(report.leaks, [])
 
+    def test_gate_reports_budget_leaks_and_long_descriptions(self) -> None:
+        write(self.repo, "CLAUDE.md", "x" * 400 + " alpha-corpus\n")
+        write(self.repo, ".claude/skills/a/SKILL.md", "---\nname: a\ndescription: " + "d" * 260 + "\n---\n")
+        report = exposure.claude(self.repo)
+        exposure.check_leaks(self.repo, report, DOMAINS, [])
+        self.assertEqual(exposure.gate([report], {}, False, False), [])
+        failures = exposure.gate([report], {"claude": 10}, True, True)
+        self.assertEqual(len(failures), 3)
+        self.assertIn("budget 10", failures[1])
+        self.assertEqual(exposure.gate([report], {"claude": 10_000}, False, False), [])
+
+    def test_repo_name_drives_the_owner_lookup(self) -> None:
+        write(self.repo, "CLAUDE.md", "beta and alpha-corpus\n")
+        report = exposure.claude(self.repo)
+        report.repo = "other"
+        exposure.check_leaks(self.repo, report, {**DOMAINS, "repos": {"other": {"domains": ["alpha"]}}}, [])
+        self.assertEqual([leak.domain for leak in report.leaks], ["beta"])
+
+    def test_budget_argument_is_validated(self) -> None:
+        self.assertEqual(exposure.parse_budgets(["claude=10", "codex=20"]), {"claude": 10, "codex": 20})
+        with self.assertRaises(SystemExit):
+            exposure.parse_budgets(["cursor=10"])
+
     def test_probe_plants_one_distinct_sentinel_per_artifact(self) -> None:
         write(self.repo, "crates/a/src/lib.rs", "")
         tokens = probe.plant(self.repo, "crates/a/src/lib.rs")
