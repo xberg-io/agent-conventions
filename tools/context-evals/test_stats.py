@@ -51,6 +51,19 @@ class StatsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             stats.paired_cluster_bootstrap({"a": [1.0]}, {"b": [1.0]}, {})
 
+    def test_single_arm_interval_averages_repeats_then_cases(self) -> None:
+        values = {"a": [1.0, 0.0], "b": [1.0, 1.0], "c": [0.0]}
+        iv = stats.cluster_bootstrap(values, {"a": "k", "b": "k", "c": "j"})
+        self.assertAlmostEqual(iv.mean, 0.5)
+        self.assertEqual((iv.clusters, iv.cases), (2, 3))
+        self.assertEqual((iv.lo, iv.hi), (0.0, 0.75))
+
+    def test_single_arm_constant_scores_have_a_zero_width_interval(self) -> None:
+        iv = stats.cluster_bootstrap({"a": [0.25], "b": [0.25]}, {})
+        self.assertEqual((iv.mean, iv.lo, iv.hi, iv.se), (0.25, 0.25, 0.25, 0.0))
+        with self.assertRaises(ValueError):
+            stats.cluster_bootstrap({"a": []}, {})
+
     def test_holm_steps_down(self) -> None:
         self.assertEqual(stats.holm({"a": 0.01, "b": 0.02, "c": 0.04}), {"a": True, "b": True, "c": True})
         self.assertEqual(stats.holm({"a": 0.01, "b": 0.03, "c": 0.04}), {"a": True, "b": False, "c": False})

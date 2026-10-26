@@ -83,6 +83,31 @@ def paired_cluster_bootstrap(
     return Interval(observed, lo, hi, pstdev(stats), p, len(groups), len(shared))
 
 
+def cluster_bootstrap(
+    values: dict[str, list[float]],
+    clusters: dict[str, str],
+    *,
+    alpha: float = 0.05,
+    resamples: int = DEFAULT_RESAMPLES,
+    seed: int = 0,
+) -> Interval:
+    """Interval for the mean of one run's case scores (repeats averaged per case), resampling clusters."""
+    cases = sorted(c for c in values if values[c])
+    if not cases:
+        raise ValueError("no case has a score")
+    by_cluster: dict[str, list[float]] = defaultdict(list)
+    for case in cases:
+        by_cluster[clusters.get(case, case)].append(fmean(values[case]))
+    groups = [by_cluster[k] for k in sorted(by_cluster)]
+    observed = fmean(v for g in groups for v in g)
+    rng = random.Random(seed)
+    stats = sorted(fmean([v for _ in groups for v in rng.choice(groups)]) for _ in range(resamples))
+    lo = stats[int(math.floor(alpha / 2 * (resamples - 1)))]
+    hi = stats[int(math.ceil((1 - alpha / 2) * (resamples - 1)))]
+    p = sum(1 for s in stats if s <= 0) / resamples
+    return Interval(observed, lo, hi, pstdev(stats), p, len(groups), len(cases))
+
+
 def holm(pvalues: dict[str, float], alpha: float = 0.05) -> dict[str, bool]:
     """Holm step-down: which hypotheses are rejected at family-wise level `alpha`."""
     order = sorted(pvalues, key=pvalues.get)
