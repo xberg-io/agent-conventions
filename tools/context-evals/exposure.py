@@ -295,6 +295,20 @@ def always_visible_text(repo: Path, report: PresetReport) -> dict[str, str]:
     return texts
 
 
+def term_pattern(term: str) -> re.Pattern[str]:
+    """A domain term as a whole word: `alpha` does not match inside `alpha-tools` or `alphabet`."""
+    return re.compile(rf"(?<![\w-]){re.escape(term)}(?![\w-])", re.IGNORECASE)
+
+
+def is_accepted(accept: list[dict], term: str, artifact: str, repo: str) -> bool:
+    return any(
+        a.get("term", term) == term
+        and re.fullmatch(a.get("artifact", ".*"), artifact)
+        and re.fullmatch(a.get("repo", ".*"), repo)
+        for a in accept
+    )
+
+
 def check_leaks(repo: Path, report: PresetReport, domains: dict, accept: list[dict]) -> None:
     owner = domains.get("repos", {}).get(report.repo, {}).get("domains", [])
     texts = always_visible_text(repo, report)
@@ -302,18 +316,13 @@ def check_leaks(repo: Path, report: PresetReport, domains: dict, accept: list[di
         if domain in owner:
             continue
         for term in spec.get("terms", []):
-            pattern = re.compile(rf"(?<![\w-]){re.escape(term)}(?![\w-])", re.IGNORECASE)
+            pattern = term_pattern(term)
             for artifact, text in texts.items():
                 hits = len(pattern.findall(text))
                 if not hits:
                     continue
                 leak = Leak(domain, term, artifact, hits)
-                accepted = any(
-                    a.get("term", term) == term
-                    and re.fullmatch(a.get("artifact", ".*"), artifact)
-                    and re.fullmatch(a.get("repo", ".*"), report.repo)
-                    for a in accept
-                )
+                accepted = is_accepted(accept, term, artifact, report.repo)
                 (report.accepted if accepted else report.leaks).append(leak)
 
 
