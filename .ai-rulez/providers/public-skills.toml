@@ -5,6 +5,7 @@ mode = "per_item_file"
 dir = "skills"
 filename = "{id}/SKILL.md"
 resources = true
+filter = "placement_core"
 
 [outputs.skills.body]
 sections = ["frontmatter", "content", "resource_index"]

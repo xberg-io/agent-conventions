@@ -39,6 +39,10 @@ enabled = true
 [mcp]
 self_server = false
 
+# Keeps repo-local maintainer skills (frontmatter targets) out of the public skills/ tree. ~keep
+[placement]
+honor_targets = true
+
 [lock]
 include_outputs = false
 

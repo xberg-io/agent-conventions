@@ -23,6 +23,7 @@ opencode.json
 # END ai-rulez
 
 /.agents/skills/
+/.opencode/skills/
 
 __pycache__/
 

@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:7246e006f4339819557a1cfb00d3e92ec9e5a2d2e530660d8cba91f8c3efe6c1'
+tree = 'sha256:dbbeb5239b6be41ff7006f4bf8aa65baefa7da80e19254598ccc009bdf9c4323'
 
 [[served]]
 name = 'add-language-generator'
@@ -65,6 +65,12 @@ name = 'containerization-docker'
 source = 'include:public-infrastructure/skills/containerization-docker/SKILL.md'
 commit = ''
 digest = 'sha256:2a09247d65e936b055a2cde9f4aae3bd92195b702bd4fcdd5bb276a9dcd9d6ac'
+
+[[served]]
+name = 'context-improvement'
+source = '.ai-rulez/skills/context-improvement/SKILL.md'
+commit = ''
+digest = 'sha256:64cb0529376198bd9438104d112f359e6428b5fc6a973e4850e6f7aca85f74ac'
 
 [[served]]
 name = 'create-e2e-fixture'
@@ -232,3 +238,9 @@ digest = 'sha256:1016b8bee0f356be6d79a7cce09fe4f6e823e4d55022f74bde8213d319d95ce
 kind = 'settings'
 id = 'mcp-servers'
 digest = 'sha256:338746f40c0be1500fd96185fd1d133ab576ec2d1677a88147d25d23b08e492f'
+
+[[item]]
+kind = 'skill'
+id = 'context-improvement'
+path = 'skills/context-improvement'
+digest = 'sha256:14a9082c589b0c6a66c0b77fe2b340906bb3ff54d68ae0cf55ec338217c5e2ff'
