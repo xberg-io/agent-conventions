@@ -16,8 +16,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import queue
 import re
+import subprocess
 import sys
+import threading
+import time
 import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -78,6 +82,10 @@ class PresetReport:
             "skills_user_only": sum(1 for i in self.items if i.kind == "skill" and i.user_only),
             "agents": self.count("agent"),
             "mcp_servers": self.count("mcp"),
+            "mcp_tokens": round(sum(i.bytes for i in self.items if i.kind == "mcp") / BYTES_PER_TOKEN),
+            "mcp_unmeasured": sorted(
+                i.name for i in self.items if i.kind == "mcp" and not i.description.endswith(" tools")
+            ),
             "long_descriptions": sum(1 for i in listed if len(i.description) > DESCRIPTION_LIMIT),
             "listing_bytes": sum(i.bytes for i in listed),
             "leaks": len(self.leaks),
@@ -153,14 +161,74 @@ def inlined_rules(text: str) -> list[Item]:
     return items
 
 
-def mcp_servers(path: Path) -> list[Item]:
+def mcp_servers(path: Path, repo: Path) -> list[Item]:
+    """The MCP servers a preset's config declares; they cost nothing here until measure_mcp sizes them."""
     if not path.exists():
         return []
     try:
-        servers = json.loads(path.read_text()).get("mcpServers", {})
-    except json.JSONDecodeError:
+        if path.suffix == ".toml":
+            servers = tomllib.loads(path.read_text()).get("mcp_servers", {})
+        else:
+            servers = json.loads(path.read_text()).get("mcpServers", {})
+    except (json.JSONDecodeError, tomllib.TOMLDecodeError):
         return []
-    return [Item("mcp", name, str(path.name), len(json.dumps(spec))) for name, spec in servers.items()]
+    rel = str(path.relative_to(repo))
+    return [Item("mcp", name, rel, 0, description=json.dumps(spec, sort_keys=True)) for name, spec in servers.items()]
+
+
+def measure_mcp(spec: dict, cwd: Path, timeout: float = 60) -> tuple[int, int]:
+    """Start a stdio MCP server, list its tools; return (tool count, bytes of tool schemas and instructions)."""
+    command = [spec["command"], *spec.get("args", [])]
+    messages = [
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "exposure", "version": "1"},
+            },
+        },
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+    ]
+    stdin = "".join(json.dumps(m) + "\n" for m in messages)
+    proc = subprocess.Popen(
+        command, cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True
+    )
+    lines: queue.Queue[str] = queue.Queue()
+    threading.Thread(target=lambda: [lines.put(line) for line in iter(proc.stdout.readline, "")], daemon=True).start()
+    replies: dict[int, dict] = {}
+    try:
+        proc.stdin.write(stdin)
+        proc.stdin.flush()
+        deadline = time.monotonic() + timeout
+        while 2 not in replies:
+            try:
+                message = json.loads(lines.get(timeout=max(0.0, deadline - time.monotonic())))
+            except queue.Empty:
+                raise RuntimeError(f"MCP server {command[0]!r} gave no tools/list reply within {timeout}s") from None
+            if "id" in message:
+                replies[message["id"]] = message
+    finally:
+        proc.kill()
+        proc.wait()
+        proc.stdin.close()
+        proc.stdout.close()
+    tools = replies[2].get("result", {}).get("tools", [])
+    instructions = (replies.get(1, {}).get("result", {}) or {}).get("instructions") or ""
+    size = sum(len(json.dumps(tool, separators=(",", ":"))) for tool in tools) + len(instructions.encode())
+    return len(tools), size
+
+
+def measure_servers(report: PresetReport, repo: Path, names: set[str]) -> None:
+    """Size the named servers in place; the rest stay listed as not measured."""
+    for item in report.items:
+        if item.kind == "mcp" and item.name in names:
+            count, size = measure_mcp(json.loads(item.description), repo)
+            item.bytes = size
+            item.description = f"{count} tools"
 
 
 def instructions(repo: Path, names: list[str]) -> list[Item]:
@@ -191,7 +259,7 @@ def claude(repo: Path) -> PresetReport:
         )
     report.items += listing("skill", repo / ".claude" / "skills", repo, "*/SKILL.md")
     report.items += listing("agent", repo / ".claude" / "agents", repo, "*.md")
-    report.items += mcp_servers(repo / ".mcp.json")
+    report.items += mcp_servers(repo / ".mcp.json", repo)
     return report
 
 
@@ -207,6 +275,7 @@ def codex(repo: Path) -> PresetReport:
         skill.gated = False
     report.items += skills
     report.items += listing("agent", repo / ".codex" / "agents", repo, "*.toml")
+    report.items += mcp_servers(repo / ".codex" / "config.toml", repo)
     return report
 
 
@@ -252,9 +321,9 @@ def markdown(reports: list[PresetReport]) -> str:
     rows = [
         (
             "| Repo | Preset | Start tokens | Root file | Inlined rules | Rules always/gated "
-            "| Skills (gated, user-only) | Agents | Descr. > 250 | Leaks |"
+            "| Skills (gated, user-only) | Agents | MCP tokens (unmeasured) | Descr. > 250 | Leaks |"
         ),
-        "|---|---|---:|---:|---:|---|---|---:|---:|---:|",
+        "|---|---|---:|---:|---:|---|---|---:|---|---:|---:|",
     ]
     for r in reports:
         s = r.summary()
@@ -262,6 +331,7 @@ def markdown(reports: list[PresetReport]) -> str:
             f"| {s['repo']} | {s['preset']} | {s['start_tokens']:,} | {s['instruction_bytes'] / 1024:.1f} KB "
             f"| {s['inlined_rules']} | {s['rules_always']}/{s['rules_gated']} "
             f"| {s['skills']} ({s['skills_gated']}, {s['skills_user_only']}) | {s['agents']} "
+            f"| {s['mcp_tokens']:,} ({', '.join(s['mcp_unmeasured']) or '-'}) "
             f"| {s['long_descriptions']} | {s['leaks']} |"
         )
     out = ["# Start-context exposure", "", "\n".join(rows), ""]
@@ -338,6 +408,13 @@ def main() -> int:
         metavar="PRESET=TOKENS",
         help="fail when a preset's estimated start tokens exceed TOKENS (repeatable)",
     )
+    parser.add_argument(
+        "--measure-mcp",
+        action="append",
+        default=[],
+        metavar="SERVER",
+        help="start this MCP server (by name, from the preset's config) and count its tool schemas (repeatable)",
+    )
     parser.add_argument("--repo-name", help="name to look the repository up by in domains.toml (one repo only)")
     args = parser.parse_args()
     if args.repo_name and len(args.repos) != 1:
@@ -357,6 +434,7 @@ def main() -> int:
         for preset in args.presets.split(","):
             report = PRESETS[preset](repo)
             report.repo = args.repo_name or repo.name
+            measure_servers(report, repo, set(args.measure_mcp))
             check_leaks(repo, report, domains, accept)
             reports.append(report)
 

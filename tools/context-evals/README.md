@@ -18,6 +18,10 @@ Per repository and preset (`claude`, `codex`) it reports:
   replaces `AGENTS.md`), always-on rules, and the name and description of every skill and agent that is listed at
   start. Skills with `paths:` and user-only skills (`disable-model-invocation: true`) are counted but cost nothing at
   start. Tokens are bytes / 3.9; calibrate against a real session before quoting absolute numbers.
+- MCP servers each preset's config declares (`.mcp.json`, `.codex/config.toml`). A server costs nothing in the
+  report until `--measure-mcp NAME` starts it over stdio and counts its tool schemas and instructions; unmeasured
+  servers are listed. The full `ai-rulez mcp` server lists 67 tools (about 38k tokens); restricted to `find_skill`
+  and `load_skill` (`[mcp] tools`), about 1.1k.
 - inlined and glob-scoped rules, the largest always-loaded rules, descriptions over 250 characters.
 - leaks: a term of a domain the repository does not own (`domains.toml`) found in its always-visible text.
 
@@ -40,7 +44,8 @@ measurement, pinned to an agent-conventions commit:
       codex=7250
 ```
 
-Raising a budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
+The action measures the `ai-rulez` server by default (`measure-mcp`), so it needs `ai-rulez` on `PATH`. Raising a
+budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
 
 Tests: `python3 -m unittest discover tools/context-evals`.
 

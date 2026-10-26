@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -16,6 +17,18 @@ DOMAINS = {
     "domain": {"alpha": {"terms": ["alpha-corpus"]}, "beta": {"terms": ["beta"]}},
     "repos": {"repo": {"domains": ["beta"]}},
 }
+
+
+FAKE_TOOL = {"name": "find", "description": "Find things", "inputSchema": {"type": "object"}}
+FAKE_MCP = f"""
+import json, sys
+for line in iter(sys.stdin.readline, ""):
+    m = json.loads(line)
+    if m.get("method") == "initialize":
+        print(json.dumps({{"jsonrpc": "2.0", "id": m["id"], "result": {{"instructions": "hello"}}}}), flush=True)
+    elif m.get("method") == "tools/list":
+        print(json.dumps({{"jsonrpc": "2.0", "id": m["id"], "result": {{"tools": [{FAKE_TOOL!r}]}}}}), flush=True)
+"""
 
 
 def write(root: Path, rel: str, text: str) -> None:
@@ -109,6 +122,21 @@ class ExposureTest(unittest.TestCase):
         self.assertEqual(exposure.parse_budgets(["claude=10", "codex=20"]), {"claude": 10, "codex": 20})
         with self.assertRaises(SystemExit):
             exposure.parse_budgets(["cursor=10"])
+
+    def test_mcp_servers_are_listed_free_until_measured(self) -> None:
+        server = self.repo / "fake_mcp.py"
+        server.write_text(FAKE_MCP)
+        spec = {"command": sys.executable, "args": [str(server)]}
+        write(self.repo, ".mcp.json", json.dumps({"mcpServers": {"fake": spec, "other": {"command": "nope"}}}))
+        write(self.repo, ".codex/config.toml", '[mcp_servers.fake]\ncommand = "x"\n')
+        report = exposure.claude(self.repo)
+        self.assertEqual(report.start_bytes(), 0)
+        self.assertEqual(report.summary()["mcp_unmeasured"], ["fake", "other"])
+        exposure.measure_servers(report, self.repo, {"fake"})
+        tool = json.dumps(FAKE_TOOL, separators=(",", ":"))
+        self.assertEqual(report.start_bytes(), len(tool) + len("hello"))
+        self.assertEqual(report.summary()["mcp_unmeasured"], ["other"])
+        self.assertEqual([i.name for i in exposure.codex(self.repo).items if i.kind == "mcp"], ["fake"])
 
     def test_probe_plants_one_distinct_sentinel_per_artifact(self) -> None:
         write(self.repo, "crates/a/src/lib.rs", "")

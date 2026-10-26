@@ -9,6 +9,10 @@ inputs:
   repo-name:
     description: Name the repository is listed under in domains.toml.
     default: ${{ github.event.repository.name }}
+  measure-mcp:
+    description: >-
+      MCP servers (by name, one per line) to start and size by their tool schemas; each needs its command on PATH.
+    default: ai-rulez
   working-directory:
     description: Repository root holding the generated outputs.
     default: .
@@ -21,6 +25,7 @@ runs:
       env:
         BUDGETS: ${{ inputs.budgets }}
         REPO_NAME: ${{ inputs.repo-name }}
+        MEASURE_MCP: ${{ inputs.measure-mcp }}
         HARNESS: ${{ github.action_path }}/../../tools/context-evals
       run: |
         [ -n "$REPO_NAME" ] || { echo "::error::repo-name is empty"; exit 1; }
@@ -29,5 +34,8 @@ runs:
           [ -n "$budget" ] && args+=(--budget "$budget")
         done <<< "$BUDGETS"
         [ "${#args[@]}" -gt 0 ] || { echo "::error::no budgets given"; exit 1; }
+        while read -r server; do
+          [ -n "$server" ] && args+=(--measure-mcp "$server")
+        done <<< "$MEASURE_MCP"
         python3 "$HARNESS/exposure.py" . --repo-name "$REPO_NAME" --domains "$HARNESS/domains.toml" \
           --fail-on-leak --fail-on-long-descriptions "${args[@]}" --markdown "$GITHUB_STEP_SUMMARY"

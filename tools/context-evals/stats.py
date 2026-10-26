@@ -77,8 +77,8 @@ def paired_cluster_bootstrap(
         drawn = [d for _ in groups for d in rng.choice(groups)]
         stats.append(fmean(drawn))
     stats.sort()
-    lo = stats[int(math.floor(alpha / 2 * (resamples - 1)))]
-    hi = stats[int(math.ceil((1 - alpha / 2) * (resamples - 1)))]
+    lo = stats[math.floor(alpha / 2 * (resamples - 1))]
+    hi = stats[math.ceil((1 - alpha / 2) * (resamples - 1))]
     p = sum(1 for s in stats if s <= 0) / resamples
     return Interval(observed, lo, hi, pstdev(stats), p, len(groups), len(shared))
 
