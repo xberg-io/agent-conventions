@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:50da788dc859492dd4fbc9094d598c98e83400b8961f1255dbaef81611c4867b'
+tree = 'sha256:7246e006f4339819557a1cfb00d3e92ec9e5a2d2e530660d8cba91f8c3efe6c1'
 
 [[served]]
 name = 'add-language-generator'
@@ -202,7 +202,7 @@ digest = 'sha256:f23ee5dd7f848991d196fdf930dc8bdd917243bcbeac7d7b3b6c654ed50dcd1
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:a32fd9dc491e13e259a5cc4db1675760840fd29ca31eb304fb4b45c681e21612'
+digest = 'sha256:5b1410233ed8f7bf3897a83e9d93fca2bb8879899e30e73b0eaceb01b8793397'
 
 [[item]]
 kind = 'local-include'
