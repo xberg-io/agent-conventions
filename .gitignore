@@ -25,3 +25,6 @@ opencode.json
 /.agents/skills/
 
 __pycache__/
+
+# migrate okf backups
+*.bak-okf-*/
