@@ -83,6 +83,15 @@ builtins = ["!agent-delegation", "!git-workflow"]
 [rules]
 scoped_fallback = "skill"
 
+# The full ai-rulez server lists 67 tools (~38k tokens) at every start; skill discovery needs two (~1.1k).
+# core's skill-discovery rule points the model at them.
+[mcp]
+self_server_command = ["ai-rulez", "mcp"]
+serve_skills = true
+read_only = true
+discover_skills = "repo"
+tools = ["find_skill", "load_skill"]
+
 [[includes]]
 name = "xberg-core"
 source = "https://github.com/xberg-io/agent-conventions.git"
@@ -102,7 +111,10 @@ path = "modules/cicd"
 merge_strategy = "local-override"
 ```
 
-Put the example in `.ai-rulez/config.toml`. Put marketplace and plugin declarations in
+Put the example in `.ai-rulez/config.toml`. The repository's own root context is short: an area map in
+`.ai-rulez/context/area-map.md` (one line per top-level area, pointing to the scoped rules and skills that cover
+it, no procedures) and only the rules that hold for every file. Everything else is a path-scoped rule, a skill
+gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
 your repository uses, pinned by `ref`. Use ai-rulez 5.7.0 or later (CI pins the release) to
 validate and regenerate after editing sources:
@@ -116,6 +128,8 @@ task governance:check
 Consumers generate local harness files from these modules. Product plugin content is maintained
 separately under each product's `plugin/.ai-rulez/`; its public `skills/` export contains product
 integration instructions. It does not expose this repository's internal contributor conventions.
+CI gates the start context with `actions/context-exposure` (budgets, leaks, description length); see
+[tools/context-evals](tools/context-evals/README.md) and [docs/load-mechanics.md](docs/load-mechanics.md).
 Reviewed Poly hooks validate staged source configuration; `task governance:check` checks the
 materialized local output. See [CONTRIBUTING.md](CONTRIBUTING.md) for editing and hook setup.
 

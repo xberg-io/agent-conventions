@@ -49,6 +49,31 @@ budget is a reviewed change to the consumer's workflow; the job summary carries 
 
 Tests: `python3 -m unittest discover tools/context-evals`.
 
+## Dynamic layer
+
+Runs real headless sessions per case and scores them (issue #3, section 5.2). Never in per-commit CI: it costs model
+calls and is nondeterministic. Needs `claude`, `ai-rulez`, PyYAML and `ANTHROPIC_API_KEY`; refuses to start inside
+another agent session. `--model` has no default: pick one per study and keep it fixed.
+
+- Cases: `cases/<repo>/<domain>.yaml` (schema in `cases.py`), owned by the domain's owner. Split tune/holdout by
+  `sha256(id) % 5`. `harness.py validate-cases [--repo-root CHECKOUT --repo NAME]` checks the schema, and against a
+  checkout that every `cwd`, source and skill exists; CI runs the schema check.
+- `harness.py run --repo CHECKOUT --ref REF --model M --out RUN_DIR [--split tune|holdout|all] [--repeats 3]`: a
+  throwaway worktree at REF, `ai-rulez generate`, then one `claude -p` per case and repeat with a fresh config
+  directory, project settings only, a strict empty MCP config and read-only tools; the tree is reset between
+  sessions. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
+- `harness.py judge RUN_DIR --model M` grades criteria; `judge-validate RUN_DIR --model M --second-model M2` computes
+  Cohen's kappa per criterion and the mutation-test TPR/TNR. Only validated criteria count.
+- `harness.py report RUN_DIR`, `harness.py compare BASE_RUN ARM_RUN`: per-domain recall, precision, leak and
+  answer-leak rates, over-/under-ask, criteria pass rate, start tokens and cost, with paired cluster-bootstrap
+  intervals; "inconclusive" when an interval spans zero.
+
+## Improvement loop
+
+`loop.py triage | decide | ledger | holdout` (issue #3, section 6). The round, its arms and the decision rule are in
+the repo-local `context-improvement` skill (`/context-improvement`, user-invoked). Every decision is appended to
+`ledger.jsonl`.
+
 ## Probing a real session
 
 `probe.py` calibrates the static numbers against Claude Code itself (issue #3, section 4.1). It copies a consumer
@@ -73,3 +98,6 @@ generated with `npx -y ai-rulez@latest generate` (5.6.3).
 
 [`after-5.7.0-2026-10-26.md`](after-5.7.0-2026-10-26.md): the same consumers on ai-rulez 5.7.0 with
 `scoped_fallback = "skill"`, which gives Codex the glob-scoped rules as path-gated skills.
+
+[`after-mcp-2026-10-26.md`](after-mcp-2026-10-26.md): with the ai-rulez MCP server measured, before and after
+restricting it to `find_skill` and `load_skill`.
