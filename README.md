@@ -189,21 +189,21 @@ skills live in each product repository.
 
 ## Consumer Configurations
 
-Repos that include `bindings` also enable the `polyglot-bindings` builtin; infra and xberg-enterprise enable the
-`docker` and `observability` builtins.
+Repos that include `bindings` also enable the `polyglot-bindings` builtin; infra enables the `docker` and
+`observability` builtins, xberg-enterprise `docker`.
 
 | Repo | Modules |
 |------|---------|
 | xberg | core, languages, cicd, infrastructure, bindings, document-corpora, docs-sites |
 | crawlberg, html-to-markdown, liter-llm, tree-sitter-language-pack | core, languages, cicd, bindings, docs-sites |
 | xberg-enterprise | core, languages, cicd, infrastructure, document-corpora, docs-sites |
-| sceptre | core, languages, cicd, docs-sites |
-| alef, actions | core, languages, cicd |
+| sceptre, sdks | core, languages, cicd, docs-sites |
+| alef, actions, test-apps | core, languages, cicd |
 | infra | core, languages, cicd, infrastructure |
-| infra-release-runners | core, cicd, infrastructure |
+| docs-theme | core, cicd, docs-sites |
 | test_documents | core, cicd, document-corpora |
 | paddle-to-onnx | core, languages |
-| homebrew-tap, scoop-bucket, polyrepo root | core |
+| assets, homebrew-tap, scoop-bucket, polyrepo root | core |
 
 ## License
 
