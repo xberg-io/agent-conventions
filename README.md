@@ -44,7 +44,8 @@ keep the module items without the warning.
 
 A repo that includes this module must enable the `polyglot-bindings` builtin: it holds the general binding
 and FFI principles (ownership, opaque handles, error and async boundaries, ABI stability) and the
-ffi-engineer and polyglot-architect agents, which this module does not repeat. alef's own installed skill
+ffi-engineer and polyglot-architect agents, which this module does not repeat. Exclude
+`!polyglot-bindings/rust-polyglot-conventions`: it restates the languages module's `rust` rule. alef's own installed skill
 (`[[installed_skills]] alef`) covers the generator, its tasks and the version sync.
 
 ### `modules/cicd`: most repos
@@ -52,7 +53,7 @@ ffi-engineer and polyglot-architect agents, which this module does not repeat. a
 - **Skills** (2): github-workflow-conventions (`.github/workflows/**`, `.github/actions/**`), scoop-distribution
   (`scripts/publish/**`)
 
-General gh and pipeline guidance is the `cicd` builtin (`cicd/github-workflow`, `cicd/pipeline-standards`).
+The `cicd` builtin (`cicd/github-workflow`, `cicd/pipeline-standards`) is opt-in; no consumer enables it.
 
 ### `modules/infrastructure`: deployed services only
 
