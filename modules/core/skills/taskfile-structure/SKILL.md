@@ -16,8 +16,9 @@ committing lock files. These are the org's additions.
 
 - **Discovery:** task sets are not uniform across repos, so check `task --list` rather than assuming a
   `<lang>:<verb>` task resolves. Tasks from included taskfiles are namespaced (`version:sync`).
-- **Common tasks:** `task setup`, `task build`, `task test`, `task lint`, `task format`, `task cov:all`,
-  and a repo-specific benchmark task (`benchmark:run`, `bench:run`, `rust:bench`).
+- **Common tasks:** `task setup`, `task build`, `task test`, `task lint`, `task format`, `task cov:all`
+  where present, and a repo-specific benchmark task (`benchmark:run`, `bench:run`, `rust:bench`; the
+  builtin task-runner's plain `bench` exists only in some repos).
 - **Build profiles:** `BUILD_PROFILE` selects `dev`, `release` or `ci` (`BUILD_PROFILE=release task build`,
   or `task build:release`).
 - **Maintenance:** `task update`, `task clean`, and the repo's version-sync task.
