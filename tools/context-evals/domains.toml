@@ -7,7 +7,7 @@
 # own right, so a term inside one is not counted (`xberg` in `xberg-io`); every domain term is such a
 # name already. A term inside any other compound (`alef-generated`) is a hit.
 
-names = ["xberg-io"]
+names = ["xberg-io", "xberg-brand-and-docs"]
 
 [domain.xberg]
 owner = "@xberg-io/xberg"
