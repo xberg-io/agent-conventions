@@ -4,7 +4,6 @@ title: Document Corpus Handling
 description: "Partner and public-record document corpora: provenance, use vs redistribution, repo visibility, sha256 sharing, opaque ids, redaction, exact-bytes commit gates. Use when fetching, citing or committing corpus material."
 paths:
   - "**/ATTRIBUTIONS.md"
-  - "**/MANIFEST.csv"
   - "**/*corpus*"
   - "**/*corpus*/**"
   - ".gitmodules"
@@ -47,10 +46,8 @@ page-level review that catches content-destroying extraction bugs no text metric
    `gh repo view <repo> --json visibility` before proposing to commit corpus-derived bytes, and
    state the result when asking a human to approve; an approval given without it is not informed.
 
-Nothing identifying a private corpus (its partner's name, filenames, manifests, sample documents)
-lands in a public repo: not in code, tests, fixtures, comments, commit messages, PR descriptions or
-docs. Use neutral placeholders (`<namespace>`, `internal-corpus`, `acme/foo.pdf`); private material
-belongs in the private repo that owns it.
+Nothing identifying a private corpus lands in a public repo; the full scope and placeholders are
+test_documents' `no-partner-identifiers` rule.
 
 ## Share by content hash, not by copy
 
@@ -61,10 +58,10 @@ gcloud storage cp gs://xberg-internal-test-documents/objects/<sha256> ./<local-n
 ```
 
 A sha256 identifies the exact file, lets another agent fetch it with credentials it already has,
-and publishes nothing new. The corpus fetch script (`scripts/fetch_corpus.py --auth` in test_documents,
-`test_documents/scripts/fetch_corpus.py` from xberg or xberg-enterprise) uses
-Application Default Credentials for private buckets; without `--auth` it uses anonymous HTTPS and
-will not serve them. Keep anything materialised out of git.
+and publishes nothing new. The corpus fetch script (`scripts/fetch_corpus.py` in test_documents) defaults to the public
+bucket over anonymous HTTPS; a private corpus needs
+`--bucket <private bucket> --manifest <lock> --root <dir> --auth` (Application Default Credentials;
+test_documents' `private-corpus` skill). Keep anything materialised out of git.
 
 ## Identify documents by opaque id, not filename
 
