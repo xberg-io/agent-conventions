@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:b1d7ed055c217aaff8c6dbfce7f426bed5a2744a473c6577ea269d2d56c52344'
+tree = 'sha256:9f961fb58d831a838847daa376062bda133134690f1a4437272749d23f2bec98'
 
 [[served]]
 name = 'agent-coordination'
@@ -40,7 +40,7 @@ digest = 'sha256:31adedeec2e2f4e7e0cc802f32467ad38d6db4034df698dac1ee9b52b747fd0
 name = 'consumer-release-gates'
 source = 'include:public-bindings/skills/consumer-release-gates/SKILL.md'
 commit = ''
-digest = 'sha256:63836313446a487926f215419332a5da5b700eb484de4121c61a9a2e0d9dba82'
+digest = 'sha256:d1a591a6f2e46cb431aa80dcd1e976110502132ca23dd2eb02c49b164c49dae7'
 
 [[served]]
 name = 'context-improvement'
@@ -130,7 +130,7 @@ digest = 'sha256:8e396ac929b0caae4c400f4f7b2d143b280f74242327de289efb0c123b536c6
 name = 'scoop-distribution'
 source = 'include:public-cicd/skills/scoop-distribution/SKILL.md'
 commit = ''
-digest = 'sha256:0c676208db86802896eb7b022f7938df05c6ff73f080c2038441fa419afa11bf'
+digest = 'sha256:e3020e1e879d1fd64897d4b6d5a07ff749a2781a7e004e99794ebc67a464d6c5'
 
 [[served]]
 name = 'skill-authoring'
@@ -172,13 +172,13 @@ digest = 'sha256:783bfec4deae864bb62db0a16aed528aa2a29a84d8e1e46f44a3bd35a2a09f5
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:96b88b1e6ee88ac969cb3581bd212cdaa7cb959a038969efee62e5576f20fe1c'
+digest = 'sha256:bf7790355a2febe91805a446f815677657bf1513601be51c01e3dc29e3f6c193'
 
 [[item]]
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:ff676add2347bae36a1c233d3094553918d4961cb7d9937b40fbb479b99e5942'
+digest = 'sha256:3b22ff41a5f0274e18c649cf687cecbe4839d44c7e38b5058039f468d6b53c39'
 
 [[item]]
 kind = 'local-include'

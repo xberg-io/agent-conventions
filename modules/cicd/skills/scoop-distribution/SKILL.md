@@ -1,7 +1,7 @@
 ---
 type: Playbook
 title: Scoop Distribution
-description: "Windows Scoop channel: manifest templates in scripts/publish, the publish-scoop-manifest job, the shared scoop-bucket. Use when editing Scoop manifests, adding a CLI to the bucket, or debugging a Scoop install."
+description: "Windows Scoop channel: manifest templates in scripts/publish, the publish-scoop-manifest job, the shared bucket, adding a release target. Use when editing Scoop manifests, adding a CLI or release target, or debugging a Scoop install."
 paths:
   - "scripts/publish/**"
 x-ai-rulez:
@@ -78,10 +78,14 @@ come out byte-identical, and for a new one the only change should be the version
 Set `INPUT_DRY_RUN=true` to render against a tag that does not exist yet — assets are replaced
 with a zero-SHA placeholder and the run still succeeds, which is what the dry-run pipeline does.
 
-## Adding `scoop` to a repo's targets
+## Adding a release target (`scoop` or any other)
 
-The `scoop` release target comes from the repo's release metadata, not from its workflow YAML; in a
-repo that generates bindings, see the `consumer-release-gates` skill before naming it.
+A repo's release targets (for example `release_scoop`) come from `alef release-metadata`, not from
+the workflow YAML. alef's `ALL_RELEASE_TARGETS` must already contain the target, **and an alef
+release carrying it must be published**, before any repo can name it: `parse_targets` hard-fails on
+an unknown name, so adding it to an explicit `available-targets:` list too early breaks that repo's
+release. Repos that pass no `available-targets` default to all targets and need no edit. Until then
+the wiring is inert: the target resolves to an empty string and its job's gate is false.
 
 ## Job shape
 

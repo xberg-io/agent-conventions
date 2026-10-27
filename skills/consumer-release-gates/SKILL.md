@@ -1,7 +1,7 @@
 ---
 name: consumer-release-gates
-description: "Reproduce a generated-bindings repo's release gate locally, add a release target, and verify published package names against the real manifests. Use before tagging a release or when auditing a registry publish."
-# Content-Hash: blake3:9a19d5aa82eed14790451493747f9683750287fe1da35fec5dbca52eadb48d27
+description: "Reproduce a generated-bindings repo's release gate locally and verify published package names against the real manifests. Use before tagging a release or when auditing a registry publish."
+# Content-Hash: blake3:70f0e4e531e03c9370b60a53064ed79d1cad8af94f324bd3ec977868645f5b6b
 ---
 
 # Consumer Release Gates
@@ -32,12 +32,8 @@ state the bump is about to invalidate.
 
 ## Adding a release target
 
-A repo's release targets (for example `release_scoop`) come from `alef release-metadata`, not from
-the workflow YAML. alef's `ALL_RELEASE_TARGETS` must already contain the target, **and an alef
-release carrying it must be published**, before any repo can name it: `parse_targets` hard-fails on
-an unknown name, so adding it to an explicit `available-targets:` list too early breaks that repo's
-release. Repos that pass no `available-targets` default to all targets and need no edit. Until then
-the wiring is inert: the target resolves to an empty string and its job's gate is false.
+Release targets come from `alef release-metadata`; the order in which alef and a repo may name a new
+one is in the scoop-distribution skill (cicd module).
 
 ## Verify a published package by its real manifest name, not a guessed one
 
