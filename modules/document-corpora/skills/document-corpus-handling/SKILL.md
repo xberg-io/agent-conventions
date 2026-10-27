@@ -47,7 +47,7 @@ page-level review that catches content-destroying extraction bugs no text metric
    state the result when asking a human to approve; an approval given without it is not informed.
 
 Nothing identifying a private corpus lands in a public repo; the full scope and placeholders are
-test_documents' `no-partner-identifiers` rule.
+the no-partner-identifiers rule in test_documents.
 
 ## Share by content hash, not by copy
 
@@ -58,8 +58,8 @@ gcloud storage cp gs://xberg-internal-test-documents/objects/<sha256> ./<local-n
 ```
 
 A sha256 identifies the exact file, lets another agent fetch it with credentials it already has,
-and publishes nothing new. The corpus fetch script (`scripts/fetch_corpus.py` in test_documents) defaults to the public
-bucket over anonymous HTTPS; a private corpus needs
+and publishes nothing new. The corpus fetch script (`test_documents/scripts/fetch_corpus.py`)
+defaults to the public bucket over anonymous HTTPS; a private corpus needs
 `--bucket <private bucket> --manifest <lock> --root <dir> --auth` (Application Default Credentials;
 test_documents' `private-corpus` skill). Keep anything materialised out of git.
 
