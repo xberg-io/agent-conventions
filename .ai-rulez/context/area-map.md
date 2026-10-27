@@ -8,8 +8,6 @@ x-ai-rulez:
     priority: high
 ---
 
-# Area Map
-
 - `modules/<name>/` — shared modules; consumers include them by `version = "^1"`, so a change reaches them only after a
   `vX.Y.Z` release (README "Releasing") and the polyrepo root's `ai-rulez:update` task.
 - Every module item must be true in each includer (`grep -l 'modules/<name>' ../*/.ai-rulez/config.toml`). AR101 and
