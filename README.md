@@ -15,9 +15,8 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
   prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code
 - **Rules, glob-scoped** (1): logging-tracing (`**/*.rs`, `**/Cargo.toml`)
 - **Context** (1): polyrepo-structure
-- **Skills** (9): agent-coordination, basemind-tools, feature-flag-conventions (`**/Cargo.toml`), poly-lint-format,
-  release-workflow, taskfile-structure, tracing-conventions (Rust paths), verification-harness, xberg-brand-and-docs
-  (docs and README paths)
+- **Skills** (8): agent-coordination, basemind-tools, feature-flag-conventions (`**/Cargo.toml`), poly-lint-format,
+  release-workflow, taskfile-structure, tracing-conventions (Rust paths), verification-harness
 
 `test-alongside-code` replaces the `testing` builtin's rule of the same id, which says to run the full suite before
 committing, and `agent-workflow` replaces the `ai-governance` builtin's, adding the subagent rules (no compiling in
@@ -57,6 +56,11 @@ General gh and pipeline guidance is the `cicd` builtin (`cicd/github-workflow`, 
 - **Skills** (1): gcloud-conventions (IaC, workflow and deploy paths)
 
 Container and service-observability guidance is the `docker` and `observability` builtins.
+
+### `modules/docs-sites`: repos with a docs site or a generated README brand block
+
+- **Skills** (1): xberg-brand-and-docs (`docs-site/**`, `readme_templates/**`, `templates/readme/**`): brand,
+  product list, the shared docs theme, docs tasks, analytics IDs, README-template policy
 
 ### `modules/document-corpora`: repos that handle partner or public-record document corpora
 
@@ -168,16 +172,18 @@ skills live in each product repository.
 
 ## Consumer Configurations
 
+Repos that include `bindings` also enable the `polyglot-bindings` builtin.
+
 | Repo | Modules |
 |------|---------|
-| xberg | core, languages, cicd, infrastructure, bindings, document-corpora |
-| html-to-markdown | core, languages, cicd, infrastructure, bindings |
-| liter-llm | core, languages, cicd, bindings |
-| crawlberg | core, languages, cicd, bindings |
-| tree-sitter-language-pack | core, languages, cicd, bindings |
+| xberg | core, languages, cicd, infrastructure, bindings, document-corpora, docs-sites |
+| html-to-markdown | core, languages, cicd, infrastructure, bindings, docs-sites |
+| liter-llm | core, languages, cicd, bindings, docs-sites |
+| crawlberg | core, languages, cicd, bindings, docs-sites |
+| tree-sitter-language-pack | core, languages, cicd, bindings, docs-sites |
 | alef | core, languages, cicd, bindings |
-| sceptre | core, languages, cicd |
-| xberg-enterprise | core, languages, cicd, infrastructure, document-corpora |
+| sceptre | core, languages, cicd, docs-sites |
+| xberg-enterprise | core, languages, cicd, infrastructure, document-corpora, docs-sites |
 | test_documents | core, cicd, document-corpora |
 | actions | core, languages, cicd |
 | infra, infra-release-runners | core, cicd, infrastructure |

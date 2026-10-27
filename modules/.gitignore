@@ -10,4 +10,6 @@ infrastructure/local/
 /cicd/.generated-manifest.json
 /languages/.generated-manifest.json
 /infrastructure/.generated-manifest.json
-/e2e-generator/.generated-manifest.json
+/bindings/.generated-manifest.json
+/document-corpora/.generated-manifest.json
+/docs-sites/.generated-manifest.json

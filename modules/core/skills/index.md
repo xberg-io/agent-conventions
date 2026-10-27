@@ -8,4 +8,3 @@
 * [taskfile-structure](taskfile-structure/index.md)
 * [tracing-conventions](tracing-conventions/index.md)
 * [verification-harness](verification-harness/index.md)
-* [xberg-brand-and-docs](xberg-brand-and-docs/index.md)

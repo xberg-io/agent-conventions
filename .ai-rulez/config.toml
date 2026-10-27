@@ -73,3 +73,8 @@ include = ["skills"]
 name = "public-bindings"
 source = "modules/bindings"
 include = ["skills"]
+
+[[includes]]
+name = "public-docs-sites"
+source = "modules/docs-sites"
+include = ["skills"]
