@@ -47,11 +47,8 @@ for correctness and idiomatic quality; fix the generator input, not the output.
 
 ## Review checklist for binding changes
 
-1. No business logic in a binding: it calls the core, converts types and converts errors.
-2. Every `unsafe` block at the FFI boundary has a `SAFETY` comment; pointers are validated and
-   ownership is documented.
-3. A cross-language change keeps feature parity across the bindings, with idiomatic naming.
-4. The committed C header and generated files match a fresh regeneration.
+Beyond the `bindings` and `ffi-and-language-interop` skills: a cross-language change keeps feature parity
+across the bindings, with idiomatic naming.
 
 ## Docs per language
 

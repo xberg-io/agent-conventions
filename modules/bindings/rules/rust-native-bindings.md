@@ -22,7 +22,7 @@ x-ai-rulez:
     priority: high
 ---
 
-These bindings compile Rust directly into the host extension; they do not go through the C ABI. Keep each one thin: call the core, convert types, map errors to typed host exceptions, never panic across the boundary.
+These bindings compile Rust directly into the host extension; they do not go through the C ABI. The general glue rules (thin bindings, error conversion, async boundaries) are the `polyglot-bindings` builtin's `bindings` skill.
 
 - Python (PyO3, `crates/*-py`): `#[pyclass]`/`#[pymethods]`, `PyResult<T>`, the `Bound<'py, T>` API, `py.allow_threads()` for CPU work, built with maturin.
 - Node (napi-rs, `crates/*-node`): `#[napi]`, `async fn` returns a Promise, `AsyncTask` for CPU work, generated `.d.ts` kept in sync, explicit `BigInt`/`Date`/`Buffer` mappings, never block the event loop.
