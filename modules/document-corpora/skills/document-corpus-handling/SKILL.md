@@ -46,8 +46,9 @@ page-level review that catches content-destroying extraction bugs no text metric
    `gh repo view <repo> --json visibility` before proposing to commit corpus-derived bytes, and
    state the result when asking a human to approve; an approval given without it is not informed.
 
-Nothing identifying a private corpus lands in a public repo; the full scope and placeholders are
-the no-partner-identifiers rule in test_documents.
+Nothing identifying a private corpus (its partner's name, filenames, manifests, sample documents)
+lands in a public repo: not in code, tests, fixtures, comments, commit messages, PR descriptions or
+docs. Use neutral placeholders (`<namespace>`, `internal-corpus`, `acme/foo.pdf`).
 
 ## Share by content hash, not by copy
 
@@ -61,7 +62,8 @@ A sha256 identifies the exact file, lets another agent fetch it with credentials
 and publishes nothing new. The corpus fetch script (`test_documents/scripts/fetch_corpus.py`)
 defaults to the public bucket over anonymous HTTPS; a private corpus needs
 `--bucket <private bucket> --manifest <lock> --root <dir> --auth` (Application Default Credentials;
-test_documents' `private-corpus` skill). Keep anything materialised out of git.
+procedure: `../test_documents/.ai-rulez/skills/private-corpus/SKILL.md`). Keep anything
+materialised out of git.
 
 ## Identify documents by opaque id, not filename
 
