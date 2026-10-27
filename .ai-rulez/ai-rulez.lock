@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:f1f0dd76ede2d03e0d73c493db3cd9a8dd9c4fbeed791705445f1bf0c3856736'
+tree = 'sha256:24b5f3c80d3d53d9adef20a1a17ae6b65df3533eb74579bd5eb24bb88527481f'
 
 [[served]]
 name = 'agent-coordination'
@@ -58,7 +58,7 @@ digest = 'sha256:8f41215233c26441abed2b18f35575ce6b5614f91d9bef4885d550322542d4a
 name = 'document-corpus-handling'
 source = 'modules/document-corpora/skills/document-corpus-handling'
 commit = ''
-digest = 'sha256:4cee3be786727a32bad651a4a5a6ebdb9b28fcc30cbb8e3fce1525fdcf89dde4'
+digest = 'sha256:ef8d63a072cd8ff4498f1267cbd12bede9dbd317daa28200eb32b0e37cb18286'
 
 [[served]]
 name = 'e2e-generation'

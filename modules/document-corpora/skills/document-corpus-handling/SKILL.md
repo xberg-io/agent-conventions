@@ -1,7 +1,7 @@
 ---
 type: Playbook
 title: Document Corpus Handling
-description: "Partner and public-record document corpora: provenance, use vs redistribution, repo visibility, sha256 sharing, opaque ids, redaction, exact-bytes commit gates, measuring. Use when fetching, citing or committing corpus material."
+description: "Partner and public-record document corpora: provenance, use vs redistribution, repo visibility, sha256 sharing, opaque ids, redaction, exact-bytes commit gates. Use when fetching, citing or committing corpus material."
 paths:
   - "**/ATTRIBUTIONS.md"
   - "**/MANIFEST.csv"
@@ -61,7 +61,8 @@ gcloud storage cp gs://xberg-internal-test-documents/objects/<sha256> ./<local-n
 ```
 
 A sha256 identifies the exact file, lets another agent fetch it with credentials it already has,
-and publishes nothing new. The corpus fetch script (`scripts/fetch_corpus.py --auth`) uses
+and publishes nothing new. The corpus fetch script (`scripts/fetch_corpus.py --auth` in test_documents,
+`test_documents/scripts/fetch_corpus.py` from xberg or xberg-enterprise) uses
 Application Default Credentials for private buckets; without `--auth` it uses anonymous HTTPS and
 will not serve them. Keep anything materialised out of git.
 
@@ -84,16 +85,3 @@ Check everything a corpus-derived run writes with an exact-bytes search, not a t
 filename can sit inside a generated PDF's metadata where a text search will not find it. Make the
 check fail the commit, not just print — `[ "$BAD" = "0" ] || exit 1`. A printing-only check has
 already let two filenames through.
-
-## Measuring over a corpus
-
-- Never judge quality by a ratio over output whose length the change altered: a ratio rises
-  whenever the dropped material was the low-quality part. Judge by the absolute count of the good
-  thing (valid words, correct rows, passing cases). Measured once: valid-word *ratio* gave an 8-8
-  tie across 16 documents, absolute *count* gave 15-1 against the change at −22.8%.
-- A sample selected by largest delta is the tail, not the population. Report the median, the count
-  beyond a threshold and how many cases moved the other way before quoting any single number.
-- Attribute a change to a commit by running preserved per-revision binaries on the same input, not
-  by commit ordering; keep those binaries outside any shared build tree.
-- State the metric's limits: a reference-free proxy is not ground truth, and say so when no ground
-  truth exists for the population measured.
