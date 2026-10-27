@@ -105,9 +105,7 @@ class ExposureTest(unittest.TestCase):
         write(self.repo, "CLAUDE.md", "An alpha-corpus-based run; Beta-generated output.\n")
         report = exposure.claude(self.repo)
         exposure.check_leaks(self.repo, report, {**DOMAINS, "repos": {}}, [])
-        self.assertEqual(
-            sorted((leak.term, leak.count) for leak in report.leaks), [("alpha-corpus", 1), ("beta", 1)]
-        )
+        self.assertEqual(sorted((leak.term, leak.count) for leak in report.leaks), [("alpha-corpus", 1), ("beta", 1)])
 
     def test_another_domains_term_is_not_counted_twice(self) -> None:
         write(self.repo, "CLAUDE.md", "The beta-pro edition.\n")

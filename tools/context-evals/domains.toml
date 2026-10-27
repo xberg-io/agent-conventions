@@ -12,14 +12,7 @@ names = ["xberg-io"]
 [domain.xberg]
 owner = "@xberg-io/xberg"
 paths = ["xberg/"]
-terms = [
-  "xberg",
-  "extraction benchmark",
-  "ground truth",
-  "OCR",
-  "Pdfium",
-  "hOCR",
-]
+terms = ["xberg", "extraction benchmark", "ground truth", "OCR", "Pdfium", "hOCR"]
 
 [domain.document-corpora]
 # Design-partner and public-record document corpora: the opt-in modules/document-corpora module.
