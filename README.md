@@ -105,6 +105,9 @@ compact = true
 builtins = [
   "!agent-delegation", "!git-workflow", "!ai-governance/agent-workflow",
   "!testing/test-alongside-code", "!testing/tdd-workflow",
+  "!token-efficiency/output-awareness", "!ai-governance/explain-reasoning",
+  "!security/least-privilege", "!security/input-validation",
+  "default-commands",
 ]
 
 # Glob-scoped rules stay out of the shared AGENTS.md (and so out of CLAUDE.md, which imports it): Claude
