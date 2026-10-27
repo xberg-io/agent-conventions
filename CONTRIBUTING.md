@@ -12,15 +12,14 @@ Make sure to have [Git](https://git-scm.com/) installed on your machine.
 
 This repository is configuration, not code. There is no build step.
 
-Edit the modules under `modules/`, then regenerate the consuming repositories:
-
-```bash
-npx -y ai-rulez@latest generate
-```
+Edit the modules under `modules/` and merge. Consumers include them by `version = "^1"`, so nothing changes
+downstream until a release: push a `vX.Y.Z` tag or run `release-conventions.yaml` (README "Releasing"; it moves the
+floating `v1`), then move consumer pins with `task ai-rulez:update` at the polyrepo root (`ai-rulez update` in a
+single repo).
 
 ## What to keep in mind
 
-Changes here propagate to coding agents that hold write access to other repositories. Review a rule change with that in mind: a rule is an instruction to an agent, and a careless one can weaken a check everywhere at once. Push here **before** regenerating downstream, because subrepos include these modules from the GitHub remote.
+Changes here propagate to coding agents that hold write access to other repositories. Review a rule change with that in mind: a rule is an instruction to an agent, and a careless one can weaken a check everywhere at once. Release here **before** updating downstream, because subrepos include these modules from the GitHub remote.
 
 ## Commit guidelines
 
