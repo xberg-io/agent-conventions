@@ -1,7 +1,7 @@
 ---
 name: agent-coordination
 description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
-# Content-Hash: blake3:dde27f6f2b449107ebcc9425f92aa8e17ee50667252145768a171ea0fecd34ba
+# Content-Hash: blake3:37b2d42714b56d6ff342429fcd720714d1842010da47c18ec64a2ae1b8cdf552
 ---
 
 # Agent Coordination
@@ -11,43 +11,29 @@ work; the fix is procedural, not a matter of being more careful.
 
 ## Who compiles, and how agents stay out of each other's way
 
-The orchestrating agent owns integration: it merges subagent branches, then runs compilation, compiling lints
-(`cargo clippy`, `go vet`), and tests, once, on the integrated tree. A subagent edits, runs only cheap static
-checks on its own files (`poly lint <files>`, `poly fmt --check <files>`, config validators), and reports. Concurrent
-compiles from several agents fill the disk, contend for a shared target directory, and reuse each other's
-half-edited artifacts; a subagent's green build proves little about the integrated result anyway. Dispatch a
-subagent for build or test work only explicitly, and then give it its own target directory.
-
-Split work so scopes do not overlap: one worktree per subagent, cut from the target repo's default branch, and a
-file set no sibling touches. Work that must edit the same files is sequenced, not parallelised.
-
-Each round has three passes: implement; review critically against the real diff, by a reviewer that did not write
-it and is given the code, not the author's conclusion; adjust. Rerun the round until the review comes back clean.
-Treat every delivery as a claim to check: read the diff, rerun the checks, and compare against the brief. A
-deviation is a decision for the orchestrator: evaluate it, keep or revert it, and report it with the reason.
+The split (subagents edit and run static checks, the orchestrator integrates, compiles and tests;
+disjoint worktrees; implement-review-adjust rounds) is the agent-workflow rule. The reason it is
+strict: concurrent compiles fill the disk, contend for a shared target directory and reuse each
+other's half-edited artifacts, and a subagent's green build proves little about the integrated
+result. A subagent dispatched for build or test work gets its own target directory.
 
 ## Worktree isolation is repo-local, not target-local
 
-`isolation: "worktree"` forks **the session's own repo** (the current working directory), not
-whatever repo the agent is told to operate on. An agent dispatched to work in a *different* repo
-than the one the session is rooted in gets an isolated checkout of the wrong repo and edits the
-target repo's single shared checkout directly — worktree isolation buys it nothing. Enforce
-**one writer per repo** by scheduling, not by assuming isolation covers it, and say so explicitly
-in the brief. Stating "you have your own worktree" in a prompt does not create one — only the
-`isolation` parameter does.
+`isolation: "worktree"` forks the session's own repo, not the repo the agent is told to work on, so
+an agent sent to another repo edits that repo's shared checkout directly. In the polyrepo, create
+the worktree with `task worktree:add` (the layout is in the polyrepo-structure context) and name its
+path in the brief; elsewhere, enforce one writer per repo by scheduling. Saying "you have your own
+worktree" in a prompt does not create one.
 
 ## Stash, checkout, reset, and clean are shared, not worktree-local
 
-`git stash` lives in the shared `.git` and is visible from **every** worktree of a repo — it is
-not worktree-local, unlike the working tree and index. Concurrent agents running
-stash/test/pop cycles in separate worktrees can and do hand each other their uncommitted changes.
-Never run `git stash` when sibling agents may be active; to compare against a baseline, use
-`git show HEAD:<path>` or copy to a scratch directory outside the repo instead. The same standing
-ban covers `git checkout -- <path>`, `git reset`, and `git clean` — restore a single file with
-`git show HEAD:<path> > <path>`. If a stash collision does happen, the files are not lost, they
-are sitting in the other worktree's stash list — read them from there and reapply, never try to
-"un-pop" a stash. Put these bans in every subagent brief explicitly; the agents that collided were
-each doing the locally sensible thing.
+The bans are in `safe-git-operations`; this is why they hold across worktrees and how to recover.
+The stash lives in the shared `.git`, so agents running stash/test/pop cycles in separate worktrees
+hand each other their uncommitted changes. To compare against a baseline, use `git show HEAD:<path>`
+or a scratch copy outside the repo. If a stash collision does happen, the files are not lost: they
+sit in the other worktree's stash list; read them from there and reapply, never try to "un-pop" a
+stash. Put the bans in every subagent brief explicitly; the agents that collided were each doing
+the locally sensible thing.
 
 Also shared: a `~/.cargo/bin/<tool>`-style install path, and — treat this as probabilistic, not
 guaranteed — the working tree itself. A sibling agent has been observed operating directly inside
@@ -71,19 +57,15 @@ environment, resolve conflicts by staging the files, confirming the sequencer st
 unavailable entirely; cherry-pick the commits you want onto a new base instead of trying to drop
 commits during a rebase.
 
-## A gitignored directory can still hold tracked files
+## After a bulk delete, verify per path
 
-Git tracks files, not directories. Bulk-deleting by ignore status, or by a directory-name pattern
-(`-name vendor`, `-name bin`), deletes real committed content sitting inside an otherwise-ignored
-directory — a name like `vendor/` is a disposable cache in one repo and a source directory in
-another. After any bulk delete, verify per-path rather than trusting `git status`:
+`safe-git-operations` forbids deleting by ignore status or directory name. If a bulk delete has run,
+check every tracked path rather than trusting `git status`, and preview future deletes with
+`-print` before `rm -rf`:
 
 ```bash
 git ls-files | while read -r f; do [ -e "$f" ] || echo "MISSING: $f"; done
 ```
-
-Prefer an allowlist of known-safe artifact names over a denylist, and preview with `-print` before
-`rm -rf`.
 
 ## A sibling agent can write into a shared main tree
 
@@ -100,9 +82,9 @@ agents may touch the same repo.
 An agent that ends its turn to "wait for a background run" strands finished, uncommitted work that
 nobody reads — a stopped subagent is not resumed on its own. An in-prompt warning against
 backgrounding does not reliably prevent this. Brief every agent to **commit as soon as each piece
-works**, before running tests, not at the end — a `git commit --no-verify` after formatting costs
-seconds and is the only thing that survives a hard failure (a worktree agent that dies loses
-everything uncommitted). Brief long-running verification as narrow, scoped commands run in the
+works**, before running tests, not at the end — a commit costs seconds and is the only thing that
+survives a hard failure (a worktree agent that dies loses everything uncommitted). When to skip
+hooks with `--no-verify` is in `commit-procedure`. Brief long-running verification as narrow, scoped commands run in the
 foreground with a generous timeout, not a full sweep — the coordinator runs the full sweep after
 merging.
 

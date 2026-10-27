@@ -4,13 +4,13 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:bae0ee2eeecdb3f2e0e39271cc56a89adc96b82ca11ebfd57675dbdfd023a5cc'
+tree = 'sha256:a4d4659014b4140ba8b4283fb8931269bbedb008fb9641968a4cce1347211c05'
 
 [[served]]
 name = 'agent-coordination'
 source = 'include:public-core/skills/agent-coordination/SKILL.md'
 commit = ''
-digest = 'sha256:434da98c273fd71ee32ca9cb58a4f6a9e4af634550c0bd5c90d40e806bdb8922'
+digest = 'sha256:93f489c247c67ae3b93aa1cfb2dbe5b0df621ca2d04cc5237b14f5e6086209d4'
 
 [[served]]
 name = 'basemind-tools'
@@ -148,7 +148,7 @@ digest = 'sha256:c57056e3a74a261b3a9d47638726c7d1f64c76b255838b6aaa3e635f3ffa861
 name = 'taskfile-structure'
 source = 'include:public-core/skills/taskfile-structure/SKILL.md'
 commit = ''
-digest = 'sha256:b49db0a4e8236b2dc2c45d0a77d1f219c599cd87620a47017d431efd43d0b2d2'
+digest = 'sha256:fd5cd00b8ce3de5acd2be874355accda290d7c755e6d6efc38f80ce28273db2a'
 
 [[served]]
 name = 'tracing-conventions'
@@ -184,7 +184,7 @@ digest = 'sha256:7dbfaf1d2ef1a761b07e0d783fccfd9b5fec873b98d9ec6f63f5cddcaf8bbd4
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:212533194d53356b751bb6a5a02209cf7c36e63ef9ab61bc3f3d7aa97dfa5bd8'
+digest = 'sha256:406e61e79db92f6c0ab46bc3bed9be15b23a7b67689c4061bbce07c56e2545b3'
 
 [[item]]
 kind = 'local-include'
