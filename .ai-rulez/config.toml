@@ -12,6 +12,7 @@ presets = [
 ]
 
 builtins = [
+  "!agent-delegation",
   "!git-workflow",
   "!testing",
   "!ai-governance/agent-workflow",
@@ -27,17 +28,6 @@ builtins = [
 
 compact = true
 default_layers = ["plugins"]
-
-[[mcp_servers]]
-name = "github"
-description = "GitHub integration for repository operations and automation"
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-github"]
-transport = "stdio"
-enabled = false
-
-[mcp_servers.env]
-GITHUB_PERSONAL_ACCESS_TOKEN = "${GITHUB_TOKEN}"
 
 [rules]
 scoped_fallback = "skill"
