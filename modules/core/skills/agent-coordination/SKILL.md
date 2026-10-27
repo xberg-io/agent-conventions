@@ -95,9 +95,10 @@ foreground with a generous timeout, not a full sweep — the coordinator runs th
 merging.
 
 When checking on an agent, inspect the worktree **before** reading its summary:
-`git log --oneline main..HEAD` plus `git status --porcelain`. A parked agent shows uncommitted
+`git log --oneline <default>..HEAD` (`<default>`: the branch `git symbolic-ref --short
+refs/remotes/origin/HEAD` names, not always `main`) plus `git status --porcelain`. A parked agent shows uncommitted
 files and zero commits; recover by naming its exact dirty files, giving one narrow next command,
-saying explicitly "do not open a new line of investigation," and confirming main has moved so it
+saying explicitly "do not open a new line of investigation," and confirming `<default>` has moved so it
 must not rebase or merge itself.
 
 ## An agent's branch is not always the notification's branch
@@ -105,7 +106,7 @@ must not rebase or merge itself.
 The branch name surfaced in a completion notification can differ from the branch the agent
 actually committed to. Merging the notification's name can print "already up to date" and merge
 nothing — indistinguishable from real success. After merging any agent branch, prove it landed:
-`git merge-base --is-ancestor <sha> main && echo MERGED`. A second cause of the same false
+`git merge-base --is-ancestor <sha> <default> && echo MERGED`. A second cause of the same false
 "already up to date": the merge command ran from inside the agent's own worktree because a prior
 backgrounded command silently moved the shell's working directory — check
 `git rev-parse --show-toplevel` before merging. Re-run the project's real lint/build gate after
