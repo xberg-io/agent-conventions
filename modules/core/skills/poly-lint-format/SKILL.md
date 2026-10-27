@@ -56,11 +56,14 @@ Cache directory `.polylint/` is gitignored.
 
 ## Uncomment pass
 
-`[lint.uncomment]` in `poly.toml` strips comments that carry no keep marker.
+`[lint.uncomment]` in `poly.toml` reports removable comments; `poly lint --fix` deletes them.
 
-- `~keep` anywhere in a comment preserves it unconditionally; no `preserve_patterns` entry is needed.
-  `preserve_patterns` adds repo markers (`SAFETY`, `SPDX`, `HACK`, ...).
-- `remove_docs = false` keeps doc comments; `remove_todos` / `remove_fixme = false` keep those markers.
+- `code_only = true` (the default) flags only comment blocks that read as commented-out code; prose
+  comments are kept with or without a marker. `code_only = false` flags every comment that is not preserved.
+- Preserved: `~keep` anywhere in the comment; the defaults `TODO`, `FIXME`, `HACK`, `XXX`, `NOTE`, `WARNING`,
+  `COPYRIGHT`/`LICENSE`, the file header, shebangs and linter directives (`noqa`, `eslint-disable`, `@ts-ignore`,
+  ...); and the repo's `preserve_patterns` (`SAFETY`, `SPDX`, ...). `SAFETY` is not a default.
+- Doc comments are kept unless `remove_docs = true`; `remove_todos` / `remove_fixme = true` drop those markers.
 - Test a change to these settings against staged or committed content: an uncommitted scratch file
   reports clean whatever it contains.
 - Generated sources are exempted with `[per-file-ignores]` set to `["comment", "doc-comment"]` (the codes the
