@@ -34,10 +34,10 @@ repository is looked up by in `domains.toml`, and a name missing from `[repos]` 
 ## CI gate
 
 Consumers run the checks after `validate-ai-rulez` has generated the outputs, with budgets about 10% above the last
-measurement, pinned to an agent-conventions commit:
+measurement:
 
 ```yaml
-- uses: xberg-io/agent-conventions/actions/context-exposure@<sha>
+- uses: xberg-io/agent-conventions/actions/context-exposure@v1
   with:
     budgets: |
       claude=4650
@@ -47,7 +47,7 @@ measurement, pinned to an agent-conventions commit:
 The action measures the `ai-rulez` server by default (`measure-mcp`), so it needs `ai-rulez` on `PATH`. Raising a
 budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
 
-Tests: `python3 -m unittest discover tools/context-evals`.
+Tests: `task context:test` (supplies PyYAML).
 
 ## Dynamic layer
 
