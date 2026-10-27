@@ -1,7 +1,7 @@
 ---
 name: tracing-conventions
 description: "Rust tracing contract: level semantics, span and field naming, emit-vs-install, instrumentation checklist. Use when adding spans or events, wiring a subscriber, or reviewing instrumentation."
-# Content-Hash: blake3:af335eb4ffae3d17b7bdcca308f3805b7a21c03943382f2738d3643673dd78d2
+# Content-Hash: blake3:7641780e65a52346e09059002576989e1317a0f56e6452d9757f36325f928c36
 ---
 
 # Tracing conventions
@@ -30,7 +30,7 @@ description: "Rust tracing contract: level semantics, span and field naming, emi
 
 Span names, `target`s, and field keys are part of the public observability API. Changing them can break dashboards, alerts, and log queries — treat them like any other public symbol and keep them stable.
 
-- **Span names**: `crate_name::operation` (e.g. `html_to_markdown::convert`). Set an explicit `level` and stable `name`.
+- **Span names**: `crate_name::operation` (e.g. `my_crate::convert`). Set an explicit `level` and stable `name`.
 - **`#[tracing::instrument]`** on public entry points. `skip`/`skip_all` large or non-`Debug` arguments (input buffers, big option structs); record cheap, useful fields instead — `input_len`, resolved option booleans, selected strategy.
 - **Field keys**: prefer stable, lowercase, snake_case keys. Reuse conventional keys across crates (`input_len`, `output_len`, `node_count`, `error`, `reason`, `elapsed_ms`). Avoid the reserved `message` field name for structured data — it collides with the event body; use a descriptive key like `detail`.
 - **Events at stage boundaries**: `debug!` with small structured fields at parse/walk/render (or equivalent) boundaries; `warn!` at every silent-recovery / fallback / skip site; `error!` before returning a hard failure.

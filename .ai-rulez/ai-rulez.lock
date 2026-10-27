@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:1e51c209789b7d90acf3ad58b030c439f81454ca57e963359dbc4a69d726f812'
+tree = 'sha256:51d035f85ab4e4d9a60256453e4f437c092153c4d50c4638de35e1590599c248'
 
 [[served]]
 name = 'agent-coordination'
@@ -76,7 +76,7 @@ digest = 'sha256:fbc7d452c7171e71341578b6c7a56fc2c87031c0ce15d35884bc3260e04ff68
 name = 'feature-flag-conventions'
 source = 'include:public-core/skills/feature-flag-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:2de39f639c38a6fc839c172413e5bc208de3ca62480dc65728be937a5f2871a3'
+digest = 'sha256:2b0ddd4728e06d74a111ec429799c1d700af53ca23df1a78fd61a3975a69bfea'
 
 [[served]]
 name = 'gcloud-conventions'
@@ -148,13 +148,13 @@ digest = 'sha256:b49db0a4e8236b2dc2c45d0a77d1f219c599cd87620a47017d431efd43d0b2d
 name = 'tracing-conventions'
 source = 'include:public-core/skills/tracing-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:1a78706b01bfacec5f36b3563dca41cdb73edc978d34902f4d5cb204c74c552f'
+digest = 'sha256:7af6cf039cac1e3471af9a46434deeb17ddbf300963a5cf1962e6a7da8722fae'
 
 [[served]]
 name = 'xberg-brand-and-docs'
 source = 'include:public-core/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:552648a1d89cccb6bc3d47cb25f3b6355f75a104936fc70668fdb6167868c965'
+digest = 'sha256:ef1b56c090e2c93fecd8bfbe916f79a0bebed69afe53ec89284e7ff433f64d0f'
 
 [[item]]
 kind = 'local-include'
@@ -172,7 +172,7 @@ digest = 'sha256:15cd622ced11c9d3e1815e4efdaf9b2ace2374700d376c84bdd1b3d124c0cc8
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:7bc4b4e9a753d00741c4d0a0f8e687080c05971ea6f8f95074215aa151e8767e'
+digest = 'sha256:c87079e4149b44968fd53297c3ef393f6cb62c7f38c3c4ae9f8dcf78788a81ed'
 
 [[item]]
 kind = 'local-include'

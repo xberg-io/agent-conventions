@@ -1,12 +1,12 @@
 ---
 name: feature-flag-conventions
 description: "Shared Cargo feature-flag names and semantics across the Rust libraries (otel, mcp, mcp-http, mimalloc, jemalloc, acceleration). Use when adding, renaming or reviewing a crate's [features]."
-# Content-Hash: blake3:9bc2024b7a9918a97ffdff9c7d0312b6c8364de6919eef6ccea0b1109d62b964
+# Content-Hash: blake3:771cad9b9ca253d70b6dd172274db9054a725cddc1e2c2fcb3dbe928aeb73480
 ---
 
 # Feature-flag conventions
 
-Shared concerns use the **same flag name with the same semantics** in every library. A consumer that learns `otel` or `mcp` once should get identical behavior across `xberg`, `crawlberg`, `liter-llm`, `html-to-markdown`, `tree-sitter-language-pack`, and their bindings. Repo-specific flags (e.g. crawlberg `stealth`, liter-llm `etcd-watch`) stay local — this contract governs only shared concerns.
+Shared concerns use the **same flag name with the same semantics** in every library. A consumer that learns `otel` or `mcp` once should get identical behavior across every library and its bindings. Repo-specific flags stay local — this contract governs only shared concerns.
 
 ## Standard flags
 
