@@ -1,7 +1,7 @@
 ---
 name: scoop-distribution
 description: "Windows Scoop channel: manifest templates in scripts/publish, the publish-scoop-manifest job, the shared bucket, adding a release target. Use when editing Scoop manifests, adding a CLI or release target, or debugging a Scoop install."
-# Content-Hash: blake3:613a6ad109db3a832c55f8d1cc5ed2c3f70dd31299577b43efa880eb6856d60e
+# Content-Hash: blake3:59e3ab631c3f5f06efcc7902513f7ff44a02521784ed07abcff7fd0468a74a50
 ---
 
 # Scoop Distribution
@@ -20,6 +20,7 @@ Per repo:
 - `scripts/publish/<app>.json.tmpl` — the manifest template
 - a `publish-scoop-manifest` job, mirroring `publish-homebrew-formula` in the same workflow
 
+<!-- ai-rulez-lint-ignore: AR402 ~keep -->
 alef differs: `scripts/publish/scoop-manifests.json` with its own `commit-scoop-manifest.sh` and
 `compute-scoop-gate.sh`, and `scoop` is an opt-in release target. Read its `publish.yaml`.
 

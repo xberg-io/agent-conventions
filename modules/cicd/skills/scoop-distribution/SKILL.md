@@ -28,6 +28,7 @@ Per repo:
 - `scripts/publish/<app>.json.tmpl` — the manifest template
 - a `publish-scoop-manifest` job, mirroring `publish-homebrew-formula` in the same workflow
 
+<!-- ai-rulez-lint-ignore: AR402 ~keep -->
 alef differs: `scripts/publish/scoop-manifests.json` with its own `commit-scoop-manifest.sh` and
 `compute-scoop-gate.sh`, and `scoop` is an opt-in release target. Read its `publish.yaml`.
 
