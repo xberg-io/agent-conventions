@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:24b5f3c80d3d53d9adef20a1a17ae6b65df3533eb74579bd5eb24bb88527481f'
+tree = 'sha256:dfb9aa0668e04e75f34d6d4bc35453353fe8ee98d35e1173419f187ba4df27e7'
 
 [[served]]
 name = 'agent-coordination'
@@ -16,7 +16,7 @@ digest = 'sha256:93f489c247c67ae3b93aa1cfb2dbe5b0df621ca2d04cc5237b14f5e6086209d
 name = 'basemind-tools'
 source = 'include:public-core/skills/basemind-tools/SKILL.md'
 commit = ''
-digest = 'sha256:790599681098314dca5d3025405baf2da89eb3c93618cd7e0586262715e70357'
+digest = 'sha256:fb04b69dc6253f7677645adcc46fecf49a6663643b1c95666aef5b8e66f32665'
 
 [[served]]
 name = 'binding-architecture'
@@ -184,7 +184,7 @@ digest = 'sha256:7dbfaf1d2ef1a761b07e0d783fccfd9b5fec873b98d9ec6f63f5cddcaf8bbd4
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:4530cfcf29318bd799264e769fcdbdcebd3369c536ebeccdbfb877f87d93c3c3'
+digest = 'sha256:fbf41cce5091e83b8f9f7c14b1210a98867baf425e7eef4c9b6f26dcfc4b93e4'
 
 [[item]]
 kind = 'local-include'
