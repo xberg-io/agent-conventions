@@ -107,6 +107,13 @@ domains = []
 [repos.scoop-bucket]
 domains = []
 
+# Shared brand assets and the docs theme serve every product site but own no product knowledge.
+[repos.assets]
+domains = []
+
+[repos.docs-theme]
+domains = []
+
 [repos.infra]
 domains = ["infrastructure", "enterprise"]
 
