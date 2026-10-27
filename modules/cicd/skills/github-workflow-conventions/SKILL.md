@@ -19,10 +19,10 @@ not its trigger: a manually dispatched test is CI; a scheduled image publisher i
 
 A workflow path that other repos call or that rulesets name is a public interface and keeps its
 name and extension: xberg-io/actions' `reusable-*.yml` workflows are called by path from every repo,
-each repo's `ai-rulez-validation.yml` is the shared governance check, and an existing `publish.yaml`
-is named by the registries' OIDC trusted-publisher entries (PyPI, npm, crates.io, RubyGems), so
-renaming it breaks publishing. Never rename those, or their `publish-<artifact>.yaml` siblings, to fit
-the table; the `release-` row is for new workflows.
+each repo's governance workflow (`ai-rulez-validation.yml` or `ci-ai-rulez.yaml`) is the shared
+governance check, and an existing `publish.yaml` is named by the registries' OIDC trusted-publisher
+entries (PyPI, npm, crates.io, RubyGems), so renaming it breaks publishing. Never rename those, or
+their `publish-<artifact>.yaml` siblings, to fit the table; the `release-` row is for new workflows.
 
 | Purpose | Filename | Display name |
 | --- | --- | --- |
