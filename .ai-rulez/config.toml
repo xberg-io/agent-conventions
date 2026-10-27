@@ -62,11 +62,6 @@ source = "modules/languages"
 include = ["skills"]
 
 [[includes]]
-name = "public-infrastructure"
-source = "modules/infrastructure"
-include = ["skills"]
-
-[[includes]]
 name = "public-bindings"
 source = "modules/bindings"
 include = ["skills"]
