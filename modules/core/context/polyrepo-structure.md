@@ -15,5 +15,4 @@ This repo is part of the `xberg-io` polyrepo. From a subrepo checkout, `../` is 
 - Paths below are relative to the root. Shared AI governance config: `agent-conventions/` (shared ai-rulez modules)
 - Polyrepo-level orchestration: `Taskfile.yml`, `poly.toml`
 - Each subrepo is an independent git repo with its own `.ai-rulez/config.toml`
-- Worktrees: every git worktree goes under the polyrepo root at `.worktrees/<repo>/<name>`, where `<name>` is the branch with each character outside `A-Za-z0-9_-` replaced by `-`. Create it from the root with `task worktree:add REPO=<repo> BRANCH=<branch>`, never inside a repository.
-- The harness's `isolation: "worktree"` forks the session's own repo into that repo's `.claude/worktrees/`, so it neither follows this layout nor isolates an agent that works in another repo; in the polyrepo, create the worktree with `task worktree:add` and name its path in the brief.
+- Worktrees: every git worktree goes under the polyrepo root at `.worktrees/<repo>/<name>`, where `<name>` is the branch with each character outside `A-Za-z0-9_-` replaced by `-`, never inside a repository; create it from the root with `task worktree:add REPO=<repo> BRANCH=<branch>` (dispatching agents: the `agent-coordination` skill).
