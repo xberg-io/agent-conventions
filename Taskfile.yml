@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  AI_RULEZ_MIN_VERSION: "5.7.0"
+
 tasks:
   setup:
     desc: Install development hooks
@@ -8,6 +11,7 @@ tasks:
 
   governance:hooks:install:
     desc: Provision machine preferences and install reviewed AI governance hooks
+    deps: [governance:runtime]
     cmds:
       - |
         python3 - <<'PYTHON'
@@ -28,18 +32,33 @@ tasks:
         subprocess.run(["poly", "hooks", "install"], check=True)
         PYTHON
 
+  governance:runtime:
+    internal: true
+    cmds:
+      - |
+        installed_version="$(ai-rulez --version)"
+        found="${installed_version#ai-rulez version }"
+        lowest="$(printf '%s\n%s\n' "{{.AI_RULEZ_MIN_VERSION}}" "$found" | sort -V | head -n 1)"
+        if [ "$found" = "$installed_version" ] || [ "$lowest" != "{{.AI_RULEZ_MIN_VERSION}}" ]; then
+          printf '%s\n' "This checkout requires ai-rulez {{.AI_RULEZ_MIN_VERSION}} or newer; found $installed_version" >&2
+          exit 1
+        fi
+
   governance:check:
     desc: Check materialized local governance outputs against shared sources
+    deps: [governance:runtime]
     cmds:
       - ai-rulez generate --check --no-local --strict-config
 
   skills:generate:
     desc: Export public Agent Skills from the shared modules
+    deps: [governance:runtime]
     cmds:
       - ai-rulez generate --no-local --strict-config
 
   skills:check:
     desc: Verify public Agent Skills match the shared modules
+    deps: [governance:runtime]
     cmds:
       - ai-rulez lock --check
       - ai-rulez generate --check --no-local --strict-config
