@@ -11,6 +11,6 @@ x-ai-rulez:
     priority: high
 ---
 
-- .NET 8+, C# 12, file-scoped namespaces, `<Nullable>enable</Nullable>`, `TreatWarningsAsErrors`.
-- `dotnet format` and Roslyn analyzers; xUnit with `[Theory]`; `dotnet list package --vulnerable` for CVEs; commit `packages.lock.json`.
+- .NET 10 (`net10.0`), file-scoped namespaces, `<Nullable>enable</Nullable>`, `TreatWarningsAsErrors`.
+- `dotnet format` and Roslyn analyzers; xUnit with `[Theory]`.
 - `async`/`await` throughout, never `.Result` or `.Wait()`.

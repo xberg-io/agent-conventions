@@ -13,5 +13,5 @@ x-ai-rulez:
 ---
 
 - Java 17+: records, sealed types, pattern matching, `final` fields, `Optional` only as a return type.
-- google-java-format, Error Prone and SpotBugs; JUnit 5 with AssertJ; Maven or Gradle through the committed wrapper.
+- Checkstyle (`packages/java/checkstyle.xml`), plus Spotless and PMD where the repo's Java lint task runs them; JUnit 5 with AssertJ; Maven as the repo's tasks invoke it.
 - Specific exceptions only; try-with-resources for `AutoCloseable`.

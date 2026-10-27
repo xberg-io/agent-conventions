@@ -12,4 +12,4 @@ x-ai-rulez:
 ---
 
 - Idiomatic Kotlin API: data classes, sealed error hierarchies, `suspend` functions for async work.
-- Test with JUnit, and Robolectric for Android framework code.
+- Test with JUnit 5.

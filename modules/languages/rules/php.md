@@ -12,5 +12,5 @@ x-ai-rulez:
 ---
 
 - PHP 8.2+, `declare(strict_types=1)`, typed and readonly properties, enums, PSR-4 autoloading.
-- PSR-12 formatting; PHPStan at max level; PHPUnit; Composer with a committed `composer.lock` and `composer audit`.
+- Lint with mago through `poly lint` (`[lint.php.mago]` in poly.toml); PHPUnit; Composer with a committed `composer.lock`.
 - No `@` suppression, `eval()`, `extract()` or dynamic properties.

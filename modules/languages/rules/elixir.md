@@ -11,5 +11,5 @@ x-ai-rulez:
     priority: high
 ---
 
-- Elixir 1.14+/OTP 25+; `mix format`, Credo `--strict`, Dialyzer; `mix_audit` for CVEs; commit `mix.lock`.
+- Elixir 1.14+/OTP 25+; `mix format` and Credo `--strict`; commit `mix.lock`.
 - `{:ok, value}` / `{:error, reason}` for expected failures; `with` for multi-step operations; ExUnit and doctests.

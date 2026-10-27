@@ -14,5 +14,5 @@ x-ai-rulez:
 ---
 
 - Ruby 3.2+, `# frozen_string_literal: true`, RuboCop clean, RBS signatures checked with steep.
-- RSpec; bundler with a committed `Gemfile.lock` and `~>` constraints; `bundler-audit` for CVEs.
+- RSpec; bundler with a committed `Gemfile.lock` and `~>` constraints.
 - Exceptions inherit `StandardError`; no bare `rescue`, no monkey patching.
