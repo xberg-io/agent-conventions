@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:866d8b33850c56ab1ad95809d17890bcd59e7c71c3cf86e938aed0e52454687e'
+tree = 'sha256:225205a7c52c971ccf2e8515c8e300f7d0ac6b8b687f26695023e7547f9516a2'
 
 [[served]]
 name = 'agent-coordination'
@@ -196,7 +196,7 @@ digest = 'sha256:faeb40a2f797e304036864d11b5e1d44d28806bbe7ade83001c245f76fc6a48
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:5c6cc28c18aadf13dd8b05980f0a69805e26d2276ce9b729d0f787b83720f841'
+digest = 'sha256:687d3caad4a758a139ba6b3fe005b39bcd9303fed83905784b344f02394b50d7'
 
 [[item]]
 kind = 'settings'

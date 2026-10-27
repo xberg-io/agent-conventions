@@ -26,7 +26,8 @@ subagents, disjoint worktrees, implement-review-adjust rounds, reported deviatio
 
 ### `modules/languages`: all repos with code
 
-- **Rules, glob-scoped** (11): rust, python, typescript, ruby, php, go, java, kotlin-android, csharp, elixir, r. Plain
+- **Rules, glob-scoped** (12): rust, python, typescript, ruby, php, go, java, kotlin-android, csharp, elixir, r, shell
+  (Bats is the only shell test framework). Plain
   language conventions plus org policy (for example Pyrefly as the only Python type checker), gated on the language's
   file types, so a rule costs nothing until a matching file is read. They replace the ai-rulez language builtins;
   drop those from `builtins` when you include this module.

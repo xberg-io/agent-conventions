@@ -10,4 +10,5 @@
 * [R Conventions](r.md)
 * [Ruby Conventions](ruby.md)
 * [Rust Conventions](rust.md)
+* [Shell Conventions](shell.md)
 * [TypeScript and Node Conventions](typescript.md)
