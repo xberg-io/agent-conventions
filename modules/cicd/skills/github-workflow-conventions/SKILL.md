@@ -14,8 +14,13 @@ x-ai-rulez:
 
 # GitHub workflow conventions
 
-Use lowercase kebab-case filenames with the `.yaml` extension. Classify by the workflow's outcome,
+Name new workflows in lowercase kebab-case with the `.yaml` extension. Classify by the workflow's outcome,
 not its trigger: a manually dispatched test is CI; a scheduled image publisher is a release.
+
+A workflow path that other repos call or that rulesets name is a public interface and keeps its
+name and extension: xberg-io/actions' `reusable-*.yml` workflows are called by path from every repo,
+and each repo's `ai-rulez-validation.yml` is the shared governance check. Never rename those to fit
+the table.
 
 | Purpose | Filename | Display name |
 | --- | --- | --- |
@@ -46,7 +51,8 @@ A release may call a deployment workflow after its publication and verification 
   irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
   renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
-  tag; convert SHA pins when you touch a workflow. Pin tool versions in installers for
+  tag; convert SHA pins when you touch a workflow. An action with no tags (xberg-io/agent-conventions)
+  is pinned by full SHA. Pin tool versions in installers for
   reproducibility.
 
 ## Rename and release audit

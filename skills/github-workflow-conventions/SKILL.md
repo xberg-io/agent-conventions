@@ -1,13 +1,18 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:ffa79e025c952d1f471d4148fb438fc5517b0709913c457ddd8e7e0cb2a2243d
+# Content-Hash: blake3:3dac472e6fe9dc65e99ccf7f262876cb67295b764ce03b31e74d7df24b033b73
 ---
 
 # GitHub workflow conventions
 
-Use lowercase kebab-case filenames with the `.yaml` extension. Classify by the workflow's outcome,
+Name new workflows in lowercase kebab-case with the `.yaml` extension. Classify by the workflow's outcome,
 not its trigger: a manually dispatched test is CI; a scheduled image publisher is a release.
+
+A workflow path that other repos call or that rulesets name is a public interface and keeps its
+name and extension: xberg-io/actions' `reusable-*.yml` workflows are called by path from every repo,
+and each repo's `ai-rulez-validation.yml` is the shared governance check. Never rename those to fit
+the table.
 
 | Purpose | Filename | Display name |
 | --- | --- | --- |
@@ -38,7 +43,8 @@ A release may call a deployment workflow after its publication and verification 
   irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
   renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
-  tag; convert SHA pins when you touch a workflow. Pin tool versions in installers for
+  tag; convert SHA pins when you touch a workflow. An action with no tags (xberg-io/agent-conventions)
+  is pinned by full SHA. Pin tool versions in installers for
   reproducibility.
 
 ## Rename and release audit
