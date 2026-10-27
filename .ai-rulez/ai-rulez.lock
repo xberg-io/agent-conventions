@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:3a3aa7fd51b62e29c524f42ae575b65681b9e51a5d057941a8cbe4179a25ca2d'
+tree = 'sha256:9699202adc44fa87367de3b516c37e3e01d0951704a2c99da3984137f5f54b6a'
 
 [[served]]
 name = 'agent-coordination'
@@ -83,6 +83,12 @@ name = 'gcloud-conventions'
 source = 'include:public-infrastructure/skills/gcloud-conventions/SKILL.md'
 commit = ''
 digest = 'sha256:74f1047f01ef589fe108057789eff20170ceee2bbb8840e693d6af91c82d9d04'
+
+[[served]]
+name = 'github-workflow-conventions'
+source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
+commit = ''
+digest = 'sha256:5578adecb89ad919225f1cd118db1a475b6c95bddc01e6cf2085e36f075bbe3e'
 
 [[served]]
 name = 'incremental-approach'
@@ -172,7 +178,7 @@ digest = 'sha256:bad3e3696657bf8f2972424635bcb00dbd1d55109fe72d176e1b2a9dfb2e0ec
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:15cd622ced11c9d3e1815e4efdaf9b2ace2374700d376c84bdd1b3d124c0cc82'
+digest = 'sha256:99ac2e8af8ab28e65e0f58ce394e6ecf64fd918354d689dcf7253b9b78cf8c34'
 
 [[item]]
 kind = 'local-include'

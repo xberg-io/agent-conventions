@@ -1,0 +1,55 @@
+---
+name: github-workflow-conventions
+description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
+# Content-Hash: blake3:ffa79e025c952d1f471d4148fb438fc5517b0709913c457ddd8e7e0cb2a2243d
+---
+
+# GitHub workflow conventions
+
+Use lowercase kebab-case filenames with the `.yaml` extension. Classify by the workflow's outcome,
+not its trigger: a manually dispatched test is CI; a scheduled image publisher is a release.
+
+| Purpose | Filename | Display name |
+| --- | --- | --- |
+| Validation, build, or test without publication | `ci-<domain>.yaml` | `<Domain> CI` |
+| Independently scheduled or expensive test suite | `ci-<domain>-<suite>.yaml` | `<Domain> <Suite> CI` |
+| Publish versioned packages or images | `release-<artifact>.yaml` | `<Artifact> Release` |
+| Apply configuration or deploy an environment | `deploy-<target>.yaml` | `<Target> Deploy` |
+| Notifications or repository housekeeping | `maintenance-<purpose>.yaml` | `<Purpose> Maintenance` |
+| Only invoked through `workflow_call` | `reusable-<purpose>.yaml` | `<Purpose> (Reusable)` |
+
+Keep one domain's normal CI in one primary workflow. Split suites for different schedules, permissions,
+or resource needs, not merely because they have separate jobs. Publication and deployment belong in
+their own entrypoints; reuse validation through tasks or a reusable workflow rather than copying it.
+A release may call a deployment workflow after its publication and verification gates pass.
+
+## Job structure
+
+- Use explicit Validate → Build → Test → Publish/Deploy dependencies where those stages apply.
+  Do not add empty stages or serialize independent checks just to fit the sequence.
+- Keep job IDs and check names stable during filename-only refactors. Changing a required check name
+  requires checking branch rules and coordinating the change, not assuming the rule is absent.
+- Invoke maintained task-runner commands for project checks/builds/tests. Actions install tooling,
+  authenticate, cache, and transfer artifacts; avoid duplicating application scripts in YAML.
+- Declare least-privilege permissions. Scope secrets and write permissions to jobs that use them.
+- Include the workflow itself and its actual script/task/config inputs in path filters. A negative
+  test must prove the gate rejects the intended fault, and inventory checks must reject zero matches.
+- Cancel superseded validation runs when safe. Do not cancel publication or deployment midway through
+  irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
+  renaming; review behavior changes separately.
+- Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
+  tag; convert SHA pins when you touch a workflow. Pin tool versions in installers for
+  reproducibility.
+
+## Rename and release audit
+
+Inventory filenames, display names, triggers, job dependencies, permissions, and all callers before editing.
+Update local workflow calls, `workflow_run.workflows`, CLI commands, path filters, tasks, tests, documentation,
+badges, and fixture copies together. Check external callers and identity-provider restrictions that may name
+a workflow path; report inaccessible branch rules as unverified, not absent. Do not expand cloud IAM or bypass
+required checks merely to make a rename work.
+
+Validate parsed YAML and local call targets, run action-reference/workflow checks and the affected task suites,
+and search active sources for obsolete paths. Keep archival references that genuinely describe history.
+Review the final diff for accidental trigger, permission, secret, concurrency, or deployment changes.
+Commit renames and their references as a coherent change; keep functional fixes independently reviewable.
