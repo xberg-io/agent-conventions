@@ -28,6 +28,9 @@ Per repo:
 - `scripts/publish/<app>.json.tmpl` — the manifest template
 - a `publish-scoop-manifest` job, mirroring `publish-homebrew-formula` in the same workflow
 
+alef differs: `scripts/publish/scoop-manifests.json` with its own `commit-scoop-manifest.sh` and
+`compute-scoop-gate.sh`, and `scoop` is an opt-in release target. Read its `publish.yaml`.
+
 ## The two escaping traps
 
 Templates are rendered with Python `string.Template.substitute`, so **every literal `$` in the
