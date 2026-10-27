@@ -12,7 +12,8 @@ x-ai-rulez:
 # basemind tools
 
 The basemind-usage rule says when to use basemind; the basemind plugin's own skills hold the
-per-mode detail. Load the one that matches the question:
+per-mode detail (Claude Code with the basemind plugin only; elsewhere read the MCP tool
+descriptions). Load the one that matches the question:
 
 | Question | Plugin skill |
 |---|---|
