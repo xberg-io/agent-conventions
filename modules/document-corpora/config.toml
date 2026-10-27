@@ -1,0 +1,13 @@
+version = "5.0"
+name = "xberg-document-corpora"
+description = "Shared document-corpora module for xberg-io AI governance"
+gitignore = true
+presets = ["claude", "codex", "opencode", "pi"]
+
+
+[mcp]
+self_server = false
+
+[lint.severity]
+# ~keep Shared globs target consumer layouts; they match in the consumers, not here.
+AR101 = "off"
