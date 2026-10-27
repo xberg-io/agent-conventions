@@ -117,18 +117,21 @@ tools = ["find_skill", "load_skill"]
 [[includes]]
 name = "xberg-core"
 source = "https://github.com/xberg-io/agent-conventions.git"
+version = "^1"
 path = "modules/core"
 merge_strategy = "local-override"
 
 [[includes]]
 name = "xberg-languages"
 source = "https://github.com/xberg-io/agent-conventions.git"
+version = "^1"
 path = "modules/languages"
 merge_strategy = "local-override"
 
 [[includes]]
 name = "xberg-cicd"
 source = "https://github.com/xberg-io/agent-conventions.git"
+version = "^1"
 path = "modules/cicd"
 merge_strategy = "local-override"
 ```
@@ -138,14 +141,21 @@ Put the example in `.ai-rulez/config.toml`. The repository's own root context is
 it, no procedures) and only the rules that hold for every file. Everything else is a path-scoped rule, a skill
 gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
-your repository uses, pinned by `ref`. Use the latest ai-rulez release (CI installs `latest`; minimum 5.7.0) to
-validate and regenerate after editing sources:
+your repository uses, by version range (`version = "^1"`; the lock records the exact tag and commit). Use the latest
+ai-rulez release (CI installs `latest`; minimum 5.7.0) to validate and regenerate after editing sources:
 
 ```sh
 ai-rulez validate --no-local
 ai-rulez generate --no-local --strict-config
 task governance:check
 ```
+
+## Releasing
+
+Push a `vX.Y.Z` tag, or run the Release workflow with a version: it creates the tag if needed, moves the floating
+`vX` tag to it with a lease, and publishes the GitHub release. Consumers then move their pins with `ai-rulez update`
+(the polyrepo root runs it everywhere with `task ai-rulez:update`); `ai-rulez lock --outdated` shows what would move.
+Bump the major version only for a change that breaks consumers, such as removing or renaming a module or item.
 
 Consumers generate local harness files from these modules. Product plugin content is maintained
 separately under each product's `plugin/.ai-rulez/`; its public `skills/` export contains product

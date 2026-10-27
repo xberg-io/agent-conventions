@@ -1,0 +1,76 @@
+name: Release
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version X.Y.Z, tagged on the current default branch head"
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Resolve the release tag
+        id: tag
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            tag="v${INPUT_VERSION#v}"
+          else
+            tag="$REF_NAME"
+          fi
+          [[ "$tag" =~ ^v([0-9]+)\.[0-9]+\.[0-9]+$ ]] || { echo "::error::not a release tag: $tag"; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "major=v${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+      - name: Create the release tag on dispatch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::$TAG already exists"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG" HEAD
+          git push origin "refs/tags/$TAG"
+      - name: Move the floating major tag
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          MAJOR: ${{ steps.tag.outputs.major }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # ~keep Lease on the remote tag object: a concurrent move fails instead of being overwritten.
+          previous=$(git ls-remote origin "refs/tags/$MAJOR" | cut -f1)
+          git tag -f -a "$MAJOR" -m "$MAJOR -> $TAG" "$TAG^{commit}"
+          git push origin "refs/tags/$MAJOR" --force-with-lease="refs/tags/$MAJOR:${previous}"
+          test "$(git ls-remote origin "refs/tags/$MAJOR^{}" | cut -f1)" = "$(git rev-parse "$TAG^{commit}")"
+          echo "$MAJOR now points at $TAG ($(git rev-parse --short "$TAG^{commit}"))" >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG exists"
+          else
+            gh release create "$TAG" --verify-tag --generate-notes --title "$TAG"
+          fi
