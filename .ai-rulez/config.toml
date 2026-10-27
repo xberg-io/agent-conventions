@@ -1,6 +1,6 @@
 version = "5.0"
 name = "agent-conventions"
-description = "Shared agent-conventions modules for xberg.io polyglot projects"
+description = "Shared ai-rulez modules for the organization's repositories"
 gitignore = true
 gitignore_exclude = [".ai-rulez/.generated-manifest.json", "skills/"]
 

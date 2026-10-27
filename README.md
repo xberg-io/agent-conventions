@@ -1,48 +1,61 @@
 # agent-conventions
 
-Shared agent-conventions modules for xberg.io polyglot projects. Include modules by `path`; consumer
+Shared ai-rulez modules for the xberg-io organization's repositories. Include modules by `path`; consumer
 repos generate local AGENTS.md from these sources.
 
 ## Available Modules
 
 Modules hold generic conventions only: content that is true in every repository that includes the module.
 Product knowledge (a product's corpora, formats, benchmarks, crates) lives in that product's own `.ai-rulez/`.
+Where an ai-rulez builtin already says the same thing, the module does not repeat it.
 
 ### `modules/core`: all repos
 
-- **Rules, always on** (6): comment-discipline, commit-messages, commit-procedure, prove-the-check-fired,
-  safe-git-operations, targeted-verification
+- **Rules, always on** (8): basemind-usage, comment-discipline, commit-messages, commit-procedure,
+  prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code
 - **Rules, glob-scoped** (1): logging-tracing (`**/*.rs`, `**/Cargo.toml`)
-- **Agents** (7): code-reviewer, polyglot-architect, rust-core-engineer, ffi-engineer, docs-writer,
-  security-auditor, performance-engineer
 - **Context** (1): polyrepo-structure
-- **Skills** (10): agent-coordination, alef-workflow, basemind-tools, binding-architecture,
-  feature-flag-conventions, poly-lint-format, release-workflow, taskfile-structure, tracing-conventions,
-  xberg-brand-and-docs
+- **Skills** (9): agent-coordination, basemind-tools, feature-flag-conventions (`**/Cargo.toml`), poly-lint-format,
+  release-workflow, taskfile-structure, tracing-conventions (Rust paths), verification-harness, xberg-brand-and-docs
+  (docs and README paths)
+
+`test-alongside-code` replaces the `testing` builtin's rule of the same id, which says to run the full suite before
+committing. The override works but raises `AR703 duplicate-collapsed`, which fails `ai-rulez validate --strict`; add
+`"!testing/test-alongside-code"` to `builtins` to keep the module rule without the warning.
 
 ### `modules/languages`: all repos with code
 
-- **Rules, glob-scoped** (17): rust, c-ffi, python, typescript, wasm, ruby, php, go, java, kotlin-android, csharp,
-  elixir, swift, dart, zig, r. Each holds the language conventions, its binding framework (PyO3, napi-rs, Magnus,
-  ext-php-rs, jni-rs, cgo, Rustler, extendr, wasm-bindgen) and org policy (for example Pyrefly as the only Python type
-  checker). Globs cover the file types plus the shared alef layout (`crates/*-py/**`, `packages/python/**`, ...), so a
-  rule costs nothing until a matching file is read. They replace the ai-rulez language and binding builtins; drop
-  those from `builtins` when you include this module.
+- **Rules, glob-scoped** (11): rust, python, typescript, ruby, php, go, java, kotlin-android, csharp, elixir, r. Plain
+  language conventions plus org policy (for example Pyrefly as the only Python type checker), gated on the language's
+  file types, so a rule costs nothing until a matching file is read. They replace the ai-rulez language builtins;
+  drop those from `builtins` when you include this module.
+- **Agents** (1): performance-engineer
+
+### `modules/bindings`: repos that generate polyglot bindings with alef
+
+- **Rules, glob-scoped** (16): c-ffi, generated-code-policy (`e2e/**`, `fixtures/**`), and one binding rule per
+  language (python-, node-, ruby-, php-, java-, kotlin-android-, go-, elixir-, r-, csharp-, dart-, swift-, zig-,
+  wasm-bindings) gated on the alef layout (`crates/*-py/**`, `packages/python/**`, ...)
+- **Skills** (4): alef-workflow, binding-architecture, consumer-release-gates, e2e-generation
+
+Enable the `polyglot-bindings` builtin alongside it for the general binding and FFI principles and the
+ffi-engineer and polyglot-architect agents.
 
 ### `modules/cicd`: most repos
 
-- **Agents** (2): release-engineer, devops-engineer
-- **Skills** (4): cicd-pipeline-standards, consumer-release-gates, gh-workflows, scoop-distribution
+- **Skills** (2): github-workflow-conventions (`.github/**`), scoop-distribution (`scripts/publish/**`)
 
-### `modules/e2e-generator`: repos with alef e2e suites
-
-- **Agents** (1): e2e-generator-engineer
-- **Rules, glob-scoped** (1): generated-code-policy (`e2e/**`, `fixtures/**`)
-- **Skills** (4): create-e2e-fixture, add-language-generator, e2e-generator-conventions, fixture-schema-design
+General gh and pipeline guidance is the `cicd` builtin (`cicd/github-workflow`, `cicd/pipeline-standards`).
 
 ### `modules/infrastructure`: deployed services only
 
-- **Skills** (3): containerization-docker, gcloud-conventions, monitoring-observability
+- **Skills** (1): gcloud-conventions (IaC, workflow and deploy paths)
+
+Container and service-observability guidance is the `docker` and `observability` builtins.
+
+### `modules/document-corpora`: repos that handle partner or public-record document corpora
+
+- **Skills** (1): document-corpus-handling (corpus, manifest and attribution paths)
 
 ## Placement
 
@@ -76,7 +89,7 @@ presets = ["claude", "codex", "opencode", "pi"]
 default_layers = ["plugins"]
 compact = true
 # The agent roster repeats the agent files in every root file; harnesses list agents natively.
-builtins = ["!agent-delegation", "!git-workflow"]
+builtins = ["!agent-delegation", "!git-workflow", "!testing/test-alongside-code"]
 
 # Glob-scoped rules stay out of the shared AGENTS.md (and so out of CLAUDE.md, which imports it): Claude
 # loads them from .claude/rules on a matching read, presets without a rules folder as path-gated skills.
@@ -152,16 +165,18 @@ skills live in each product repository.
 
 | Repo | Modules |
 |------|---------|
-| xberg | core, languages, cicd, infrastructure, e2e-generator |
-| html-to-markdown | core, languages, cicd, infrastructure, e2e-generator |
-| liter-llm | core, languages, cicd, e2e-generator |
-| crawlberg | core, languages, cicd, e2e-generator |
-| tree-sitter-language-pack | core, languages, cicd, e2e-generator |
-| alef | core, languages, cicd |
+| xberg | core, languages, cicd, infrastructure, bindings, document-corpora |
+| html-to-markdown | core, languages, cicd, infrastructure, bindings |
+| liter-llm | core, languages, cicd, bindings |
+| crawlberg | core, languages, cicd, bindings |
+| tree-sitter-language-pack | core, languages, cicd, bindings |
+| alef | core, languages, cicd, bindings |
 | sceptre | core, languages, cicd |
-| xberg-enterprise | core, languages, cicd, infrastructure |
+| xberg-enterprise | core, languages, cicd, infrastructure, document-corpora |
+| test_documents | core, cicd, document-corpora |
 | actions | core, languages, cicd |
-| infra | cicd, infrastructure |
+| infra, infra-release-runners | core, cicd, infrastructure |
+| homebrew-tap, scoop-bucket, paddle-to-onnx | core |
 
 ## License
 
