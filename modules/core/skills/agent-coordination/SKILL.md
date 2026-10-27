@@ -58,7 +58,7 @@ pre-rebase HEAD (`git diff <backup> HEAD --stat`), not by re-reading commit mess
 
 If `--continue` blocks indefinitely regardless of `GIT_EDITOR`/`core.editor` overrides in this
 environment, resolve conflicts by staging the files, confirming the sequencer state file exists
-(`git rev-parse --git-dir`), then running a plain `git commit --no-verify -m "<subject>"` directly
+(`git rev-parse --git-dir`), then running a plain `git commit -m "<subject>"` directly
 — that completes the operation without invoking the editor. Interactive flags (`-i`) may be
 unavailable entirely; cherry-pick the commits you want onto a new base instead of trying to drop
 commits during a rebase.
