@@ -4,19 +4,13 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:fbf65568c7c4f5089de5620fd05ef855fd58262ac2cf0686d737637ec734512a'
+tree = 'sha256:ffcfa1f774b7a20c85e2374fe5e67d542a72209a062be43fee954b89a5e76840'
 
 [[served]]
 name = 'agent-coordination'
 source = 'include:public-core/skills/agent-coordination/SKILL.md'
 commit = ''
 digest = 'sha256:434da98c273fd71ee32ca9cb58a4f6a9e4af634550c0bd5c90d40e806bdb8922'
-
-[[served]]
-name = 'alef-workflow'
-source = 'include:public-bindings/skills/alef-workflow/SKILL.md'
-commit = ''
-digest = 'sha256:8fffbce8462347c5553da480a4a4139601ce7bed115437e9fd3bc2d8ac4d72c6'
 
 [[served]]
 name = 'basemind-tools'
@@ -28,7 +22,7 @@ digest = 'sha256:790599681098314dca5d3025405baf2da89eb3c93618cd7e0586262715e7035
 name = 'binding-architecture'
 source = 'include:public-bindings/skills/binding-architecture/SKILL.md'
 commit = ''
-digest = 'sha256:eda04ded5e8d15168d9c02b14cec8223c3444b61dfcc813189667c85f5e22307'
+digest = 'sha256:2298c81987d9bdb9779606274c72f79744c885018f689f167f7b18e73f31121f'
 
 [[served]]
 name = 'code-quality-standards'
@@ -70,7 +64,7 @@ digest = 'sha256:4cee3be786727a32bad651a4a5a6ebdb9b28fcc30cbb8e3fce1525fdcf89dde
 name = 'e2e-generation'
 source = 'include:public-bindings/skills/e2e-generation/SKILL.md'
 commit = ''
-digest = 'sha256:19e617f0ed80251dcc06ea3b29a4708f82619b41231594cc44cf3b77d93f863d'
+digest = 'sha256:9cb7f48da2bb1f302e8cbc2b6c32cbfe365a1ddc9d5495a9fe9af41fcd4df7bf'
 
 [[served]]
 name = 'error-handling'
@@ -178,7 +172,7 @@ digest = 'sha256:ef1b56c090e2c93fecd8bfbe916f79a0bebed69afe53ec89284e7ff433f64d0
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:bad3e3696657bf8f2972424635bcb00dbd1d55109fe72d176e1b2a9dfb2e0ec7'
+digest = 'sha256:96b88b1e6ee88ac969cb3581bd212cdaa7cb959a038969efee62e5576f20fe1c'
 
 [[item]]
 kind = 'local-include'

@@ -224,7 +224,7 @@
   prompt: "I want to silence the native PDF engine's debug logs with a tracing filter. What target string should I use?"
   behaviour: answer
   must_use: [crate-structure]
-  must_not_use: [alef-generated-bindings, alef-workflow]
+  must_not_use: [alef-generated-bindings, alef]
   expect: ['LOG_TARGET_ROOT']
   criteria:
     - id: constant
@@ -616,7 +616,7 @@
   cwd: crates/xberg/src/extractors
   prompt: "Write a unit test for the RTF extractor's handling of an empty \\par group."
   behaviour: answer
-  must_not_use: [benchmark-workflow, alef-workflow]
+  must_not_use: [benchmark-workflow, alef]
   must_not_mention: ['(?i)ground[ _]truth', '(?i)benchmark-harness']
   criteria:
     - id: unit-scope

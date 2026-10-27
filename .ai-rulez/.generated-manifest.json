@@ -2,7 +2,6 @@
   "version": "1",
   "files": [
     ".agents/skills/agent-coordination/SKILL.md",
-    ".agents/skills/alef-workflow/SKILL.md",
     ".agents/skills/basemind-tools/SKILL.md",
     ".agents/skills/binding-architecture/SKILL.md",
     ".agents/skills/code-quality-standards/SKILL.md",
@@ -37,7 +36,6 @@
     ".claude/rules/logging-tracing.md",
     ".claude/settings.json",
     ".claude/skills/agent-coordination/SKILL.md",
-    ".claude/skills/alef-workflow/SKILL.md",
     ".claude/skills/basemind-tools/SKILL.md",
     ".claude/skills/binding-architecture/SKILL.md",
     ".claude/skills/code-quality-standards/SKILL.md",
@@ -76,7 +74,6 @@
     "CLAUDE.md",
     "opencode.json",
     "skills/agent-coordination/SKILL.md",
-    "skills/alef-workflow/SKILL.md",
     "skills/basemind-tools/SKILL.md",
     "skills/binding-architecture/SKILL.md",
     "skills/code-quality-standards/SKILL.md",

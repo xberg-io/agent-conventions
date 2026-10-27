@@ -1,7 +1,7 @@
 ---
 name: e2e-generation
-description: "Fixture-driven cross-language e2e suites: the [e2e] generator config, fixture files and ids, per-language output, adding a language, regenerate and verify. Use when adding or editing fixtures or configuring e2e generation."
-# Content-Hash: blake3:8cedb56f16a2c39f3e1fd447f8b9b7e143e6fcff9ce6ede25b2b1e3db72fb37f
+description: "Fixture-driven cross-language e2e suites: generated e2e/ output, the [crates.e2e] config, fixture files and ids, adding a language, regenerate and verify. Use when adding or editing fixtures or configuring e2e generation."
+# Content-Hash: blake3:2e8cfa4fee90e831eb3c368b24a5fa92d11e62159ccb3f80ef078b44b7344d35
 ---
 
 # E2E Generation
@@ -10,11 +10,17 @@ description: "Fixture-driven cross-language e2e suites: the [e2e] generator conf
 under `e2e/{language}/`. Fixtures are the single source of truth: test logic comes from them, never
 from hand-written tests in `e2e/`.
 
+## `e2e/` is generated
+
+Everything under `e2e/` carries a generated-code header; never edit it. Change fixtures or the
+`alef.toml` e2e config, run `task e2e:generate` then `task e2e:test`, and commit inputs and
+regenerated output in one commit. CI regenerates and fails on a diff in `e2e/`.
+
 ## Fixtures
 
 - The fixture schema (fields, call names, assertion keys, categories) is the repo's own: read the
-  `[e2e]` section of `alef.toml` and two or three existing fixtures before writing one. Do not copy
-  a schema from another repo.
+  e2e config in `alef.toml` and two or three existing fixtures before writing one. Do not copy a
+  schema from another repo.
 - Every fixture has a unique snake_case `id` across all fixture files; it becomes the test function
   name. Fixtures load recursively and sort by (category, id).
 - One behavior per fixture; include negative cases. Platform- or language-specific behavior goes in
@@ -22,17 +28,18 @@ from hand-written tests in `e2e/`.
 
 ## Generator config
 
-`alef.toml` `[e2e]` holds call configurations, per-language overrides
-(`[e2e.call.<call>.languages.<lang>]`) and fixture paths.
+All of it sits under the crate's `[crates.e2e]` table in `alef.toml`:
+
+- `[crates.e2e]`: `fixtures` and `output` directories and the `languages = [...]` list.
+- `[crates.e2e.call]` is the default call; `[crates.e2e.calls.<name>]` adds named calls, each with
+  `[[...args]]` and per-language `[crates.e2e.calls.<name>.overrides.<lang>]`.
+- `[crates.e2e.call.overrides.<lang>]` holds the default call's per-language syntax.
+- `[crates.e2e.packages.<lang>]` points each generated project at the package it tests (`name`,
+  `path`).
 
 ## Adding a language
 
-1. Configure it under `[e2e.languages.<lang>]`: test framework, file layout, assertion patterns.
+1. Add it to `languages` in `[crates.e2e]` and give it a `[crates.e2e.packages.<lang>]` entry.
 2. Add call overrides where the language needs different call syntax.
 3. `task e2e:generate`, then `task e2e:test`; the generated tests must compile and pass.
 4. Add the language to the e2e CI matrix.
-
-## Loop
-
-Edit fixtures or `alef.toml`, run `task e2e:generate` then `task e2e:test`, and commit fixtures and
-regenerated output in one commit.

@@ -1,14 +1,16 @@
 ---
 name: binding-architecture
 description: "Org layout for polyglot bindings: crate and package naming, distribution paths, what the generator decides vs the architect, binding review checklist, per-language doc formats. Use when designing, adding or reviewing a binding."
-# Content-Hash: blake3:9ce747e3f0dc98f887942db4ca729e3203e5a0996543ff22bcccf31fb2736349
+# Content-Hash: blake3:d6cf275656e6ceb7f56553718ef40e54f822070e65755d0caf9c7a4fd1cae8bc
 ---
 
 # Binding Architecture
 
 General binding and FFI principles (minimal glue, core then ABI then language surface, ownership,
-error and async boundaries) are in the ai-rulez `polyglot-bindings` builtin and the `c-ffi` rule.
-This skill holds the org layout on top of them.
+error and async boundaries) are in the ai-rulez `polyglot-bindings` builtin; a repo that includes
+this module enables it in `builtins`. The per-language rules are `rust-native-bindings`, `c-abi-wrappers`
+and `jvm-bindings`. This skill holds the org layout on top of them; alef's own installed skill covers
+the generator, its commands and the generated-file rules.
 
 ## Layout
 

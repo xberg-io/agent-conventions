@@ -22,8 +22,10 @@ x-ai-rulez:
 # Binding Architecture
 
 General binding and FFI principles (minimal glue, core then ABI then language surface, ownership,
-error and async boundaries) are in the ai-rulez `polyglot-bindings` builtin and the `c-ffi` rule.
-This skill holds the org layout on top of them.
+error and async boundaries) are in the ai-rulez `polyglot-bindings` builtin; a repo that includes
+this module enables it in `builtins`. The per-language rules are `rust-native-bindings`, `c-abi-wrappers`
+and `jvm-bindings`. This skill holds the org layout on top of them; alef's own installed skill covers
+the generator, its commands and the generated-file rules.
 
 ## Layout
 

@@ -250,7 +250,7 @@
   persona: maintainer
   prompt: "How do I cut a sceptre release and get it onto crates.io?"
   behaviour: answer
-  must_not_use: [alef-workflow, consumer-release-gates]
+  must_not_use: [consumer-release-gates]
   must_not_mention: ['(?i)version:sync', '(?i)sync_integration_versions', '(?i)\bxberg\b(?![-.]io)']
   expect: ['(?i)trusted publish|OIDC|id-token']
   criteria:
@@ -269,7 +269,7 @@
   cwd: benchmarks
   prompt: "I re-ran the benchmarks. How do I update the numbers in the README?"
   behaviour: answer
-  must_not_use: [alef-workflow]
+  must_not_use: [binding-architecture]
   must_not_mention: ['(?i)benchmark-harness', '(?i)ground[ _]truth', '(?i)\bxberg\b(?![-.]io)']
   expect: ['latest\.json']
   criteria:
@@ -288,7 +288,7 @@
   cwd: .
   prompt: "Small text in receipts is missed entirely. What knobs should I try first?"
   behaviour: either
-  must_not_use: [alef-workflow, binding-architecture]
+  must_not_use: [binding-architecture]
   must_not_mention: ['(?i)tesseract', '(?i)\bhOCR\b', '(?i)pdfium', '(?i)\bpsm\b']
   criteria:
     - id: craft-knobs
@@ -304,7 +304,7 @@
   cwd: crates/sceptre
   prompt: "How do I check my change to the grouping code doesn't break parity with EasyOCR?"
   behaviour: answer
-  must_not_use: [alef-workflow]
+  must_not_use: [binding-architecture]
   must_not_mention: ['(?i)e2e:generate', '(?i)\balef\b', '(?i)fixtures/']
   criteria:
     - id: golden

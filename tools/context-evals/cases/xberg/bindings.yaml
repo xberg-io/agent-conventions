@@ -1,5 +1,5 @@
 # Seed cases for the bindings domain in the xberg repository: alef-generated bindings, the FFI bridge and
-# the shared alef-workflow skill.
+# alef's installed `alef` skill.
 
 - id: xberg-bindings-extractor-alef-skip
   domain: bindings
@@ -63,7 +63,7 @@
   cwd: crates/xberg-py
   prompt: "There's a typo in a docstring in crates/xberg-py/src/lib.rs. Can I just fix it there?"
   behaviour: answer
-  must_use: [alef-workflow]
+  must_use: [alef]
   expect: ['alef:verify|alef verify']
   criteria:
     - id: generated
@@ -81,7 +81,7 @@
   cwd: packages
   prompt: "After regenerating, how do I format the generated binding code? Is there a task alef:format?"
   behaviour: answer
-  must_use: [alef-workflow]
+  must_use: [alef]
   expect: ['(?i)poly']
   criteria:
     - id: poly

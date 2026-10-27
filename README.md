@@ -35,13 +35,16 @@ subagents, disjoint worktrees, implement-review-adjust rounds, reported deviatio
 
 ### `modules/bindings`: repos that generate polyglot bindings with alef
 
-- **Rules, glob-scoped** (16): c-ffi, generated-code-policy (`e2e/**`, `fixtures/**`), and one binding rule per
-  language (python-, node-, ruby-, php-, java-, kotlin-android-, go-, elixir-, r-, csharp-, dart-, swift-, zig-,
-  wasm-bindings) gated on the alef layout (`crates/*-py/**`, `packages/python/**`, ...)
-- **Skills** (4): alef-workflow, binding-architecture, consumer-release-gates, e2e-generation
+- **Rules, glob-scoped** (3), gated on the alef layout: rust-native-bindings (PyO3, napi-rs, Magnus,
+  ext-php-rs, Rustler, extendr, wasm-bindgen, and the Dart and Swift bridge crates), c-abi-wrappers (the
+  `crates/*-ffi` C ABI plus the Go, C# and Zig wrappers), jvm-bindings (Java, Kotlin Android, `crates/*-jni`)
+- **Skills** (3): binding-architecture, consumer-release-gates, e2e-generation (`e2e/**`, `fixtures/**`,
+  `alef.toml`)
 
-Enable the `polyglot-bindings` builtin alongside it for the general binding and FFI principles and the
-ffi-engineer and polyglot-architect agents.
+A repo that includes this module must enable the `polyglot-bindings` builtin: it holds the general binding
+and FFI principles (ownership, opaque handles, error and async boundaries, ABI stability) and the
+ffi-engineer and polyglot-architect agents, which this module does not repeat. alef's own installed skill
+(`[[installed_skills]] alef`) covers the generator, its tasks and the version sync.
 
 ### `modules/cicd`: most repos
 

@@ -1,0 +1,34 @@
+---
+type: Decision
+title: Rust-Native Binding Conventions
+description: "Bindings built as Rust extensions or bridge crates: PyO3, napi-rs, Magnus, ext-php-rs, Rustler, extendr, wasm-bindgen, flutter_rust_bridge, swift-bridge. Use when editing a Python, Node, Ruby, PHP, Elixir, R, WASM, Dart or Swift binding."
+paths:
+  - "crates/*-py/**"
+  - "packages/python/**"
+  - "crates/*-node/**"
+  - "packages/node/**"
+  - "packages/ruby/**"
+  - "crates/*-php/**"
+  - "packages/php/**"
+  - "packages/elixir/**"
+  - "packages/r/**"
+  - "crates/*-wasm/**"
+  - "packages/dart/**"
+  - "packages/swift/**"
+x-ai-rulez:
+  kind: rule
+  id: rust-native-bindings
+  metadata:
+    priority: high
+---
+
+These bindings compile Rust directly into the host extension; they do not go through the C ABI. Keep each one thin: call the core, convert types, map errors to typed host exceptions, never panic across the boundary.
+
+- Python (PyO3, `crates/*-py`): `#[pyclass]`/`#[pymethods]`, `PyResult<T>`, the `Bound<'py, T>` API, `py.allow_threads()` for CPU work, built with maturin.
+- Node (napi-rs, `crates/*-node`): `#[napi]`, `async fn` returns a Promise, `AsyncTask` for CPU work, generated `.d.ts` kept in sync, explicit `BigInt`/`Date`/`Buffer` mappings, never block the event loop.
+- Ruby (Magnus, `packages/ruby`): `TypedData` for GC-safe wrapping, release the GVL for CPU work, built with rb_sys and rake-compiler.
+- PHP (ext-php-rs, `crates/*-php`): `#[php_class]`/`#[php_impl]`/`#[php_function]`, `PhpResult<T>`, mind reference counting in wrapped structs.
+- Elixir (Rustler): `schedule = "DirtyCpu"` for anything over about 1 ms, `ResourceArc<T>` for shared state, precompiled NIFs via rustler_precompiled.
+- R (extendr): `Result<T, extendr_api::Error>`, explicit NA handling, no R allocation from Rust threads, classed R conditions for errors, vendored Rust dependencies for CRAN.
+- WebAssembly (wasm-bindgen, `crates/*-wasm`): `Result<T, JsValue>`, no `std::thread` or synchronous I/O, `wasm-bindgen-futures` and `serde-wasm-bindgen`, no raw pointers exposed to JavaScript, size-optimised release profile.
+- Dart (flutter_rust_bridge) and Swift (swift-bridge): each package carries its own bridge crate under `packages/<lang>/rust`, and the bridge code, module map and C shim are generated. Change `alef.toml` or the core, not the bridge output; wrap native handles with an explicit `close()`/`dispose()` (Swift: `deinit` as backup).
