@@ -2,7 +2,7 @@ version = "5.0"
 name = "xberg-languages"
 description = "Shared languages module for xberg-io AI governance"
 gitignore = true
-presets = ["claude", "codex", "opencode", "pi"]
+presets = ["claude", "codex", "opencode"]
 
 
 [mcp]

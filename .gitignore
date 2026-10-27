@@ -15,9 +15,6 @@ modules/**/.generated-manifest.local.json
 .ai-rulez/local/
 .opencode/agents/
 .opencode/commands/
-.pi/agents/
-.pi/mcp.json
-.pi/prompts/
 opencode.json
 # END ai-rulez
 

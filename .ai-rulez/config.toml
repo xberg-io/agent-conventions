@@ -8,11 +8,18 @@ presets = [
   "claude",
   "codex",
   "opencode",
-  "pi",
   { name = "public-skills", provider = ".ai-rulez/providers/public-skills.toml" },
 ]
 
-builtins = ["!git-workflow", "!testing", "code-quality", "security", "token-efficiency", "default-commands"]
+builtins = [
+  "!git-workflow",
+  "!testing",
+  "!ai-governance/agent-workflow",
+  "code-quality",
+  "security",
+  "token-efficiency",
+  "default-commands",
+]
 
 compact = true
 default_layers = ["plugins"]
@@ -28,16 +35,17 @@ enabled = false
 [mcp_servers.env]
 GITHUB_PERSONAL_ACCESS_TOKEN = "${GITHUB_TOKEN}"
 
-[[mcp_servers]]
-name = "ai-rulez"
-description = "AI-Rulez MCP server for configuration management"
-command = "ai-rulez"
-args = ["mcp"]
-transport = "stdio"
-enabled = true
+[rules]
+scoped_fallback = "skill"
 
+# Skill discovery needs two tools; the full server lists every CRUD tool at each start. Maintainers who
+# want the full server put it in config.local.toml. ~keep
 [mcp]
-self_server = false
+self_server_command = ["ai-rulez", "mcp"]
+serve_skills = true
+read_only = true
+discover_skills = "repo"
+tools = ["find_skill", "load_skill"]
 
 # Keeps repo-local maintainer skills (frontmatter targets) out of the public skills/ tree. ~keep
 [placement]
@@ -49,7 +57,7 @@ include_outputs = false
 [[includes]]
 name = "public-core"
 source = "modules/core"
-include = ["skills"]
+include = ["skills", "rules", "context"]
 
 [[includes]]
 name = "public-cicd"

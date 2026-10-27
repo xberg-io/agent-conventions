@@ -23,6 +23,7 @@
     ".agents/skills/parallelize/agents/openai.yaml",
     ".agents/skills/poly-lint-format/SKILL.md",
     ".agents/skills/release-workflow/SKILL.md",
+    ".agents/skills/rule-logging-tracing/SKILL.md",
     ".agents/skills/scoop-distribution/SKILL.md",
     ".agents/skills/skill-authoring/SKILL.md",
     ".agents/skills/task-runner/SKILL.md",
@@ -33,6 +34,7 @@
     ".claude/agents/code-reviewer.md",
     ".claude/agents/docs-writer.md",
     ".claude/agents/security-auditor.md",
+    ".claude/rules/logging-tracing.md",
     ".claude/settings.json",
     ".claude/skills/agent-coordination/SKILL.md",
     ".claude/skills/alef-workflow/SKILL.md",
@@ -63,7 +65,6 @@
     ".codex/agents/code-reviewer.toml",
     ".codex/agents/docs-writer.toml",
     ".codex/agents/security-auditor.toml",
-    ".codex/config.toml",
     ".mcp.json",
     ".opencode/agents/code-reviewer.md",
     ".opencode/agents/docs-writer.md",
@@ -71,12 +72,6 @@
     ".opencode/commands/iterate.md",
     ".opencode/commands/parallelize.md",
     ".opencode/skills/context-improvement/SKILL.md",
-    ".pi/agents/code-reviewer.md",
-    ".pi/agents/docs-writer.md",
-    ".pi/agents/security-auditor.md",
-    ".pi/mcp.json",
-    ".pi/prompts/iterate.md",
-    ".pi/prompts/parallelize.md",
     "AGENTS.md",
     "CLAUDE.md",
     "opencode.json",
@@ -106,33 +101,13 @@
   ],
   "merged": {
     ".claude/settings.json": [],
-    ".codex/config.toml": [],
     ".mcp.json": [],
-    ".pi/mcp.json": [],
     "opencode.json": []
   },
   "servers": {
-    ".codex/config.toml": [
-      [
-        "mcp_servers",
-        "ai-rulez"
-      ]
-    ],
     ".mcp.json": [
       [
         "mcpServers",
-        "ai-rulez"
-      ]
-    ],
-    ".pi/mcp.json": [
-      [
-        "mcpServers",
-        "ai-rulez"
-      ]
-    ],
-    "opencode.json": [
-      [
-        "mcp",
         "ai-rulez"
       ]
     ]
