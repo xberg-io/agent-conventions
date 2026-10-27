@@ -8,4 +8,4 @@
 * [Prove The Check Fired](prove-the-check-fired.md)
 * [Safe Git Operations](safe-git-operations.md)
 * [Skill Discovery](skill-discovery.md)
-* [Targeted Verification](targeted-verification.md)
+* [Test Alongside Code](test-alongside-code.md)
