@@ -94,11 +94,27 @@ class ExposureTest(unittest.TestCase):
         exposure.check_leaks(self.repo, accepted, DOMAINS, [{"term": "alpha-corpus", "reason": "test"}])
         self.assertEqual((len(accepted.leaks), len(accepted.accepted)), (0, 1))
 
-    def test_term_inside_a_longer_name_is_not_a_leak(self) -> None:
+    def test_term_inside_a_listed_name_is_not_a_leak(self) -> None:
         write(self.repo, "CLAUDE.md", "See alpha-corpus-tools and betamax.\n")
         report = exposure.claude(self.repo)
-        exposure.check_leaks(self.repo, report, {**DOMAINS, "repos": {}}, [])
+        domains = {**DOMAINS, "repos": {}, "names": ["alpha-corpus-tools"]}
+        exposure.check_leaks(self.repo, report, domains, [])
         self.assertEqual(report.leaks, [])
+
+    def test_term_in_a_hyphenated_compound_is_a_leak(self) -> None:
+        write(self.repo, "CLAUDE.md", "An alpha-corpus-based run; Beta-generated output.\n")
+        report = exposure.claude(self.repo)
+        exposure.check_leaks(self.repo, report, {**DOMAINS, "repos": {}}, [])
+        self.assertEqual(
+            sorted((leak.term, leak.count) for leak in report.leaks), [("alpha-corpus", 1), ("beta", 1)]
+        )
+
+    def test_another_domains_term_is_not_counted_twice(self) -> None:
+        write(self.repo, "CLAUDE.md", "The beta-pro edition.\n")
+        report = exposure.claude(self.repo)
+        domains = {"domain": {"beta": {"terms": ["beta"]}, "pro": {"terms": ["beta-pro"]}}, "repos": {}}
+        exposure.check_leaks(self.repo, report, domains, [])
+        self.assertEqual([(leak.domain, leak.term) for leak in report.leaks], [("pro", "beta-pro")])
 
     def test_gate_reports_budget_leaks_and_long_descriptions(self) -> None:
         write(self.repo, "CLAUDE.md", "x" * 400 + " alpha-corpus\n")

@@ -296,8 +296,40 @@ def always_visible_text(repo: Path, report: PresetReport) -> dict[str, str]:
 
 
 def term_pattern(term: str) -> re.Pattern[str]:
-    """A domain term as a whole word: `alpha` does not match inside `alpha-tools` or `alphabet`."""
-    return re.compile(rf"(?<![\w-]){re.escape(term)}(?![\w-])", re.IGNORECASE)
+    """A domain term bounded by non-word characters: `alpha` does not match inside `alphabet`."""
+    return re.compile(rf"(?<!\w){re.escape(term)}(?!\w)", re.IGNORECASE)
+
+
+COMPOUND_CHAR = re.compile(r"[\w-]")
+
+
+def enclosing_compound(text: str, start: int, end: int) -> str:
+    """The hyphenated word around a match: `alef` in `Alef-based` gives `alef-based`."""
+    while start > 0 and COMPOUND_CHAR.match(text[start - 1]):
+        start -= 1
+    while end < len(text) and COMPOUND_CHAR.match(text[end]):
+        end += 1
+    return text[start:end].strip("-").lower()
+
+
+def count_hits(term: str, text: str, names: set[str]) -> int:
+    """Matches of `term`, including inside hyphenated compounds (`alef-generated`), except where
+    the compound is itself a listed name or another domain's term (`xberg-io`, `xberg-enterprise`)."""
+    hits = 0
+    for match in term_pattern(term).finditer(text):
+        compound = enclosing_compound(text, match.start(), match.end())
+        if compound != term.lower() and compound in names:
+            continue
+        hits += 1
+    return hits
+
+
+def known_names(domains: dict) -> set[str]:
+    """Compounds that are names in their own right: every domain term plus the top-level `names`."""
+    names = {n.lower() for n in domains.get("names", [])}
+    for spec in domains.get("domain", {}).values():
+        names.update(t.lower() for t in spec.get("terms", []))
+    return names
 
 
 def is_accepted(accept: list[dict], term: str, artifact: str, repo: str) -> bool:
@@ -312,13 +344,13 @@ def is_accepted(accept: list[dict], term: str, artifact: str, repo: str) -> bool
 def check_leaks(repo: Path, report: PresetReport, domains: dict, accept: list[dict]) -> None:
     owner = domains.get("repos", {}).get(report.repo, {}).get("domains", [])
     texts = always_visible_text(repo, report)
+    names = known_names(domains)
     for domain, spec in domains.get("domain", {}).items():
         if domain in owner:
             continue
         for term in spec.get("terms", []):
-            pattern = term_pattern(term)
             for artifact, text in texts.items():
-                hits = len(pattern.findall(text))
+                hits = count_hits(term, text, names)
                 if not hits:
                     continue
                 leak = Leak(domain, term, artifact, hits)
