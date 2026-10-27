@@ -1,5 +1,6 @@
 # Concepts
 
+* [Agent Workflow](agent-workflow.md)
 * [Basemind Usage](basemind-usage.md)
 * [Comment Discipline](comment-discipline.md)
 * [Commit Messages](commit-messages.md)

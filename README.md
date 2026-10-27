@@ -11,7 +11,7 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
 
 ### `modules/core`: all repos
 
-- **Rules, always on** (8): basemind-usage, comment-discipline, commit-messages, commit-procedure,
+- **Rules, always on** (9): agent-workflow, basemind-usage, comment-discipline, commit-messages, commit-procedure,
   prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code
 - **Rules, glob-scoped** (1): logging-tracing (`**/*.rs`, `**/Cargo.toml`)
 - **Context** (1): polyrepo-structure
@@ -20,8 +20,10 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
   (docs and README paths)
 
 `test-alongside-code` replaces the `testing` builtin's rule of the same id, which says to run the full suite before
-committing. The override works but raises `AR703 duplicate-collapsed`, which fails `ai-rulez validate --strict`; add
-`"!testing/test-alongside-code"` to `builtins` to keep the module rule without the warning.
+committing, and `agent-workflow` replaces the `ai-governance` builtin's, adding the subagent rules (no compiling in
+subagents, disjoint worktrees, implement-review-adjust rounds, reported deviations). Each override works but raises
+`AR703 duplicate-collapsed`, which fails `ai-rulez validate --strict`; add `"!testing/test-alongside-code"` and
+`"!ai-governance/agent-workflow"` to `builtins` to keep the module rules without the warning.
 
 ### `modules/languages`: all repos with code
 
@@ -85,11 +87,11 @@ another product's start context; see [tools/context-evals](tools/context-evals/R
 ```toml
 version = "5.0"
 name = "your-project"
-presets = ["claude", "codex", "opencode", "pi"]
+presets = ["claude", "codex", "opencode"]
 default_layers = ["plugins"]
 compact = true
 # The agent roster repeats the agent files in every root file; harnesses list agents natively.
-builtins = ["!agent-delegation", "!git-workflow", "!testing/test-alongside-code"]
+builtins = ["!agent-delegation", "!git-workflow", "!ai-governance/agent-workflow", "!testing/test-alongside-code"]
 
 # Glob-scoped rules stay out of the shared AGENTS.md (and so out of CLAUDE.md, which imports it): Claude
 # loads them from .claude/rules on a matching read, presets without a rules folder as path-gated skills.

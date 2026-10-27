@@ -1,13 +1,30 @@
 ---
 name: agent-coordination
 description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
-# Content-Hash: blake3:1c0b87cda5d2f13dee45fe68a012efa8b1fb12dcc66c85edfe902d806f6c9942
+# Content-Hash: blake3:dde27f6f2b449107ebcc9425f92aa8e17ee50667252145768a171ea0fecd34ba
 ---
 
 # Agent Coordination
 
 Multi-agent work in a shared repo fails in specific, recurring ways. Each one below has cost real
 work; the fix is procedural, not a matter of being more careful.
+
+## Who compiles, and how agents stay out of each other's way
+
+The orchestrating agent owns integration: it merges subagent branches, then runs compilation, compiling lints
+(`cargo clippy`, `go vet`), and tests, once, on the integrated tree. A subagent edits, runs only cheap static
+checks on its own files (`poly lint <files>`, `poly fmt --check <files>`, config validators), and reports. Concurrent
+compiles from several agents fill the disk, contend for a shared target directory, and reuse each other's
+half-edited artifacts; a subagent's green build proves little about the integrated result anyway. Dispatch a
+subagent for build or test work only explicitly, and then give it its own target directory.
+
+Split work so scopes do not overlap: one worktree per subagent, cut from the target repo's default branch, and a
+file set no sibling touches. Work that must edit the same files is sequenced, not parallelised.
+
+Each round has three passes: implement; review critically against the real diff, by a reviewer that did not write
+it and is given the code, not the author's conclusion; adjust. Rerun the round until the review comes back clean.
+Treat every delivery as a claim to check: read the diff, rerun the checks, and compare against the brief. A
+deviation is a decision for the orchestrator: evaluate it, keep or revert it, and report it with the reason.
 
 ## Worktree isolation is repo-local, not target-local
 
