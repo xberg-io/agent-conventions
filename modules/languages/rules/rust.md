@@ -18,3 +18,6 @@ x-ai-rulez:
 - Follow the Rust API Guidelines: `as_`/`to_`/`into_` conversions, `field()` getters, common traits derived eagerly, newtypes or enums instead of `bool` parameters, private struct fields.
 - Unit tests in `#[cfg(test)]`, integration tests in `tests/`; benchmarks with criterion.
 - `cargo audit` and `cargo deny` gate dependencies; commit `Cargo.lock`.
+- `tracing` is the only logging surface. `println!`, `eprintln!`, `print!`, `eprint!` and `dbg!` are denied in production code: clippy `print_stdout`, `print_stderr` and `dbg_macro` set to `deny` in `[workspace.lints.clippy]` with `[lints] workspace = true` in every member crate (`[lints.clippy]` in a single-crate repo).
+- Exempt: a CLI's machine-readable result on stdout or an interactive prompt (`#[expect(clippy::print_stdout, reason = "...")]`), and `cargo:` directives in `build.rs`. Test files that print carry a file-level `#![allow(...)]`.
+- Libraries emit and never install a subscriber; level semantics, span naming and the instrumentation checklist are in the `tracing-conventions` skill.

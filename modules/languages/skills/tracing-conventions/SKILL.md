@@ -50,4 +50,4 @@ Span names, `target`s, and field keys are part of the public observability API. 
 3. Every place the code already recovers or silently drops something emits a `WARN`.
 4. No per-token/per-node `INFO`/`DEBUG` spam — that detail is `TRACE`.
 5. No subscriber installed in library code.
-6. Raw `println!`/`eprintln!`/`dbg!` are gone (see `logging-tracing`); the only stdout writes left are a CLI's result output behind `#[expect(clippy::print_stdout)]`.
+6. Raw `println!`/`eprintln!`/`dbg!` are gone (see the `rust` rule); the only stdout writes left are a CLI's result output behind `#[expect(clippy::print_stdout)]`.

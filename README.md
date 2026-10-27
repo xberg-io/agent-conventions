@@ -13,10 +13,9 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
 
 - **Rules, always on** (9): agent-workflow, basemind-usage, comment-discipline, commit-messages, commit-procedure,
   prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code
-- **Rules, glob-scoped** (1): logging-tracing (`**/*.rs`, `**/Cargo.toml`)
 - **Context** (1): polyrepo-structure
-- **Skills** (9): agent-coordination, basemind-tools, feature-flag-conventions (`**/Cargo.toml`), poly-lint-format,
-  release-workflow, taskfile-structure, tdd-workflow, tracing-conventions (Rust paths), verification-harness
+- **Skills** (7): agent-coordination, basemind-tools, poly-lint-format, release-workflow, taskfile-structure,
+  tdd-workflow, verification-harness
 
 `test-alongside-code` and `tdd-workflow` replace the `testing` builtin's rule and skill of the same ids, which say to
 run the full suite before committing, and `agent-workflow` replaces the `ai-governance` builtin's, adding the
@@ -32,6 +31,7 @@ keep the module items without the warning.
   language conventions plus org policy (for example Pyrefly as the only Python type checker), gated on the language's
   file types, so a rule costs nothing until a matching file is read. They replace the ai-rulez language builtins;
   drop those from `builtins` when you include this module.
+- **Skills** (2), Rust paths: feature-flag-conventions (`**/Cargo.toml`), tracing-conventions
 - **Agents** (1): performance-engineer
 
 ### `modules/bindings`: repos that generate polyglot bindings with alef
