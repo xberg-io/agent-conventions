@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:4a197153d7d5e936e9acb623d0c018ebf8a920aaafe8ef18ef5a4d58acb71049'
+tree = 'sha256:d8927ad9e029a0f6ef252437821c5e8f0844c20b37817ff6a6541faf96da4a9d'
 
 [[served]]
 name = 'agent-coordination'
@@ -184,7 +184,7 @@ digest = 'sha256:9c0bc10a3cca970f8270c03740edbf5ca3419d87fed08e89fbc8ee34d4d88ec
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:80284159ac908d482e92a6703d37341d95c90600ea6178ada205952c1c2017b8'
+digest = 'sha256:62d13a62ba19d57afbadc9769208f5ecb4904cde178c32b14ae385b571fa373e'
 
 [[item]]
 kind = 'local-include'
