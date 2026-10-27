@@ -138,7 +138,7 @@ Put the example in `.ai-rulez/config.toml`. The repository's own root context is
 it, no procedures) and only the rules that hold for every file. Everything else is a path-scoped rule, a skill
 gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
-your repository uses, pinned by `ref`. Use ai-rulez 5.7.0 or later (CI pins the release) to
+your repository uses, pinned by `ref`. Use the latest ai-rulez release (CI installs `latest`; minimum 5.7.0) to
 validate and regenerate after editing sources:
 
 ```sh
