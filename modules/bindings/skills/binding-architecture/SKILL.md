@@ -32,10 +32,12 @@ the generator, its commands and the generated-file rules.
 - Crates: `{lib}-py` (PyO3), `{lib}-node` (napi-rs), `{lib}-php` (ext-php-rs), `{lib}-wasm`
   (wasm-bindgen), `{lib}-ffi` (C ABI), `{lib}-jni` (JNI). The Ruby extension (Magnus) lives in
   `packages/ruby`.
-- Packages: `packages/python/` (PyPI), `node/` or `typescript/` (npm), `ruby/` (RubyGems),
+- npm is published from `crates/{lib}-node` (liter-llm also has `packages/node/`).
+- Packages: `packages/python/` (PyPI), `ruby/` (RubyGems),
   `php/` (Composer), `go/` (Go module), `java/` (Maven), `csharp/` (NuGet), `dart/` (pub.dev),
   `swift/` (SwiftPM), `kotlin-android/` (Maven/Gradle), `r/` (CRAN/GitHub), `zig/`, `elixir/` (Hex).
-- Generated e2e suites live under `e2e/{language}/` and are never hand-edited.
+- E2e suites live under `e2e/{language}/`; files with the alef header are generated, the rest are
+  hand-written (`e2e-generation` skill).
 - All packages share the version in `Cargo.toml`.
 
 ## Generator vs architect
@@ -52,6 +54,4 @@ across the bindings, with idiomatic naming.
 
 ## Docs per language
 
-Examples ship in every supported language. Inline formats: rustdoc, docstrings with type hints
-(Python), JSDoc (TypeScript), YARD (Ruby), Javadoc (Java), XML docs (C#), PHPDoc, ExDoc (Elixir),
-roxygen2 (R), GoDoc.
+Examples ship in every supported language, each in that language's native doc format.
