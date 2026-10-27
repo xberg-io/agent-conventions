@@ -49,14 +49,10 @@ The repos do not package their Windows zips identically, and there is no rule th
 name to its inner layout. Get this wrong and `bin` resolves to nothing — the manifest hashes and
 validates perfectly and installs a broken shim.
 
-| App | Zip layout | `extract_dir` |
-|-----|-----------|---------------|
-| `xberg` | nested, dir named after the asset | `xberg-cli-x86_64-pc-windows-msvc` |
-| `crawlberg` | nested, dir named after the asset | `crawlberg-cli-x86_64-pc-windows-msvc` |
-| `html-to-markdown` | nested, dir named after the asset | `cli-x86_64-pc-windows-msvc` |
-| `liter-llm` | nested, **version in the dir name** | `liter-llm-${version}-x86_64-pc-windows-msvc` |
-| `ts-pack` | **flat — the `.exe` is at the zip root** | omitted entirely |
-| `alef` | nested, dir named after the asset | `alef-x86_64-pc-windows-msvc` |
+Each repo records its own app's layout next to its template. The shapes seen so far: nested in a
+directory named after the asset (`<app>-cli-x86_64-pc-windows-msvc`), nested with the **version in
+the directory name** (`<app>-${version}-x86_64-pc-windows-msvc`), and **flat**, with the `.exe` at
+the zip root, where `extract_dir` is omitted entirely.
 
 Confirm with `unzip -l <asset>` against the actual release before trusting any of these; a repo
 can change its packaging without anyone noticing the manifest went stale.
@@ -84,17 +80,8 @@ with a zero-SHA placeholder and the run still succeeds, which is what the dry-ru
 
 ## Adding `scoop` to a repo's targets
 
-`release_scoop` comes from `alef release-metadata`, not from repo YAML. Two consequences:
-
-- `alef`'s `ALL_RELEASE_TARGETS` must already contain `scoop`, **and a release carrying it must be
-  published**, before any repo can name the target. `parse_targets` hard-fails on an unknown
-  name, so adding `scoop` to an explicit `available-targets:` list too early breaks that repo's
-  release outright.
-- Repos that pass no `available-targets` default to all targets and need no edit. Repos that pass
-  an explicit list must add `scoop` to it, but only after the alef release lands.
-
-Until then the wiring is inert and harmless: `release_scoop` resolves to an empty string, the
-job's gate is false, and the release report records the target as not enabled.
+The `scoop` release target comes from the repo's release metadata, not from its workflow YAML; in a
+repo that generates bindings, see the `consumer-release-gates` skill before naming it.
 
 ## Job shape
 
@@ -119,10 +106,10 @@ Every CLI is a native MSVC build importing `VCRUNTIME140.dll`, so every manifest
 
 Check the import table before adding an app — `llvm-objdump -p <exe> | grep 'DLL Name'`. A
 third-party hard import that is not bundled in the zip produces a binary that cannot start at
-all, and no amount of manifest correctness fixes it. `xberg.exe` imports `onnxruntime.dll` and
-depends on its publish job vendoring the DLL closure into the archive; Scoop's shim resolves
-DLLs from the app directory, so bundling is sufficient and no `depends` entry is needed. A
-runtime lookup on `PATH` (Tesseract, for OCR) belongs in `notes`, not in `depends`.
+all, and no amount of manifest correctness fixes it. A hard-imported third-party DLL must be vendored
+into the archive by the publish job; Scoop's shim resolves DLLs from the app directory, so
+bundling is sufficient and no `depends` entry is needed. A runtime lookup on `PATH` (an external
+tool the CLI shells out to) belongs in `notes`, not in `depends`.
 
 ## What actually proves an install works
 

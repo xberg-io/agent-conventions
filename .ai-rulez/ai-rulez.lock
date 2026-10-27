@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:9699202adc44fa87367de3b516c37e3e01d0951704a2c99da3984137f5f54b6a'
+tree = 'sha256:e72118ecf5eba8cf5ba1bc17dfc3c693b00f174730c36c59f52f9c8fae5a7ff3'
 
 [[served]]
 name = 'agent-coordination'
@@ -130,7 +130,7 @@ digest = 'sha256:8e396ac929b0caae4c400f4f7b2d143b280f74242327de289efb0c123b536c6
 name = 'scoop-distribution'
 source = 'include:public-cicd/skills/scoop-distribution/SKILL.md'
 commit = ''
-digest = 'sha256:d8c9426f9d9c6e4b99a8810ce937813d8750bdca5a807844707b0dd7a084d3a1'
+digest = 'sha256:0c676208db86802896eb7b022f7938df05c6ff73f080c2038441fa419afa11bf'
 
 [[served]]
 name = 'skill-authoring'
@@ -178,7 +178,7 @@ digest = 'sha256:bad3e3696657bf8f2972424635bcb00dbd1d55109fe72d176e1b2a9dfb2e0ec
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:99ac2e8af8ab28e65e0f58ce394e6ecf64fd918354d689dcf7253b9b78cf8c34'
+digest = 'sha256:7dbfaf1d2ef1a761b07e0d783fccfd9b5fec873b98d9ec6f63f5cddcaf8bbd49'
 
 [[item]]
 kind = 'local-include'
