@@ -37,10 +37,14 @@ Poly is a single-binary multi-language linter and formatter. It bundles language
 
 ## Commands
 
-- Lint: `poly lint .`
-- Check formatting (dry-run): `poly fmt --check .`
-- Apply formatting: `poly fmt --fix .`
-- Apply lint autofixes: `poly lint --fix .`
+- Lint: `poly lint <paths>`
+- Check formatting (dry-run): `poly fmt --check <paths>`
+- Apply formatting: `poly fmt --fix <paths>`
+- Apply lint autofixes: `poly lint --fix <paths>`
+
+A bare `poly lint` or `poly lint .` also runs the whole-project phase: cargo clippy and the other configured
+workspace tools, which compile. Naming paths runs only the per-file tier; `--no-workspace` (or `[lint]
+workspace = false`) skips the phase on a whole-repo run, and `--workspace` forces it for named paths.
 
 ## Configuration
 
@@ -83,4 +87,4 @@ uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
 
 This workflow runs `poly fmt --check .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
 
-Always run `poly fmt --check .` and `poly lint .` after making changes to verify compliance.
+After making changes, run `poly fmt --check` and `poly lint` on the changed paths.
