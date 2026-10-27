@@ -3,22 +3,29 @@
 # [domain.<name>]: one domain per product repo plus cross-cutting domains. `terms` are words that
 # identify the domain; an always-visible artifact in a repo that does not own the domain must not use
 # them. [repos.<name>].domains lists the domains a consumer owns. [[accept]] records a reasoned
-# exception: every entry needs a `reason`.
+# exception: every entry needs a `reason`. `names` lists hyphenated compounds that are names in their
+# own right, so a term inside one is not counted (`xberg` in `xberg-io`); every domain term is such a
+# name already. A term inside any other compound (`alef-generated`) is a hit.
+
+names = ["xberg-io"]
 
 [domain.xberg]
 owner = "@xberg-io/xberg"
 paths = ["xberg/"]
 terms = [
   "xberg",
-  "partner corpus",
-  "partner-corpus",
   "extraction benchmark",
   "ground truth",
   "OCR",
   "Pdfium",
   "hOCR",
-  "test_documents",
 ]
+
+[domain.document-corpora]
+# Design-partner and public-record document corpora: the opt-in modules/document-corpora module.
+owner = "@xberg-io/xberg"
+paths = ["test_documents/"]
+terms = ["partner corpus", "partner-corpus", "test_documents", "design-partner"]
 
 [domain.crawlberg]
 owner = "@xberg-io/crawlberg"
@@ -67,7 +74,7 @@ paths = ["deploy/", "charts/", "Dockerfile"]
 terms = ["gcloud", "Kubernetes", "K8s", "Prometheus"]
 
 [repos.xberg]
-domains = ["xberg", "bindings", "e2e-generator", "infrastructure"]
+domains = ["xberg", "bindings", "e2e-generator", "infrastructure", "document-corpora"]
 
 [repos.crawlberg]
 domains = ["crawlberg", "bindings", "e2e-generator"]
@@ -85,19 +92,48 @@ domains = ["tree-sitter-language-pack", "bindings", "e2e-generator"]
 domains = ["sceptre"]
 
 [repos.xberg-enterprise]
-domains = ["enterprise", "infrastructure", "xberg"]
+domains = ["enterprise", "infrastructure", "xberg", "document-corpora"]
 
 [repos.alef]
 domains = ["bindings", "e2e-generator"]
-
-[repos.actions]
-domains = ["bindings", "infrastructure"]
 
 [repos.ai-rulez]
 domains = []
 
 [repos.agent-conventions]
 domains = []
+
+# The polyrepo root orchestrates every subrepo but owns no product knowledge.
+[repos.xberg-io]
+domains = []
+
+# The tap and the bucket distribute every product's CLI; formula and manifest names are not product knowledge.
+[repos.homebrew-tap]
+domains = []
+
+[repos.scoop-bucket]
+domains = []
+
+[repos.infra]
+domains = ["infrastructure", "enterprise"]
+
+[repos.infra-release-runners]
+domains = ["infrastructure"]
+
+[repos.paddle-to-onnx]
+domains = []
+
+[repos.test_documents]
+domains = ["xberg", "document-corpora"]
+
+[repos.actions]
+domains = ["bindings", "infrastructure"]
+
+[repos.sdks]
+domains = ["xberg", "enterprise"]
+
+[repos.test-apps]
+domains = ["xberg", "enterprise", "document-corpora"]
 
 # The org name and the brand skill legitimately say "xberg" (xberg-io, xberg.io) everywhere; the
 # leak check targets product knowledge, so the org prefix is accepted in the brand skill only.
@@ -118,3 +154,9 @@ reason = "Path-gated for Claude; Codex cannot gate skills by path, so it lists t
 term = "OCR"
 repo = "sceptre"
 reason = "sceptre's own subject; the term is shared with xberg's OCR work."
+
+# paddle-to-onnx converts OCR models; "OCR" is its subject, as for sceptre.
+[[accept]]
+term = "OCR"
+repo = "paddle-to-onnx"
+reason = "paddle-to-onnx's own subject; the term is shared with xberg's OCR work."
