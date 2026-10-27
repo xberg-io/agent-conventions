@@ -1,27 +1,23 @@
 ---
 name: taskfile-structure
-description: "Taskfile conventions: task discovery, common and per-language tasks, build profiles, code-generation and e2e task families, setup, lock files. Use when running, adding or choosing task commands, or setting up a repo."
-# Content-Hash: blake3:7d8946af7d6e3d7f188aac7f13d78f2deb46d11539a9e23388c8c5bab2beba5a
+description: "Org Taskfile conventions: task discovery, common and per-language task names, build profiles, setup, lock files, toolchain. Use when running, adding or choosing task commands, or setting up a repo."
+# Content-Hash: blake3:6b0946117926091754717b56bd5ed707f036d6ecdcb2a13ade0b7adbdbc28204
 ---
 
 # Taskfile Structure
 
-All repos use [Taskfile.yaml](https://taskfile.dev) with the `task` CLI. Always prefer `task` commands over raw tool invocations.
+Repos use [Taskfile](https://taskfile.dev) with the `task` CLI; prefer a `task` command over the raw
+tool it wraps.
 
-- **Discovery:** `task --list` shows all available tasks
-- **Common tasks:** `task setup`, `task build`, `task test`, `task lint`, `task format`, `task cov:all`, and a repo-specific benchmark task (e.g. `benchmark:run`, `bench:run`, `rust:bench` — check `task --list`)
-- **Language-scoped:** namespaced per language, but the set is NOT uniform -- only some
-  languages expose a given verb (for example `rust:test` and `swift:test` exist
-  while Python and Node tests run under `task test:bindings`, driven by alef).
-  Check `task --list` rather than assuming `<lang>:<verb>` resolves.
-- **Core build:** `task build` is core-only. Use `task build:bindings` for language bindings and `task build:all` for core plus bindings.
-- **Build profiles:** `BUILD_PROFILE` supports dev/release/ci variants — `BUILD_PROFILE=release task build`, `task build:release`, or matching explicit binding/all variants.
-- **Alef regeneration:** `task alef:generate` runs `alef all --clean`; it regenerates Alef-managed files without compiling bindings. Formatting is handled solely by poly (`task format` / `poly fmt --fix .`) — there is no separate Alef formatting task.
-- **Alef build:** `task alef:build` and `task build:bindings` compile language bindings explicitly; `task build:all` includes core and bindings.
-- **Alef verification:** `task alef:verify` checks generated output freshness when needed; do not hide verification inside fast regeneration.
-- **E2E tasks:** repos with generated e2e suites expose `task e2e:generate`, `task e2e:build`, `task e2e:test`, and `task e2e:all`. Do not add legacy aliases.
-- **Lock files:** always commit lock files (uv.lock, pnpm-lock.yaml, go.sum, Cargo.lock, composer.lock) for reproducible builds.
-- **Discipline:** never use manual commands instead of `task`, never hardcode paths, never skip lock-file commits.
-- **Coverage:** `task cov:rust`, `task cov:all`. **Maintenance:** `task update`, `task clean`, `task versions:sync`.
-- **Before committing:** `poly fmt --fix .` and `poly lint .` (or `task format` / `task lint`); never `--no-verify`.
-- **Toolchain:** Rust stable, Python 3.10+ with uv, Node with pnpm, plus `task` and `poly`; per-language toolchains only for the bindings you touch. `task setup` installs the rest.
+- **Discovery:** `task --list` shows what exists. Task sets are not uniform across repos, so check it
+  rather than assuming a `<lang>:<verb>` task resolves.
+- **Common tasks:** `task setup`, `task build`, `task test`, `task lint`, `task format`, `task cov:all`,
+  and a repo-specific benchmark task (`benchmark:run`, `bench:run`, `rust:bench`).
+- **Build profiles:** `BUILD_PROFILE` selects `dev`, `release` or `ci` (`BUILD_PROFILE=release task build`,
+  or `task build:release`).
+- **Maintenance:** `task update`, `task clean`, and the repo's version-sync task.
+- **Lock files:** commit them (`uv.lock`, `pnpm-lock.yaml`, `go.sum`, `Cargo.lock`, `composer.lock`).
+- **Before committing:** `task format` / `poly fmt --fix .` and `task lint` / `poly lint .`. Skip hooks
+  with `--no-verify` only after running those checks yourself.
+- **Toolchain:** `task` and `poly`, plus the toolchains of the languages you touch (Rust stable, Python
+  3.10+ with uv, Node with pnpm). `task setup` installs the rest.

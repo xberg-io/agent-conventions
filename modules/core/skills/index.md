@@ -1,9 +1,7 @@
 # Subdirectories
 
 * [agent-coordination](agent-coordination/index.md)
-* [alef-workflow](alef-workflow/index.md)
 * [basemind-tools](basemind-tools/index.md)
-* [binding-architecture](binding-architecture/index.md)
 * [feature-flag-conventions](feature-flag-conventions/index.md)
 * [poly-lint-format](poly-lint-format/index.md)
 * [release-workflow](release-workflow/index.md)

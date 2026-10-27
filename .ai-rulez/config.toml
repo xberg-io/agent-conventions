@@ -67,6 +67,6 @@ source = "modules/infrastructure"
 include = ["skills"]
 
 [[includes]]
-name = "public-e2e-generator"
-source = "modules/e2e-generator"
+name = "public-bindings"
+source = "modules/bindings"
 include = ["skills"]

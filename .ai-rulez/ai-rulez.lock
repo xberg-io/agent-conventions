@@ -4,13 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:06589ce8ad9268944c5e3a946cddc8d8573a65d725615557be636a3413320713'
-
-[[served]]
-name = 'add-language-generator'
-source = 'include:public-e2e-generator/skills/add-language-generator/SKILL.md'
-commit = ''
-digest = 'sha256:af453ae8b748948f3c7622c3dcaa5a043f00aab2794851ecb1c92aaa8e890368'
+tree = 'sha256:1e51c209789b7d90acf3ad58b030c439f81454ca57e963359dbc4a69d726f812'
 
 [[served]]
 name = 'agent-coordination'
@@ -20,9 +14,9 @@ digest = 'sha256:11784feced9cadc616e04e1612e2b2619cc4160c9db38888b479851247b6925
 
 [[served]]
 name = 'alef-workflow'
-source = 'include:public-core/skills/alef-workflow/SKILL.md'
+source = 'include:public-bindings/skills/alef-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:b19e7c27b904796b5526bbf06df35f067259a0ee89606de97bcea6c71bcef38d'
+digest = 'sha256:8fffbce8462347c5553da480a4a4139601ce7bed115437e9fd3bc2d8ac4d72c6'
 
 [[served]]
 name = 'basemind-tools'
@@ -32,9 +26,9 @@ digest = 'sha256:790599681098314dca5d3025405baf2da89eb3c93618cd7e0586262715e7035
 
 [[served]]
 name = 'binding-architecture'
-source = 'include:public-core/skills/binding-architecture/SKILL.md'
+source = 'include:public-bindings/skills/binding-architecture/SKILL.md'
 commit = ''
-digest = 'sha256:e7cc85d44a7233bdf078d4ca612a2e692849ba05434d63ad25be8179d2a5e045'
+digest = 'sha256:eda04ded5e8d15168d9c02b14cec8223c3444b61dfcc813189667c85f5e22307'
 
 [[served]]
 name = 'code-quality-standards'
@@ -50,9 +44,9 @@ digest = 'sha256:31adedeec2e2f4e7e0cc802f32467ad38d6db4034df698dac1ee9b52b747fd0
 
 [[served]]
 name = 'consumer-release-gates'
-source = 'include:public-cicd/skills/consumer-release-gates/SKILL.md'
+source = 'include:public-bindings/skills/consumer-release-gates/SKILL.md'
 commit = ''
-digest = 'sha256:2771e0eede80e54ce3a1d5be2375ece50b965ae20d7d4cbe935749b7d1202b82'
+digest = 'sha256:63836313446a487926f215419332a5da5b700eb484de4121c61a9a2e0d9dba82'
 
 [[served]]
 name = 'context-improvement'
@@ -61,22 +55,16 @@ commit = ''
 digest = 'sha256:64cb0529376198bd9438104d112f359e6428b5fc6a973e4850e6f7aca85f74ac'
 
 [[served]]
-name = 'create-e2e-fixture'
-source = 'include:public-e2e-generator/skills/create-e2e-fixture/SKILL.md'
-commit = ''
-digest = 'sha256:01b910c035d3359bd0d84f52eeac8e26837c131b6f2aa3148b79c2c30b7f5f95'
-
-[[served]]
 name = 'dependency-awareness'
 source = 'builtin://universal/security/skills/dependency-awareness/SKILL.md'
 commit = ''
 digest = 'sha256:8f41215233c26441abed2b18f35575ce6b5614f91d9bef4885d550322542d4a5'
 
 [[served]]
-name = 'e2e-generator-conventions'
-source = 'include:public-e2e-generator/skills/e2e-generator-conventions/SKILL.md'
+name = 'e2e-generation'
+source = 'include:public-bindings/skills/e2e-generation/SKILL.md'
 commit = ''
-digest = 'sha256:5f63fa5e71656d4ace7ff7f71634b2f49fdee12aba55726790dfd4423cd86697'
+digest = 'sha256:19e617f0ed80251dcc06ea3b29a4708f82619b41231594cc44cf3b77d93f863d'
 
 [[served]]
 name = 'error-handling'
@@ -89,12 +77,6 @@ name = 'feature-flag-conventions'
 source = 'include:public-core/skills/feature-flag-conventions/SKILL.md'
 commit = ''
 digest = 'sha256:2de39f639c38a6fc839c172413e5bc208de3ca62480dc65728be937a5f2871a3'
-
-[[served]]
-name = 'fixture-schema-design'
-source = 'include:public-e2e-generator/skills/fixture-schema-design/SKILL.md'
-commit = ''
-digest = 'sha256:6edaa670fbd3a681bb5d66f3f26e7f6c3eb658595ee6521d7effa07c4b4284b5'
 
 [[served]]
 name = 'gcloud-conventions'
@@ -136,7 +118,7 @@ digest = 'sha256:37e225c8dfdab9a71522d9ec9718ee8f41881bab149618e58467534827488dd
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:aa68a45c3048919d797ccb16245cc1feaf721bab8c1102519793eb9cf523c821'
+digest = 'sha256:8e396ac929b0caae4c400f4f7b2d143b280f74242327de289efb0c123b536c6c'
 
 [[served]]
 name = 'scoop-distribution'
@@ -160,7 +142,7 @@ digest = 'sha256:c57056e3a74a261b3a9d47638726c7d1f64c76b255838b6aaa3e635f3ffa861
 name = 'taskfile-structure'
 source = 'include:public-core/skills/taskfile-structure/SKILL.md'
 commit = ''
-digest = 'sha256:af754c1d0b31ec1c9e8a68f1c67d9a2c63afb24b49bd82c3f7b66d6f1d78ca05'
+digest = 'sha256:b49db0a4e8236b2dc2c45d0a77d1f219c599cd87620a47017d431efd43d0b2d2'
 
 [[served]]
 name = 'tracing-conventions'
@@ -176,33 +158,33 @@ digest = 'sha256:552648a1d89cccb6bc3d47cb25f3b6355f75a104936fc70668fdb6167868c96
 
 [[item]]
 kind = 'local-include'
+id = 'public-bindings'
+path = 'modules/bindings'
+digest = 'sha256:bad3e3696657bf8f2972424635bcb00dbd1d55109fe72d176e1b2a9dfb2e0ec7'
+
+[[item]]
+kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:872b878bf2b8ef4286eea130b41b838f8bcfa09b2ddf00143eae195b5d03df75'
+digest = 'sha256:15cd622ced11c9d3e1815e4efdaf9b2ace2374700d376c84bdd1b3d124c0cc82'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:92764ee4942202085409b4f8f007ba7e91bc04dd9f0253bb892a4d96bb73284e'
-
-[[item]]
-kind = 'local-include'
-id = 'public-e2e-generator'
-path = 'modules/e2e-generator'
-digest = 'sha256:829d5b37b4a4a4e80f3c9d917b156e53b749673871a4473966c21c441dee6763'
+digest = 'sha256:7bc4b4e9a753d00741c4d0a0f8e687080c05971ea6f8f95074215aa151e8767e'
 
 [[item]]
 kind = 'local-include'
 id = 'public-infrastructure'
 path = 'modules/infrastructure'
-digest = 'sha256:865d1a26083f75c30fac03ce12388fd679b3cfabf27d41fec99a0b32807462b6'
+digest = 'sha256:8eb51eb098ee5737658468c18d2bd7fa434732aaaec3ecce0258ab6a9bb613ec'
 
 [[item]]
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:9884eda0377a60386c87f4ac28c8bb5b5a04576b3f3be75a36123367878ce54b'
+digest = 'sha256:5c6cc28c18aadf13dd8b05980f0a69805e26d2276ce9b729d0f787b83720f841'
 
 [[item]]
 kind = 'settings'

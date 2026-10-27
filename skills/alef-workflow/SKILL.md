@@ -1,15 +1,25 @@
 ---
 name: alef-workflow
-description: "How to work with Alef-generated binding files and the task commands that regenerate, build, format, and verify them. Load when editing bindings, running task alef:*, or regenerating generated packages/e2e suites."
-# Content-Hash: blake3:fdf863cf9409c7a7a03f0200374abad9a3b0ede1e4f63110509594a16bb18422
+description: "How to work with alef-generated binding files and the task commands that regenerate, build, verify and version them. Load when editing bindings, running task alef:*, or regenerating generated packages or e2e suites."
+# Content-Hash: blake3:fea979674f57fb6fa06ad4dbeac8b62efefb489c2c583ad4d478aee16268d23e
 ---
 
 # Alef Workflow
 
-- Treat Alef-managed binding files as generated output. Change Rust source, README templates, fixtures, or `alef.toml` instead of hand-editing generated packages.
-- Use `task alef:generate` for fast regeneration. It must run `alef all --clean`.
-- Do not compile bindings or run verification from `task alef:generate`.
-- Use `task alef:build` or `task build:bindings` when binding compilation is needed; use `task build:all` for core plus bindings.
-- Use `task format` or `poly fmt --fix .` for repository formatting; formatting is handled solely by poly (there is no separate Alef formatting task).
-- Generated e2e suites use canonical tasks: `task e2e:generate`, `task e2e:build`, `task e2e:test`, and `task e2e:all`. Do not add legacy aliases.
+## Generated files
+
+- Treat alef-managed binding files as generated output. Change Rust source, README templates, fixtures or `alef.toml` instead of hand-editing generated packages.
 - Commit generator inputs and regenerated output together.
+
+## Tasks
+
+- `task alef:generate` regenerates fast: it runs `alef all --clean` and does not compile bindings or verify.
+- `task alef:build` or `task build:bindings` compiles the bindings; `task build:all` builds core plus bindings. `task build` is core-only.
+- `task alef:verify` checks generated output freshness; do not hide verification inside fast regeneration.
+- Binding tests run under `task test:bindings`; a `<lang>:test` task exists only for some languages, so check `task --list`.
+- Formatting is handled solely by poly (`task format` / `poly fmt --fix .`); there is no alef formatting task.
+- Generated e2e suites use `task e2e:generate`, `task e2e:build`, `task e2e:test` and `task e2e:all`. Do not add legacy aliases.
+
+## Versions
+
+`Cargo.toml` is the single source of the version; the repo's version task (`task version:set` / `task set-version`) runs `alef sync-versions` to rewrite every binding manifest and pinned constant. Never hand-edit a binding manifest's version. A narrower task that only runs `alef sync-versions` (for example `alef:sync`) skips the repo's other version pins, such as a coding-agent plugin's `[plugin].version`; use the full version task. Clean generated caches (`.alef/`) with `task clean`.

@@ -1,3 +1,0 @@
-# Concepts
-
-* [Consumer Release Gates](SKILL.md) - Reproduce an alef-generated repo's release gate locally and verify published package names against the real manifests. Use before tagging a release or when auditing a registry publish.

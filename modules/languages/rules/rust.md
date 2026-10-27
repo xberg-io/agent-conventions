@@ -17,5 +17,4 @@ x-ai-rulez:
 - `&str` over `String` in parameters, `Cow<'_, str>` for conditional ownership. `pub(crate)` for internal items; workspace dependency inheritance in multi-crate repos.
 - Follow the Rust API Guidelines: `as_`/`to_`/`into_` conversions, `field()` getters, common traits derived eagerly, newtypes or enums instead of `bool` parameters, private struct fields.
 - Unit tests in `#[cfg(test)]`, integration tests in `tests/`; benchmarks with criterion.
-- `tracing` is the only logging surface; never `println!` or `dbg!` in production code.
 - `cargo audit` and `cargo deny` gate dependencies; commit `Cargo.lock`.

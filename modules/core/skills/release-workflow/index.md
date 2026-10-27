@@ -1,3 +1,3 @@
 # Concepts
 
-* [Release Workflow](SKILL.md) - Release a Rust core crate and CLI with polyglot bindings: set-version, tag, gh release create, verify registries, install the released build. Use when cutting or publishing a version.
+* [Release Workflow](SKILL.md) - Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version.

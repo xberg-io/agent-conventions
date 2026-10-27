@@ -1,0 +1,15 @@
+version = "5.0"
+name = "xberg-bindings"
+description = "Shared polyglot-bindings module for xberg-io AI governance"
+gitignore = true
+presets = ["claude", "codex", "opencode", "pi"]
+
+
+[mcp]
+self_server = false
+
+# ~keep Shared task examples describe consumer Taskfiles, not the producer governance tasks.
+[lint.severity]
+# ~keep Shared globs target consumer layouts (crates/*-py, packages/<lang>, e2e/); they match in the consumers, not here.
+AR101 = "off"
+AR403 = "off"
