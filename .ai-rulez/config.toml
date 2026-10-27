@@ -19,6 +19,10 @@ builtins = [
   "security",
   "token-efficiency",
   "default-commands",
+  "!token-efficiency/output-awareness",
+  "!ai-governance/explain-reasoning",
+  "!security/least-privilege",
+  "!security/input-validation",
 ]
 
 compact = true
