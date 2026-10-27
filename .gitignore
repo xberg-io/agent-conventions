@@ -12,7 +12,6 @@ poly.local.toml
 modules/**/.generated-manifest.local.json
 
 # BEGIN ai-rulez (DO NOT EDIT - managed by ai-rulez)
-.ai-rulez/.generated-manifest.local.json
 .ai-rulez/local/
 .opencode/agents/
 .opencode/commands/
@@ -35,6 +34,7 @@ __pycache__/
 **/.ai-rulez/.generated-manifest.local.json
 plugin/.ai-rulez/.generated-manifest.json
 .agents/settings.json
+.claude/settings.json
 .claude/plugins.json
 .codex/commands/
 .codex/plugins.json
