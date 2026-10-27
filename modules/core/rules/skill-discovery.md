@@ -8,4 +8,4 @@ x-ai-rulez:
     priority: high
 ---
 
-Rules and skills are scoped to paths: reading or editing a file loads the ones that apply to it. To find the skill for a task before touching files, call `find_skill` on the `ai-rulez` MCP server with `path` set to the file or directory the task concerns, then `load_skill` on the match. Take the area from the paths and product terms in the request. When the request names a path or a term unique to one area, answer; ask which area only when the answer depends on it and nothing in the request identifies it.
+Rules and skills are scoped to paths: reading or editing a file loads the ones that apply to it. To find the skill for a task before touching files, call `find_skill` with `path` set to the file or directory the task concerns, then `load_skill` on the match. Both tools come from the `ai-rulez` MCP server when the repo sets `[mcp] serve_skills = true`; without them, pick from the listed skills. Take the area from the paths and product terms in the request. When the request names a path or a term unique to one area, answer; ask which area only when the answer depends on it and nothing in the request identifies it.
