@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:765700622030ba462521ef346dcef34bea85eb2e53f0a2212c5e18b5e2dc9754'
+tree = 'sha256:87ed275634338ee321ad90ecd6b7acdc70b65d77e8265eea39bf7927e07002f6'
 
 [[served]]
 name = 'agent-coordination'
@@ -151,6 +151,12 @@ commit = ''
 digest = 'sha256:7af6cf039cac1e3471af9a46434deeb17ddbf300963a5cf1962e6a7da8722fae'
 
 [[served]]
+name = 'verification-harness'
+source = 'include:public-core/skills/verification-harness/SKILL.md'
+commit = ''
+digest = 'sha256:6effb13cf0d064d3f2861da6a5e4ba85abc8392ff642969b776df0d4fe0d3579'
+
+[[served]]
 name = 'xberg-brand-and-docs'
 source = 'include:public-core/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
@@ -172,7 +178,7 @@ digest = 'sha256:15cd622ced11c9d3e1815e4efdaf9b2ace2374700d376c84bdd1b3d124c0cc8
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:d1c78b05a01d0ba9dab4323dcf7d485c51872839be3dab9643c4899e25793f4e'
+digest = 'sha256:06b389e23d9a6951ad4b0eb3cd86dd3b7382441fabf2d78e8e6afba6d6ded485'
 
 [[item]]
 kind = 'local-include'

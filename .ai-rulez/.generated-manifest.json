@@ -28,6 +28,7 @@
     ".agents/skills/task-runner/SKILL.md",
     ".agents/skills/taskfile-structure/SKILL.md",
     ".agents/skills/tracing-conventions/SKILL.md",
+    ".agents/skills/verification-harness/SKILL.md",
     ".agents/skills/xberg-brand-and-docs/SKILL.md",
     ".claude/agents/code-reviewer.md",
     ".claude/agents/docs-writer.md",
@@ -57,6 +58,7 @@
     ".claude/skills/task-runner/SKILL.md",
     ".claude/skills/taskfile-structure/SKILL.md",
     ".claude/skills/tracing-conventions/SKILL.md",
+    ".claude/skills/verification-harness/SKILL.md",
     ".claude/skills/xberg-brand-and-docs/SKILL.md",
     ".codex/agents/code-reviewer.toml",
     ".codex/agents/docs-writer.toml",
@@ -99,6 +101,7 @@
     "skills/task-runner/SKILL.md",
     "skills/taskfile-structure/SKILL.md",
     "skills/tracing-conventions/SKILL.md",
+    "skills/verification-harness/SKILL.md",
     "skills/xberg-brand-and-docs/SKILL.md"
   ],
   "merged": {
