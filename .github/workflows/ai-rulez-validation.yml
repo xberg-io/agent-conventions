@@ -5,6 +5,7 @@ on:
     paths:
       - ".ai-rulez/**"
       - "modules/**"
+      - "actions/**"
       - "tools/**"
       - "plugin/**"
       - "skills/**"
@@ -21,6 +22,7 @@ on:
     paths:
       - ".ai-rulez/**"
       - "modules/**"
+      - "actions/**"
       - "tools/**"
       - "plugin/**"
       - "skills/**"
@@ -40,18 +42,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: xberg-io/actions/setup-ai-rulez@98adf87f1ed4c62a57ff56f9010d62faf42d4db6
+      - uses: xberg-io/actions/setup-ai-rulez@v1
         with:
           ai-rulez-version: "5.7.0"
-      - uses: xberg-io/actions/validate-ai-rulez@98adf87f1ed4c62a57ff56f9010d62faf42d4db6
+      - uses: xberg-io/actions/validate-ai-rulez@v1
         with:
-          expected-config-count: "6"
+          expected-config-count: "8"
           additional-config-directories: |
             modules/core
             modules/cicd
             modules/languages
             modules/infrastructure
-            modules/e2e-generator
+            modules/bindings
+            modules/document-corpora
+            modules/docs-sites
+      - uses: ./actions/context-exposure
+        with:
+          repo-name: agent-conventions
+          budgets: |
+            claude=5400
+            codex=4600
   context-harness:
     runs-on: ubuntu-latest
     steps:

@@ -1,12 +1,12 @@
 ---
 name: verification-harness
 description: "Zero-work passes seen in practice and how to guard a harness against them: xargs limits, empty path variables, wrong-reason negative controls, job-count assertions. Use when writing or trusting a sweep, gate or check script."
-# Content-Hash: blake3:56e2e53d49633c4cf45bbd24d89ba9add62aed5235ba268368851f78465bb1d3
+# Content-Hash: blake3:67ce8160819ed89e39684b2ecac61b30005d4c133341285e35ba449ff59c946f
 ---
 
 # Verification harness
 
-The `prove-the-check-fired` rule states the principle. These are the forms it has taken; each
+The prove-the-check-fired rule (core) states the principle. These are the forms it has taken; each
 exited `0` and rendered identically to success.
 
 ## Observed zero-work passes

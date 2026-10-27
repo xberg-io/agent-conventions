@@ -11,7 +11,7 @@ x-ai-rulez:
 
 # Verification harness
 
-The `prove-the-check-fired` rule states the principle. These are the forms it has taken; each
+The prove-the-check-fired rule (core) states the principle. These are the forms it has taken; each
 exited `0` and rendered identically to success.
 
 ## Observed zero-work passes
