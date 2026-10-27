@@ -35,6 +35,7 @@ on:
       - "package.json"
       - ".gitignore"
       - ".github/workflows/ai-rulez-validation.yml"
+  workflow_call:
 permissions:
   contents: read
 jobs:

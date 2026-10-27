@@ -154,9 +154,10 @@ task governance:check
 
 ## Releasing
 
-Push a `vX.Y.Z` tag, or run the Release workflow with a version: it creates the tag if needed, moves the floating
-`vX` tag to it with a lease, and publishes the GitHub release. Consumers then move their pins with `ai-rulez update`
-(the polyrepo root runs it everywhere with `task ai-rulez:update`); `ai-rulez lock --outdated` shows what would move.
+Push a `vX.Y.Z` tag, or run the Conventions Release workflow (`release-conventions.yaml`) from the default branch
+with a version: it validates, creates the tag if needed, moves the floating `vX` tag to it with a lease (never
+backwards), and publishes the GitHub release. Consumers then move their pins with `ai-rulez update` (the polyrepo
+root runs it everywhere with `task ai-rulez:update`); `ai-rulez lock --outdated` shows what would move.
 Bump the major version only for a change that breaks consumers, such as removing or renaming a module or item.
 
 Consumers generate local harness files from these modules. Product plugin content is maintained

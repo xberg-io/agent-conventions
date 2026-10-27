@@ -1,20 +1,36 @@
-name: Release
+name: Conventions Release
 on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version X.Y.Z, tagged on the current default branch head"
+        description: "Release version X.Y.Z, tagged on the default branch head (dispatch from the default branch)"
         required: true
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: release
   cancel-in-progress: false
 jobs:
-  release:
+  guard:
     runs-on: ubuntu-latest
+    steps:
+      - name: Require the default branch for dispatch
+        if: github.event_name == 'workflow_dispatch' && github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          echo "::error::dispatch the release from the default branch, not $REF"
+          exit 1
+  validate:
+    needs: guard
+    uses: ./.github/workflows/ai-rulez-validation.yml
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -41,8 +57,14 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
           set -euo pipefail
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "::error::$TAG already exists"
+          # ~keep A re-run after a later step failed finds the tag on HEAD and continues.
+          existing=$(git rev-parse -q --verify "refs/tags/$TAG^{commit}" || true)
+          if [ -n "$existing" ]; then
+            if [ "$existing" = "$(git rev-parse HEAD)" ]; then
+              echo "$TAG already points at HEAD; continuing"
+              exit 0
+            fi
+            echo "::error::$TAG exists and points at $existing, not HEAD"
             exit 1
           fi
           git config user.name "github-actions[bot]"
@@ -59,6 +81,21 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # ~keep Lease on the remote tag object: a concurrent move fails instead of being overwritten.
           previous=$(git ls-remote origin "refs/tags/$MAJOR" | cut -f1)
+          if [ -n "$previous" ]; then
+            git fetch -q origin "+refs/tags/$MAJOR:refs/tags/$MAJOR"
+            target=$(git rev-parse "refs/tags/$MAJOR^{commit}")
+            current=$(git tag --points-at "$target" --list "$MAJOR.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+            if [ -z "$current" ]; then
+              echo "::error::$MAJOR points at $target, which no $MAJOR.Y.Z tag names"
+              exit 1
+            fi
+            # ~keep A patch release on an older line (v1.0.1 after v1.2.0) must not roll the major tag back.
+            if [ "$(printf '%s\n%s\n' "$current" "$TAG" | sort -V | tail -n 1)" != "$TAG" ]; then
+              echo "::warning::$MAJOR stays at $current, which is newer than $TAG"
+              echo "$MAJOR stays at $current (newer than $TAG)" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          fi
           git tag -f -a "$MAJOR" -m "$MAJOR -> $TAG" "$TAG^{commit}"
           git push origin "refs/tags/$MAJOR" --force-with-lease="refs/tags/$MAJOR:${previous}"
           test "$(git ls-remote origin "refs/tags/$MAJOR^{}" | cut -f1)" = "$(git rev-parse "$TAG^{commit}")"
