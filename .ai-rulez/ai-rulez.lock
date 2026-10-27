@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:6182e4af1a9c9c2488a6af940a2efb0b6d1ffb75f3490a859af0e02d596708d6'
+tree = 'sha256:06589ce8ad9268944c5e3a946cddc8d8573a65d725615557be636a3413320713'
 
 [[served]]
 name = 'add-language-generator'
@@ -37,12 +37,6 @@ commit = ''
 digest = 'sha256:e7cc85d44a7233bdf078d4ca612a2e692849ba05434d63ad25be8179d2a5e045'
 
 [[served]]
-name = 'cicd-pipeline-standards'
-source = 'include:public-cicd/skills/cicd-pipeline-standards/SKILL.md'
-commit = ''
-digest = 'sha256:c28dc18d729b6694d34eb9cc85d3845360fdc170f17cfa12a8c21cae0b072073'
-
-[[served]]
 name = 'code-quality-standards'
 source = 'builtin://universal/code-quality/skills/code-quality-standards/SKILL.md'
 commit = ''
@@ -59,12 +53,6 @@ name = 'consumer-release-gates'
 source = 'include:public-cicd/skills/consumer-release-gates/SKILL.md'
 commit = ''
 digest = 'sha256:2771e0eede80e54ce3a1d5be2375ece50b965ae20d7d4cbe935749b7d1202b82'
-
-[[served]]
-name = 'containerization-docker'
-source = 'include:public-infrastructure/skills/containerization-docker/SKILL.md'
-commit = ''
-digest = 'sha256:2a09247d65e936b055a2cde9f4aae3bd92195b702bd4fcdd5bb276a9dcd9d6ac'
 
 [[served]]
 name = 'context-improvement'
@@ -115,12 +103,6 @@ commit = ''
 digest = 'sha256:74f1047f01ef589fe108057789eff20170ceee2bbb8840e693d6af91c82d9d04'
 
 [[served]]
-name = 'gh-workflows'
-source = 'include:public-cicd/skills/gh-workflows/SKILL.md'
-commit = ''
-digest = 'sha256:d6d845b396eb32b6392b2fb1c1cf48dfa92d3155a86c6ef51342c7d520b45013'
-
-[[served]]
 name = 'incremental-approach'
 source = 'builtin://universal/token-efficiency/skills/incremental-approach/SKILL.md'
 commit = ''
@@ -131,12 +113,6 @@ name = 'iterate'
 source = ''
 commit = ''
 digest = 'sha256:5cb87728d1449fadda6d8557501fcc0823509c60a37058ce4d2dda123296f67c'
-
-[[served]]
-name = 'monitoring-observability'
-source = 'include:public-infrastructure/skills/monitoring-observability/SKILL.md'
-commit = ''
-digest = 'sha256:6efc7965795869b92e35f64f39ac0f96cf3dfed2cbe8e1446c105e9fb4def36e'
 
 [[served]]
 name = 'owasp-quick-reference'
@@ -202,7 +178,7 @@ digest = 'sha256:552648a1d89cccb6bc3d47cb25f3b6355f75a104936fc70668fdb6167868c96
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:710d9cf3451bdbd3c36b612e4f91921d769eca84d4e572b6d157e28e309dff69'
+digest = 'sha256:872b878bf2b8ef4286eea130b41b838f8bcfa09b2ddf00143eae195b5d03df75'
 
 [[item]]
 kind = 'local-include'
@@ -220,7 +196,7 @@ digest = 'sha256:829d5b37b4a4a4e80f3c9d917b156e53b749673871a4473966c21c441dee676
 kind = 'local-include'
 id = 'public-infrastructure'
 path = 'modules/infrastructure'
-digest = 'sha256:c4fbd8608f8f6173f480262854af838a85178327862a670d16b6abcf8b3ee734'
+digest = 'sha256:865d1a26083f75c30fac03ce12388fd679b3cfabf27d41fec99a0b32807462b6'
 
 [[item]]
 kind = 'local-include'
