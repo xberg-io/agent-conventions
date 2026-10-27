@@ -53,7 +53,8 @@ A release may call a deployment workflow after its publication and verification 
   irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
   renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
-  tag; convert SHA pins when you touch a workflow.
+  tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
+  a workflow.
 - Governance CI installs ai-rulez `latest`; a publish path that byte-checks committed bundles may pin
   it, with a `~keep` reason. A Taskfile that guards a minimum version names it `AI_RULEZ_MIN_VERSION`.
   The ai-rulez hook `revision` in `poly.toml` stays pinned.
