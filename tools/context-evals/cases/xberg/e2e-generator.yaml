@@ -8,7 +8,7 @@
   persona: contributor
   prompt: "I want a cross-language test that extracting an empty PDF byte buffer returns an error. Where does it go and how do I get it into every binding's suite?"
   behaviour: answer
-  must_use: [create-e2e-fixture]
+  must_use: [e2e-generation]
   expect: ['e2e:generate']
   criteria:
     - id: fixture-json
