@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:a4d4659014b4140ba8b4283fb8931269bbedb008fb9641968a4cce1347211c05'
+tree = 'sha256:f1f0dd76ede2d03e0d73c493db3cd9a8dd9c4fbeed791705445f1bf0c3856736'
 
 [[served]]
 name = 'agent-coordination'
@@ -118,7 +118,7 @@ digest = 'sha256:2700d984ba10baa2e16ed19b48cc8fd5f7351776f2ce03f6712394d3912f91c
 name = 'poly-lint-format'
 source = 'include:public-core/skills/poly-lint-format/SKILL.md'
 commit = ''
-digest = 'sha256:3ee7e1ba6ca13289041f0a6c560d19f4f8ba74581cd9bc7f2b90cfc56bb9e0a2'
+digest = 'sha256:9e34db9ccf4e640a8e7e1bbb53ed4a2a7da5e1da7b665d59612bff1c06bf48fd'
 
 [[served]]
 name = 'release-workflow'
@@ -184,7 +184,7 @@ digest = 'sha256:7dbfaf1d2ef1a761b07e0d783fccfd9b5fec873b98d9ec6f63f5cddcaf8bbd4
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:406e61e79db92f6c0ab46bc3bed9be15b23a7b67689c4061bbce07c56e2545b3'
+digest = 'sha256:4530cfcf29318bd799264e769fcdbdcebd3369c536ebeccdbfb877f87d93c3c3'
 
 [[item]]
 kind = 'local-include'

@@ -1,7 +1,7 @@
 ---
 name: poly-lint-format
 description: "poly, the multi-language linter and formatter: engines, lint and fmt commands, poly.toml, severity, the uncomment pass, CI workflow. Use when linting, formatting or configuring poly.toml."
-# Content-Hash: blake3:9bae5bd7fb54d4b421b91a45221756ba0c80e2d9e0c36a2eacf2c784e82b1178
+# Content-Hash: blake3:c967a65aca310ba07957e5265b6759e491627e9b128f9096587588c1577d008d
 ---
 
 # Poly
@@ -48,6 +48,17 @@ Per-repo `poly.toml` defines linting and formatting rules:
 - `[hooks.builtin]` — git hook configuration
 
 Cache directory `.polylint/` is gitignored.
+
+## Uncomment pass
+
+`[lint.uncomment]` in `poly.toml` strips comments that carry no keep marker.
+
+- `~keep` anywhere in a comment preserves it unconditionally; no `preserve_patterns` entry is needed.
+  `preserve_patterns` adds repo markers (`SAFETY`, `SPDX`, `HACK`, ...).
+- `remove_docs = false` keeps doc comments; `remove_todos` / `remove_fixme = false` keep those markers.
+- Test a change to these settings against staged or committed content: an uncommitted scratch file
+  reports clean whatever it contains.
+- Generated sources are exempted with `[per-file-ignores]` (`"uncomment"`), not by adding markers.
 
 ## Severity
 

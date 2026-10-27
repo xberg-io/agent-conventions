@@ -54,6 +54,17 @@ Per-repo `poly.toml` defines linting and formatting rules:
 
 Cache directory `.polylint/` is gitignored.
 
+## Uncomment pass
+
+`[lint.uncomment]` in `poly.toml` strips comments that carry no keep marker.
+
+- `~keep` anywhere in a comment preserves it unconditionally; no `preserve_patterns` entry is needed.
+  `preserve_patterns` adds repo markers (`SAFETY`, `SPDX`, `HACK`, ...).
+- `remove_docs = false` keeps doc comments; `remove_todos` / `remove_fixme = false` keep those markers.
+- Test a change to these settings against staged or committed content: an uncommitted scratch file
+  reports clean whatever it contains.
+- Generated sources are exempted with `[per-file-ignores]` (`"uncomment"`), not by adding markers.
+
 ## Severity
 
 `poly lint` exits non-zero only on error-severity findings. Warnings are reported but do not fail CI.
