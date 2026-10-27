@@ -48,7 +48,8 @@ ffi-engineer and polyglot-architect agents, which this module does not repeat. a
 
 ### `modules/cicd`: most repos
 
-- **Skills** (2): github-workflow-conventions (`.github/**`), scoop-distribution (`scripts/publish/**`)
+- **Skills** (2): github-workflow-conventions (`.github/workflows/**`, `.github/actions/**`), scoop-distribution
+  (`scripts/publish/**`)
 
 General gh and pipeline guidance is the `cicd` builtin (`cicd/github-workflow`, `cicd/pipeline-standards`).
 
@@ -75,7 +76,7 @@ reaches it. Place each rule, skill or agent at the first level that fits:
 1. True for every file and task in the repo: an always-on rule. Keep it short.
 2. Tied to a file type or a directory: a rule with `paths:` globs, or a skill with `paths:`. Shared modules use the
    org's repeatable layout (`crates/<name>-<lang>/`, `packages/<lang>/`, `e2e/`, `fixtures/`, `alef.toml`) so one
-   definition gates correctly in every repo. Presets without path scoping (Codex, OpenCode, Pi) get each glob-scoped
+   definition gates correctly in every repo. Presets without path scoping (Codex, OpenCode) get each glob-scoped
    rule as an on-demand skill in `.agents/skills` through `[rules] scoped_fallback = "skill"`, instead of having it
    inlined into the shared `AGENTS.md`, where every preset would load it at start.
 3. An area with its own skills, agents and toolchain that people work in directly (an integration package, a docs
@@ -183,22 +184,21 @@ skills live in each product repository.
 
 ## Consumer Configurations
 
-Repos that include `bindings` also enable the `polyglot-bindings` builtin.
+Repos that include `bindings` also enable the `polyglot-bindings` builtin; infra and xberg-enterprise enable the
+`docker` and `observability` builtins.
 
 | Repo | Modules |
 |------|---------|
 | xberg | core, languages, cicd, infrastructure, bindings, document-corpora, docs-sites |
-| html-to-markdown | core, languages, cicd, infrastructure, bindings, docs-sites |
-| liter-llm | core, languages, cicd, bindings, docs-sites |
-| crawlberg | core, languages, cicd, bindings, docs-sites |
-| tree-sitter-language-pack | core, languages, cicd, bindings, docs-sites |
-| alef | core, languages, cicd, bindings |
-| sceptre | core, languages, cicd, docs-sites |
+| crawlberg, html-to-markdown, liter-llm, tree-sitter-language-pack | core, languages, cicd, bindings, docs-sites |
 | xberg-enterprise | core, languages, cicd, infrastructure, document-corpora, docs-sites |
+| sceptre | core, languages, cicd, docs-sites |
+| alef, actions | core, languages, cicd |
+| infra | core, languages, cicd, infrastructure |
+| infra-release-runners | core, cicd, infrastructure |
 | test_documents | core, cicd, document-corpora |
-| actions | core, languages, cicd |
-| infra, infra-release-runners | core, cicd, infrastructure |
-| homebrew-tap, scoop-bucket, paddle-to-onnx | core |
+| paddle-to-onnx | core, languages |
+| homebrew-tap, scoop-bucket, polyrepo root | core |
 
 ## License
 
