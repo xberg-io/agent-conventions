@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:28a3127525c0be16fe9e7291e60051f05ba9131f8a0906d3600bd40421a2fa72'
+tree = 'sha256:6182e4af1a9c9c2488a6af940a2efb0b6d1ffb75f3490a859af0e02d596708d6'
 
 [[served]]
 name = 'add-language-generator'
@@ -202,13 +202,13 @@ digest = 'sha256:552648a1d89cccb6bc3d47cb25f3b6355f75a104936fc70668fdb6167868c96
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:f23ee5dd7f848991d196fdf930dc8bdd917243bcbeac7d7b3b6c654ed50dcd19'
+digest = 'sha256:710d9cf3451bdbd3c36b612e4f91921d769eca84d4e572b6d157e28e309dff69'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:43f2eeff4714f72ce41283f5bd7af31c9464e1525bed9108d2baeca241399a11'
+digest = 'sha256:92764ee4942202085409b4f8f007ba7e91bc04dd9f0253bb892a4d96bb73284e'
 
 [[item]]
 kind = 'local-include'
@@ -226,7 +226,7 @@ digest = 'sha256:c4fbd8608f8f6173f480262854af838a85178327862a670d16b6abcf8b3ee73
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:bf54df226afec6aeaa3dd379e9fba177e99476f706cc48518611c864dd743759'
+digest = 'sha256:9884eda0377a60386c87f4ac28c8bb5b5a04576b3f3be75a36123367878ce54b'
 
 [[item]]
 kind = 'settings'
