@@ -69,8 +69,8 @@ re-run of the publish flow.
 
 Push the default branch before creating the tag, not after — tagging first and
 pushing second risks the tag pointing at a commit the default branch never
-contains if the push is rejected or rebased in between, and `--force-with-lease`
-does not work on tags. The default branch is not always `main`:
+contains if the push is rejected or rebased in between. The default branch is not
+always `main`:
 
 ```bash
 default=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||')
