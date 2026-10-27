@@ -51,9 +51,9 @@ A release may call a deployment workflow after its publication and verification 
   irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
   renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
-  tag; convert SHA pins when you touch a workflow. An action with no tags (xberg-io/agent-conventions)
-  is pinned by full SHA. Pin tool versions in installers for
-  reproducibility.
+  tag; convert SHA pins when you touch a workflow.
+- CI installs ai-rulez `latest`, and Taskfiles guard a minimum version; the ai-rulez hook `revision` in
+  `poly.toml` stays pinned.
 
 ## Rename and release audit
 
