@@ -1,23 +1,21 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:31db1f3e11e60ae2f8c8f80b68bcc2e7a2e92010978519b4635f495d5b4df6b5
+# Content-Hash: blake3:8c65387841342d4b35b515b5fa285f8db9ac0d2c06c612c68e1d08751dac487e
 ---
 
 # Release Workflow (shared)
 
 Canonical publish sequence for a repo that tags versioned releases. One manifest
 (`Cargo.toml` in a Rust repo) is the single source of truth for the version, and
-the version task syncs it to every other manifest. Confirm exact task names with
-`task --list` — a repo may expose `task set-version` or `task version:set`.
+the repo's version task syncs it to every other manifest. Task names differ per
+repo: find it with `task --list | grep -i version`.
 
 ## 1. Set the version
 
-```bash
-task set-version -- X.Y.Z         # some repos: task version:set -- X.Y.Z
-```
-
-The version is passed as a `--` positional argument. The task rewrites the
+Run the repo's version task. Some take the version as a `--` positional argument
+(`task <version-task> -- X.Y.Z`), others bump one part (`major`, `minor`,
+`patch`); read its `desc` in `task --list`. The task rewrites the
 source manifest, syncs the version to every other manifest and pinned version
 constant, and refreshes lock files. Never hand-edit a manifest's `version` — use
 the task so everything stays in lockstep. Verify with
@@ -53,7 +51,7 @@ against the version set in step 1:
 python3 scripts/sync_plugin_version.py --check   # or the repo's equivalent
 ```
 
-Step 1's version task (`version:set` / `version:sync` / `version:bump:*`) already
+Step 1's version task already
 chains this sync — but a narrower, similarly-named task that syncs only some
 manifests is an easy trap, and running it instead silently leaves the plugin pin
 behind. This is not hypothetical: it produced a real drift (`[plugin].version` vs
@@ -64,15 +62,16 @@ re-run of the publish flow.
 
 ## 4. Commit, tag, and publish the GitHub release
 
-Push `main` before creating the tag, not after — tagging first and pushing
-second risks the tag pointing at a commit `origin/main` never contains if the
-push is rejected or rebased in between, and `--force-with-lease` does not work
-on tags.
+Push the default branch before creating the tag, not after — tagging first and
+pushing second risks the tag pointing at a commit the default branch never
+contains if the push is rejected or rebased in between. The default branch is not
+always `main`:
 
 ```bash
+default=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||')
 git add CHANGELOG.md <each manifest and lock file the version task changed>
 git commit -m "chore(release): X.Y.Z"
-git push origin main
+git push origin "HEAD:$default"
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 gh release create vX.Y.Z --title "vX.Y.Z" --generate-notes

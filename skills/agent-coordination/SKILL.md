@@ -1,7 +1,7 @@
 ---
 name: agent-coordination
 description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
-# Content-Hash: blake3:37b2d42714b56d6ff342429fcd720714d1842010da47c18ec64a2ae1b8cdf552
+# Content-Hash: blake3:3d4e8cabb4e7413e8cca7bccbfe0daefff11921d6d9f495a78340eb792354927
 ---
 
 # Agent Coordination
@@ -52,7 +52,7 @@ pre-rebase HEAD (`git diff <backup> HEAD --stat`), not by re-reading commit mess
 
 If `--continue` blocks indefinitely regardless of `GIT_EDITOR`/`core.editor` overrides in this
 environment, resolve conflicts by staging the files, confirming the sequencer state file exists
-(`git rev-parse --git-dir`), then running a plain `git commit --no-verify -m "<subject>"` directly
+(`git rev-parse --git-dir`), then running a plain `git commit -m "<subject>"` directly
 — that completes the operation without invoking the editor. Interactive flags (`-i`) may be
 unavailable entirely; cherry-pick the commits you want onto a new base instead of trying to drop
 commits during a rebase.
@@ -89,9 +89,10 @@ foreground with a generous timeout, not a full sweep — the coordinator runs th
 merging.
 
 When checking on an agent, inspect the worktree **before** reading its summary:
-`git log --oneline main..HEAD` plus `git status --porcelain`. A parked agent shows uncommitted
+`git log --oneline <default>..HEAD` (`<default>`: the branch `git symbolic-ref --short
+refs/remotes/origin/HEAD` names, not always `main`) plus `git status --porcelain`. A parked agent shows uncommitted
 files and zero commits; recover by naming its exact dirty files, giving one narrow next command,
-saying explicitly "do not open a new line of investigation," and confirming main has moved so it
+saying explicitly "do not open a new line of investigation," and confirming `<default>` has moved so it
 must not rebase or merge itself.
 
 ## An agent's branch is not always the notification's branch
@@ -99,7 +100,7 @@ must not rebase or merge itself.
 The branch name surfaced in a completion notification can differ from the branch the agent
 actually committed to. Merging the notification's name can print "already up to date" and merge
 nothing — indistinguishable from real success. After merging any agent branch, prove it landed:
-`git merge-base --is-ancestor <sha> main && echo MERGED`. A second cause of the same false
+`git merge-base --is-ancestor <sha> <default> && echo MERGED`. A second cause of the same false
 "already up to date": the merge command ran from inside the agent's own worktree because a prior
 backgrounded command silently moved the shell's working directory — check
 `git rev-parse --show-toplevel` before merging. Re-run the project's real lint/build gate after

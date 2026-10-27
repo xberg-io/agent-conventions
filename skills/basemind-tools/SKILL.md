@@ -1,13 +1,14 @@
 ---
 name: basemind-tools
 description: "Which basemind plugin skill to load for code search, history, documents or agent coordination, plus the graph modes and gotchas they omit. Use when navigating code or history in a repo where basemind is available."
-# Content-Hash: blake3:272b48c56ee2bc6a976a57b077179a98e0d1a20de9df2eec9dbf2567944e8779
+# Content-Hash: blake3:afb1372a3d09843e73a177d36dc49c182002d0cc3bb8160ae35d60c0ed9e2745
 ---
 
 # basemind tools
 
 The basemind-usage rule says when to use basemind; the basemind plugin's own skills hold the
-per-mode detail. Load the one that matches the question:
+per-mode detail (Claude Code with the basemind plugin only; elsewhere read the MCP tool
+descriptions). Load the one that matches the question:
 
 | Question | Plugin skill |
 |---|---|

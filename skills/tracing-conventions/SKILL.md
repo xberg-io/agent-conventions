@@ -1,7 +1,7 @@
 ---
 name: tracing-conventions
 description: "Rust tracing contract: level semantics, span and field naming, emit-vs-install, instrumentation checklist. Use when adding spans or events, wiring a subscriber, or reviewing instrumentation."
-# Content-Hash: blake3:7641780e65a52346e09059002576989e1317a0f56e6452d9757f36325f928c36
+# Content-Hash: blake3:1580529aae56bc2ca55a142986e0f0732bd97d113bc23f0a782b2f82ad694f0f
 ---
 
 # Tracing conventions
@@ -42,4 +42,4 @@ Span names, `target`s, and field keys are part of the public observability API. 
 3. Every place the code already recovers or silently drops something emits a `WARN`.
 4. No per-token/per-node `INFO`/`DEBUG` spam — that detail is `TRACE`.
 5. No subscriber installed in library code.
-6. Raw `println!`/`eprintln!`/`dbg!` are gone (see `logging-tracing`); the only stdout writes left are a CLI's result output behind `#[expect(clippy::print_stdout)]`.
+6. Raw `println!`/`eprintln!`/`dbg!` are gone (see the `rust` rule); the only stdout writes left are a CLI's result output behind `#[expect(clippy::print_stdout)]`.

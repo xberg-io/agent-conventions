@@ -1,7 +1,7 @@
 ---
 name: binding-architecture
 description: "Org layout for polyglot bindings: crate and package naming, distribution paths, what the generator decides vs the architect, binding review checklist, per-language doc formats. Use when designing, adding or reviewing a binding."
-# Content-Hash: blake3:d6cf275656e6ceb7f56553718ef40e54f822070e65755d0caf9c7a4fd1cae8bc
+# Content-Hash: blake3:a6b5ed730a298b1eec3efea8f3c102359ae423643cf0414849147d58a7ac70a0
 ---
 
 # Binding Architecture
@@ -17,10 +17,12 @@ the generator, its commands and the generated-file rules.
 - Crates: `{lib}-py` (PyO3), `{lib}-node` (napi-rs), `{lib}-php` (ext-php-rs), `{lib}-wasm`
   (wasm-bindgen), `{lib}-ffi` (C ABI), `{lib}-jni` (JNI). The Ruby extension (Magnus) lives in
   `packages/ruby`.
-- Packages: `packages/python/` (PyPI), `node/` or `typescript/` (npm), `ruby/` (RubyGems),
+- npm is published from `crates/{lib}-node` (liter-llm also has `packages/node/`).
+- Packages: `packages/python/` (PyPI), `ruby/` (RubyGems),
   `php/` (Composer), `go/` (Go module), `java/` (Maven), `csharp/` (NuGet), `dart/` (pub.dev),
   `swift/` (SwiftPM), `kotlin-android/` (Maven/Gradle), `r/` (CRAN/GitHub), `zig/`, `elixir/` (Hex).
-- Generated e2e suites live under `e2e/{language}/` and are never hand-edited.
+- E2e suites live under `e2e/{language}/`; files with the alef header are generated, the rest are
+  hand-written (`e2e-generation` skill).
 - All packages share the version in `Cargo.toml`.
 
 ## Generator vs architect
@@ -32,14 +34,9 @@ for correctness and idiomatic quality; fix the generator input, not the output.
 
 ## Review checklist for binding changes
 
-1. No business logic in a binding: it calls the core, converts types and converts errors.
-2. Every `unsafe` block at the FFI boundary has a `SAFETY` comment; pointers are validated and
-   ownership is documented.
-3. A cross-language change keeps feature parity across the bindings, with idiomatic naming.
-4. The committed C header and generated files match a fresh regeneration.
+Beyond the `bindings` and `ffi-and-language-interop` skills: a cross-language change keeps feature parity
+across the bindings, with idiomatic naming.
 
 ## Docs per language
 
-Examples ship in every supported language. Inline formats: rustdoc, docstrings with type hints
-(Python), JSDoc (TypeScript), YARD (Ruby), Javadoc (Java), XML docs (C#), PHPDoc, ExDoc (Elixir),
-roxygen2 (R), GoDoc.
+Examples ship in every supported language, each in that language's native doc format.

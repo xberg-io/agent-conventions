@@ -4,25 +4,25 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:225205a7c52c971ccf2e8515c8e300f7d0ac6b8b687f26695023e7547f9516a2'
+tree = 'sha256:f8d0a0bdc93782bea020769f79cee8f6bb680e240e893febdbb57063f4158ab4'
 
 [[served]]
 name = 'agent-coordination'
 source = 'include:public-core/skills/agent-coordination/SKILL.md'
 commit = ''
-digest = 'sha256:93f489c247c67ae3b93aa1cfb2dbe5b0df621ca2d04cc5237b14f5e6086209d4'
+digest = 'sha256:e90c5be4a990678e8adb92b66af2a54bb2e4c1efbed08aee978b47f90e0b4b48'
 
 [[served]]
 name = 'basemind-tools'
 source = 'include:public-core/skills/basemind-tools/SKILL.md'
 commit = ''
-digest = 'sha256:fb04b69dc6253f7677645adcc46fecf49a6663643b1c95666aef5b8e66f32665'
+digest = 'sha256:ff5cf13e1d705a00567e6ea1f4e4ea2774fd8d7e780f53586bb41727a10c4478'
 
 [[served]]
 name = 'binding-architecture'
 source = 'include:public-bindings/skills/binding-architecture/SKILL.md'
 commit = ''
-digest = 'sha256:2298c81987d9bdb9779606274c72f79744c885018f689f167f7b18e73f31121f'
+digest = 'sha256:748f7eb14225767f5ab45c8c3c5878e344a31497316b0d586537fcbe7815dbc0'
 
 [[served]]
 name = 'code-quality-standards'
@@ -58,13 +58,13 @@ digest = 'sha256:8f41215233c26441abed2b18f35575ce6b5614f91d9bef4885d550322542d4a
 name = 'document-corpus-handling'
 source = 'modules/document-corpora/skills/document-corpus-handling'
 commit = ''
-digest = 'sha256:ef8d63a072cd8ff4498f1267cbd12bede9dbd317daa28200eb32b0e37cb18286'
+digest = 'sha256:149dfb82ad14e4ff8f6014556ba28734985a9439ed4f9576d16bbb4f764dac98'
 
 [[served]]
 name = 'e2e-generation'
 source = 'include:public-bindings/skills/e2e-generation/SKILL.md'
 commit = ''
-digest = 'sha256:9cb7f48da2bb1f302e8cbc2b6c32cbfe365a1ddc9d5495a9fe9af41fcd4df7bf'
+digest = 'sha256:7cf2e2f53ce43f6943cdbc7258a0bf704b87ce124c6d8f4f87e775b63c7643ae'
 
 [[served]]
 name = 'error-handling'
@@ -74,21 +74,21 @@ digest = 'sha256:fbc7d452c7171e71341578b6c7a56fc2c87031c0ce15d35884bc3260e04ff68
 
 [[served]]
 name = 'feature-flag-conventions'
-source = 'include:public-core/skills/feature-flag-conventions/SKILL.md'
+source = 'include:public-languages/skills/feature-flag-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:2b0ddd4728e06d74a111ec429799c1d700af53ca23df1a78fd61a3975a69bfea'
+digest = 'sha256:72ab88042d36374449285381c76935c2032bbd9b5f552d18f4e1c19f120b093c'
 
 [[served]]
 name = 'gcloud-conventions'
 source = 'modules/infrastructure/skills/gcloud-conventions'
 commit = ''
-digest = 'sha256:5981c2e6c18954869acd8b94cf2dc696a07f42b6607b28e4fc981ab2fa396e5d'
+digest = 'sha256:276aed60958b6479e146a688351a39e70364b48ba74fd0cf272af8b74c1b6cb4'
 
 [[served]]
 name = 'github-workflow-conventions'
 source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:095f43f5aeb490c81940fcf2df193d1682f0d27d006f38d115c723f0fea90455'
+digest = 'sha256:c212bf4c27b2c4a464135e67bcbe0a95b9b796d8739ed8a2049caf1ed7ed865b'
 
 [[served]]
 name = 'incremental-approach'
@@ -118,19 +118,19 @@ digest = 'sha256:2700d984ba10baa2e16ed19b48cc8fd5f7351776f2ce03f6712394d3912f91c
 name = 'poly-lint-format'
 source = 'include:public-core/skills/poly-lint-format/SKILL.md'
 commit = ''
-digest = 'sha256:9e34db9ccf4e640a8e7e1bbb53ed4a2a7da5e1da7b665d59612bff1c06bf48fd'
+digest = 'sha256:772854a122a129565f974e6c5ae84ef1169f7bc4f3a2068bfdc56b548c161697'
 
 [[served]]
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:8e396ac929b0caae4c400f4f7b2d143b280f74242327de289efb0c123b536c6c'
+digest = 'sha256:eac7dfc698c0fbdf8fd4d45f2f29f05d89775cb5d4e81f78aee07e77ec45972b'
 
 [[served]]
 name = 'scoop-distribution'
 source = 'include:public-cicd/skills/scoop-distribution/SKILL.md'
 commit = ''
-digest = 'sha256:e3020e1e879d1fd64897d4b6d5a07ff749a2781a7e004e99794ebc67a464d6c5'
+digest = 'sha256:a3c77642e70aab071fcdb85594d653ea7720bba42a241b49002ad466de245c68'
 
 [[served]]
 name = 'skill-authoring'
@@ -148,13 +148,19 @@ digest = 'sha256:c57056e3a74a261b3a9d47638726c7d1f64c76b255838b6aaa3e635f3ffa861
 name = 'taskfile-structure'
 source = 'include:public-core/skills/taskfile-structure/SKILL.md'
 commit = ''
-digest = 'sha256:fd5cd00b8ce3de5acd2be874355accda290d7c755e6d6efc38f80ce28273db2a'
+digest = 'sha256:3e3dadd66907874e2fdff0641c2e4ac56d87532d5f2411122a2854aa87ef35d2'
+
+[[served]]
+name = 'tdd-workflow'
+source = 'include:public-core/skills/tdd-workflow/SKILL.md'
+commit = ''
+digest = 'sha256:8651ec0982657585e697dd493effee488ec008a92362636b2262db859ab30afc'
 
 [[served]]
 name = 'tracing-conventions'
-source = 'include:public-core/skills/tracing-conventions/SKILL.md'
+source = 'include:public-languages/skills/tracing-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:7af6cf039cac1e3471af9a46434deeb17ddbf300963a5cf1962e6a7da8722fae'
+digest = 'sha256:6b41c52c1e88c3251b6c85f5196b0cd536a41f63ad5ba0862485d569259457e0'
 
 [[served]]
 name = 'verification-harness'
@@ -166,45 +172,46 @@ digest = 'sha256:52ffa5fdd63293f4d0325b3f51a187d07eba9b69e2341da62c4603e2798dd94
 name = 'xberg-brand-and-docs'
 source = 'include:public-docs-sites/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:783bfec4deae864bb62db0a16aed528aa2a29a84d8e1e46f44a3bd35a2a09f5f'
+digest = 'sha256:0c6a98eac1acb90a4c14806a08416931ea4e2fb96fef7b6a966abcdbf2182c38'
+
+[[item]]
+kind = 'context'
+id = 'area-map'
+path = 'context/area-map.md'
+digest = 'sha256:9c0bc10a3cca970f8270c03740edbf5ca3419d87fed08e89fbc8ee34d4d88ecb'
 
 [[item]]
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:bf7790355a2febe91805a446f815677657bf1513601be51c01e3dc29e3f6c193'
+digest = 'sha256:80284159ac908d482e92a6703d37341d95c90600ea6178ada205952c1c2017b8'
 
 [[item]]
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:3b22ff41a5f0274e18c649cf687cecbe4839d44c7e38b5058039f468d6b53c39'
+digest = 'sha256:e705840f87c377c2a265dd243d9ec8a145ae0073da8be7b5e9de00e28fdfb69e'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:20877fd70c6fb50a079f7d91c9d6e04aa6dffbe226727491214d2fa319b4fcd1'
+digest = 'sha256:e9257313b8947f921e46d41bc106acbb4c5f4d67ee23f0ed015f6f556e481942'
 
 [[item]]
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:faeb40a2f797e304036864d11b5e1d44d28806bbe7ade83001c245f76fc6a48a'
+digest = 'sha256:9898addbde2831a757aa6b18231de5f213ae0328abf39d9ad9f97aed33921fb3'
 
 [[item]]
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:687d3caad4a758a139ba6b3fe005b39bcd9303fed83905784b344f02394b50d7'
-
-[[item]]
-kind = 'settings'
-id = 'mcp-servers'
-digest = 'sha256:d976897a53be9c5c6b38688803d20c31d031a1f5638493fe58c36658ebe60e57'
+digest = 'sha256:b9ab62b52bd3e9d0815fe69106f7c24a83aa31d2b9f1b250a7489ed77db0c0d8'
 
 [[item]]
 kind = 'skill'
 id = 'context-improvement'
 path = 'skills/context-improvement'
-digest = 'sha256:14a9082c589b0c6a66c0b77fe2b340906bb3ff54d68ae0cf55ec338217c5e2ff'
+digest = 'sha256:038b447580003f2fbb80eb0c0a18228efc7dfcc27d841faff063b7c52f69c32c'

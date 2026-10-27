@@ -1,7 +1,7 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:3dac472e6fe9dc65e99ccf7f262876cb67295b764ce03b31e74d7df24b033b73
+# Content-Hash: blake3:5db4e180e79f7d54dc0896a60de3d0c0591ab7c867c28cebebc9f97049663c89
 ---
 
 # GitHub workflow conventions
@@ -11,8 +11,10 @@ not its trigger: a manually dispatched test is CI; a scheduled image publisher i
 
 A workflow path that other repos call or that rulesets name is a public interface and keeps its
 name and extension: xberg-io/actions' `reusable-*.yml` workflows are called by path from every repo,
-and each repo's `ai-rulez-validation.yml` is the shared governance check. Never rename those to fit
-the table.
+each repo's governance workflow (`ai-rulez-validation.yml` or `ci-ai-rulez.yaml`) is the shared
+governance check, and an existing `publish.yaml` is named by the registries' OIDC trusted-publisher
+entries (PyPI, npm, crates.io, RubyGems), so renaming it breaks publishing. Never rename those, or
+their `publish-<artifact>.yaml` siblings, to fit the table; the `release-` row is for new workflows.
 
 | Purpose | Filename | Display name |
 | --- | --- | --- |
@@ -43,9 +45,11 @@ A release may call a deployment workflow after its publication and verification 
   irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
   renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
-  tag; convert SHA pins when you touch a workflow. An action with no tags (xberg-io/agent-conventions)
-  is pinned by full SHA. Pin tool versions in installers for
-  reproducibility.
+  tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
+  a workflow.
+- Governance CI installs ai-rulez `latest`; a publish path that byte-checks committed bundles may pin
+  it, with a `~keep` reason. A Taskfile that guards a minimum version names it `AI_RULEZ_MIN_VERSION`.
+  The ai-rulez hook `revision` in `poly.toml` stays pinned.
 
 ## Rename and release audit
 
