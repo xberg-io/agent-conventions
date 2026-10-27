@@ -4,7 +4,7 @@ title: Context Improvement
 name: context-improvement
 description: "Run one round of the context improvement loop over eval runs: triage failures, one delta patch per hypothesis with placebo and deletion arms, the pre-registered accept rule, the ledger, holdout checkpoints."
 disable-model-invocation: true
-targets: ["claude", "codex", "opencode", "pi"]
+targets: ["claude", "codex", "opencode"]
 x-ai-rulez:
   kind: skill
   id: context-improvement
