@@ -63,7 +63,8 @@ Cache directory `.polylint/` is gitignored.
 - `remove_docs = false` keeps doc comments; `remove_todos` / `remove_fixme = false` keep those markers.
 - Test a change to these settings against staged or committed content: an uncommitted scratch file
   reports clean whatever it contains.
-- Generated sources are exempted with `[per-file-ignores]` (`"uncomment"`), not by adding markers.
+- Generated sources are exempted with `[per-file-ignores]` set to `["comment", "doc-comment"]` (the codes the
+  uncomment pass emits), not by adding markers.
 
 ## Severity
 
