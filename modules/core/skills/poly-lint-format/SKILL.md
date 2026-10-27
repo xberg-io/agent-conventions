@@ -11,29 +11,18 @@ x-ai-rulez:
 
 # Poly
 
-Poly is a single-binary multi-language linter and formatter. It bundles language engines (ruff for Python, oxc for JS/TS/JSON, taplo for TOML, rumdl for Markdown) and delegates to native tools (cargo fmt, cargo clippy, golangci-lint, actionlint, shellcheck, shfmt) when present. Most repos need no extra toolchains. Configure via per-repo `poly.toml`.
+Poly is a single-binary multi-language linter and formatter, configured per repo in `poly.toml`.
 
-## Engines by language
+## Engines
 
-| Scope | Engine(s) |
-|-------|-----------|
-| **Python** | ruff (lint + format), pyrefly (type check) |
-| **JS/TS/JSON/CSS** | oxc (lint + format) |
-| **TOML** | taplo (lint + format) |
-| **Markdown** | rumdl (format) |
-| **Rust** | cargo fmt + cargo clippy (via cargo hook) |
-| **Go** | golangci-lint |
-| **Java** | checkstyle, maven verify |
-| **Ruby** | rubocop (format + lint) |
-| **C#** | dotnet format |
-| **PHP** | php-cs-fixer, phpstan |
-| **Elixir** | mix format, mix credo |
-| **R** | styler, lintr |
-| **C/C++** | clang-format, cppcheck |
-| **Shell** | shfmt, shellcheck |
-| **Git** | gitfluff (commit message linting), ai-rulez-generate |
-| **GH Actions** | actionlint |
-| **Helm/K8s** | helm-lint, kubeconform |
+- Bundled: ruff (Python), oxc (JS/TS/JSON), taplo (TOML), rumdl (Markdown), sqruff (SQL), mago (PHP), YAML,
+  CSS/SCSS, GraphQL, HCL, Dockerfile, rubyfmt (Ruby format only), markup_fmt (HTML/Vue/Svelte format only).
+- Automatic when on `PATH`: rustfmt, gofmt, shellcheck. Opt-in: shfmt and the first-party formatters of Zig,
+  Java, Kotlin, R, Swift, Dart, Gleam.
+- Whole-project phase: cargo clippy and the other configured workspace tools.
+- Git hooks: `poly hooks install` wires lint, format and Conventional-Commit message checks.
+- Everything else (pyrefly, golangci-lint, checkstyle, credo, clang-format, actionlint) is a repo-configured
+  `[tools.<name>]` or `[hooks.pre-commit.commands.<name>]` entry: read the repo's `poly.toml`.
 
 ## Commands
 
@@ -55,8 +44,10 @@ Per-repo `poly.toml` defines linting and formatting rules:
 - `[per-file-ignores]` — file-specific exemptions
 - `[fmt.<lang>.<tool>]` — formatter options
 - `[hooks.builtin]` — git hook configuration
+- `[tools.<name>]` — an external tool poly runs
+- `[hooks.pre-commit.commands.<name>]` — an extra pre-commit command
 
-Cache directory `.polylint/` is gitignored.
+The cache lives outside the repo (`poly cache stats`).
 
 ## Uncomment pass
 
@@ -75,7 +66,9 @@ Cache directory `.polylint/` is gitignored.
 
 ## Severity
 
-`poly lint` exits non-zero only on error-severity findings. Warnings are reported but do not fail CI.
+Only error-severity findings fail a run; warnings are reported. Exit 0 is clean, 1 error findings, 2 the run
+verified less than it claims (skipped or errored files): gate on `summary.checked` in `--format json`, not on
+empty results.
 
 ## CI
 
