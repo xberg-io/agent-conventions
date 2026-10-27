@@ -19,8 +19,8 @@ committing lock files. These are the org's additions.
 - **Common tasks:** `task setup`, `task build`, `task test`, `task lint`, `task format`, `task cov:all`
   where present, and a repo-specific benchmark task (`benchmark:run`, `bench:run`, `rust:bench`; the
   builtin task-runner's plain `bench` exists only in some repos).
-- **Build profiles:** `BUILD_PROFILE` selects `dev`, `release` or `ci` (`BUILD_PROFILE=release task build`,
-  or `task build:release`).
+- **Build profiles:** where the Taskfile defines `BUILD_PROFILE` (most alef binding repos), it selects
+  `dev`, `release` or `ci` (`BUILD_PROFILE=release task build`, or `task build:release`).
 - **Maintenance:** `task update`, `task clean`, and the repo's version-sync task.
 - **Toolchain:** `task` and `poly`, plus the toolchains of the languages you touch (Rust stable, Python
   3.10+ with uv, Node with pnpm). `task setup` installs the rest.
