@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.7.0'
 scope = 'all'
-tree = 'sha256:dbbeb5239b6be41ff7006f4bf8aa65baefa7da80e19254598ccc009bdf9c4323'
+tree = 'sha256:28a3127525c0be16fe9e7291e60051f05ba9131f8a0906d3600bd40421a2fa72'
 
 [[served]]
 name = 'add-language-generator'
@@ -16,7 +16,7 @@ digest = 'sha256:af453ae8b748948f3c7622c3dcaa5a043f00aab2794851ecb1c92aaa8e89036
 name = 'agent-coordination'
 source = 'include:public-core/skills/agent-coordination/SKILL.md'
 commit = ''
-digest = 'sha256:30ea1d640c9a49c62038c7393ca4509b79fe9a864bf93f80650422de835e27f6'
+digest = 'sha256:11784feced9cadc616e04e1612e2b2619cc4160c9db38888b479851247b6925d'
 
 [[served]]
 name = 'alef-workflow'
@@ -28,7 +28,7 @@ digest = 'sha256:b19e7c27b904796b5526bbf06df35f067259a0ee89606de97bcea6c71bcef38
 name = 'basemind-tools'
 source = 'include:public-core/skills/basemind-tools/SKILL.md'
 commit = ''
-digest = 'sha256:2fe74c0c9cc8d1e73024cb80c747de336ec01841b78d54133353b255186d33e7'
+digest = 'sha256:790599681098314dca5d3025405baf2da89eb3c93618cd7e0586262715e70357'
 
 [[served]]
 name = 'binding-architecture'
@@ -208,7 +208,7 @@ digest = 'sha256:f23ee5dd7f848991d196fdf930dc8bdd917243bcbeac7d7b3b6c654ed50dcd1
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:5b1410233ed8f7bf3897a83e9d93fca2bb8879899e30e73b0eaceb01b8793397'
+digest = 'sha256:43f2eeff4714f72ce41283f5bd7af31c9464e1525bed9108d2baeca241399a11'
 
 [[item]]
 kind = 'local-include'
@@ -227,12 +227,6 @@ kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
 digest = 'sha256:bf54df226afec6aeaa3dd379e9fba177e99476f706cc48518611c864dd743759'
-
-[[item]]
-kind = 'rule'
-id = 'basemind-tools'
-path = 'rules/basemind-tools.md'
-digest = 'sha256:1016b8bee0f356be6d79a7cce09fe4f6e823e4d55022f74bde8213d319d95ce5'
 
 [[item]]
 kind = 'settings'

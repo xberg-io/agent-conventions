@@ -1,7 +1,7 @@
 ---
 name: agent-coordination
 description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
-# Content-Hash: blake3:44cf48e367b5d69be5c1631f94aa4126d18082ab510422a67f4734fa85ae0732
+# Content-Hash: blake3:1c0b87cda5d2f13dee45fe68a012efa8b1fb12dcc66c85edfe902d806f6c9942
 ---
 
 # Agent Coordination
@@ -131,3 +131,10 @@ With several agents active, a full test sweep can report a spurious failure from
 contention (shared temp directories, parallel installs of the same binary) and pass clean on a
 quiet re-run. A red result while agents are in flight is not evidence of a regression until it
 reproduces quietly.
+
+## Pass prose to a CLI through a file
+
+Any flag carrying prose with code identifiers (a `--body`, a commit message, a comment posted
+through a tool) comes from a file or a quoted heredoc, not an inline double-quoted string: the
+shell substitutes `` ` ``, `$(...)`, `${...}` and `!` inside double quotes, silently mangling every
+backticked identifier in the text.

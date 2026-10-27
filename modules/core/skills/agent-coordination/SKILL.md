@@ -137,3 +137,10 @@ With several agents active, a full test sweep can report a spurious failure from
 contention (shared temp directories, parallel installs of the same binary) and pass clean on a
 quiet re-run. A red result while agents are in flight is not evidence of a regression until it
 reproduces quietly.
+
+## Pass prose to a CLI through a file
+
+Any flag carrying prose with code identifiers (a `--body`, a commit message, a comment posted
+through a tool) comes from a file or a quoted heredoc, not an inline double-quoted string: the
+shell substitutes `` ` ``, `$(...)`, `${...}` and `!` inside double quotes, silently mangling every
+backticked identifier in the text.

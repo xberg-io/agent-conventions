@@ -1,5 +1,6 @@
 # Concepts
 
+* [Basemind Usage](basemind-usage.md)
 * [Comment Discipline](comment-discipline.md)
 * [Commit Messages](commit-messages.md)
 * [Commit Procedure](commit-procedure.md)
