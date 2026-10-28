@@ -5,8 +5,9 @@ vars:
 
 tasks:
   setup:
-    desc: Install development hooks
+    desc: Install the mise toolchain and development hooks
     cmds:
+      - mise install
       - task: governance:hooks:install
 
   governance:hooks:install:
