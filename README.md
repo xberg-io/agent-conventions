@@ -11,11 +11,11 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
 
 ### `modules/core`: all repos
 
-- **Rules, always on** (9): agent-workflow, basemind-usage, comment-discipline, commit-messages, commit-procedure,
-  prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code
+- **Rules, always on** (10): agent-workflow, basemind-usage, comment-discipline, commit-messages, commit-procedure,
+  prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code, toolchain-management
 - **Context** (1): polyrepo-structure
-- **Skills** (7): agent-coordination, basemind-tools, poly-lint-format, release-workflow, taskfile-structure,
-  tdd-workflow, verification-harness
+- **Skills** (8): agent-coordination, basemind-tools, mise-toolchains, poly-lint-format, release-workflow,
+  taskfile-structure, tdd-workflow, verification-harness
 
 `test-alongside-code` and `tdd-workflow` replace the `testing` builtin's rule and skill of the same ids, which say to
 run the full suite before committing, and `agent-workflow` replaces the `ai-governance` builtin's, adding the

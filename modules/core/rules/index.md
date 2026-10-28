@@ -9,3 +9,4 @@
 * [Safe Git Operations](safe-git-operations.md)
 * [Skill Discovery](skill-discovery.md)
 * [Test Alongside Code](test-alongside-code.md)
+* [Toolchain Management](toolchain-management.md)

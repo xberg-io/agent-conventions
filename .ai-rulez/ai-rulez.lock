@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.7.0'
+ai_rulez_version = '5.8.0'
 scope = 'all'
-tree = 'sha256:d8927ad9e029a0f6ef252437821c5e8f0844c20b37817ff6a6541faf96da4a9d'
+tree = 'sha256:b6aa54a4b5bef894f43fb12bd873add1fbde99438b4544610c6fc08b17cb25fe'
 
 [[served]]
 name = 'agent-coordination'
@@ -103,6 +103,12 @@ commit = ''
 digest = 'sha256:5cb87728d1449fadda6d8557501fcc0823509c60a37058ce4d2dda123296f67c'
 
 [[served]]
+name = 'mise-toolchains'
+source = 'include:public-core/skills/mise-toolchains/SKILL.md'
+commit = ''
+digest = 'sha256:893ef7f3cb3d89ddb66fca44acf0d5b1cb1b9caf82b2c88c708a2d00d7718fd4'
+
+[[served]]
 name = 'owasp-quick-reference'
 source = 'builtin://universal/security/skills/owasp-quick-reference/SKILL.md'
 commit = ''
@@ -196,7 +202,7 @@ digest = 'sha256:5eb36597d6615d49f9d9f902cb48a8ea61df651a575175a5718fdd959d82200
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:e9257313b8947f921e46d41bc106acbb4c5f4d67ee23f0ed015f6f556e481942'
+digest = 'sha256:0c02e7613f37cddb411deb6edaa255715a471fc6421f3c34985462f996df9c0d'
 
 [[item]]
 kind = 'local-include'

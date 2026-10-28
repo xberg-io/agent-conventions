@@ -2,6 +2,7 @@
 
 * [agent-coordination](agent-coordination/index.md)
 * [basemind-tools](basemind-tools/index.md)
+* [mise-toolchains](mise-toolchains/index.md)
 * [poly-lint-format](poly-lint-format/index.md)
 * [release-workflow](release-workflow/index.md)
 * [taskfile-structure](taskfile-structure/index.md)
