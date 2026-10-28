@@ -1,0 +1,34 @@
+name: Toolchain
+
+on:
+  pull_request:
+    paths:
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.*.toml"
+      - "mise.*.lock"
+      - "toolchains.toml"
+      - ".github/workflows/toolchain.yml"
+  push:
+    branches: [main]
+    paths:
+      - "mise.toml"
+      - "mise.lock"
+      - "mise.*.toml"
+      - "mise.*.lock"
+      - "toolchains.toml"
+      - ".github/workflows/toolchain.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-toolchain:
+    name: Toolchain baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: xberg-io/actions/check-toolchain@v1
+      - name: Install from the lock
+        uses: xberg-io/actions/setup-mise@v1
