@@ -22,5 +22,5 @@ committing lock files. These are the org's additions.
 - **Build profiles:** where the Taskfile defines `BUILD_PROFILE` (most alef binding repos), it selects
   `dev`, `release` or `ci` (`BUILD_PROFILE=release task build`, or `task build:release`).
 - **Maintenance:** `task update`, `task clean`, and the repo's version-sync task.
-- **Toolchain:** `task` and `poly`, plus the toolchains of the languages you touch (Rust stable, Python
-  3.10+ with uv, Node with pnpm). `task setup` installs the rest.
+- **Toolchain:** tools and languages, `task` and `poly` included, come from `mise.toml` via `mise install`
+  (Rust from `rust-toolchain.toml`); `task` stays the task runner. Procedures: the `mise-toolchains` skill.

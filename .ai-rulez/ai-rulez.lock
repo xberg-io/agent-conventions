@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.8.0'
 scope = 'all'
-tree = 'sha256:b6aa54a4b5bef894f43fb12bd873add1fbde99438b4544610c6fc08b17cb25fe'
+tree = 'sha256:1c664f4908b6106376dbc546c103c0caa116d47ec9dc12a423d9c3c62227aa7d'
 
 [[served]]
 name = 'agent-coordination'
@@ -154,7 +154,7 @@ digest = 'sha256:c57056e3a74a261b3a9d47638726c7d1f64c76b255838b6aaa3e635f3ffa861
 name = 'taskfile-structure'
 source = 'include:public-core/skills/taskfile-structure/SKILL.md'
 commit = ''
-digest = 'sha256:3e3dadd66907874e2fdff0641c2e4ac56d87532d5f2411122a2854aa87ef35d2'
+digest = 'sha256:2f52a956829d025b2e4e33b5d0e0de645dfa55be8ad886de87aa5e316f1b8a6d'
 
 [[served]]
 name = 'tdd-workflow'
@@ -202,7 +202,7 @@ digest = 'sha256:5eb36597d6615d49f9d9f902cb48a8ea61df651a575175a5718fdd959d82200
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:0c02e7613f37cddb411deb6edaa255715a471fc6421f3c34985462f996df9c0d'
+digest = 'sha256:ef7b614bfb78453da01e61dd81e8e153407c8a6315418b985d7d34f53fe695aa'
 
 [[item]]
 kind = 'local-include'
