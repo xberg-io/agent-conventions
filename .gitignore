@@ -12,6 +12,7 @@ poly.local.toml
 modules/**/.generated-manifest.local.json
 
 # BEGIN ai-rulez (DO NOT EDIT - managed by ai-rulez)
+.ai-rulez/.config.local.*
 .opencode/agents/
 .opencode/commands/
 opencode.json
