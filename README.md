@@ -152,7 +152,7 @@ it, no procedures) and only the rules that hold for every file. Everything else 
 gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
 your repository uses, by version range (`version = "^1"`; the lock records the exact tag and commit). Use the latest
-ai-rulez release (CI installs `latest`; minimum 5.8.0) to validate and regenerate after editing sources:
+ai-rulez release (CI installs `latest`; minimum 5.9.2) to validate and regenerate after editing sources:
 
 ```sh
 ai-rulez validate --no-local
