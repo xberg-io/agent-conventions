@@ -25,7 +25,7 @@ mise install --locked
 ## Add a tool
 
 1. Use the baseline's exact key, version and table options from `xberg-io/toolchains` `baseline.toml`
-   (`task = "3.54.0"`, `"github:Goldziher/poly" = "0.29.0"`). An alias (`nodejs`, `core:node`, `aqua:…`) is drift.
+   (`uv = "0.13.6"`, `"github:Goldziher/poly" = "0.29.0"`). An alias (`nodejs`, `core:node`, `aqua:…`) is drift.
    A tool the baseline does not list is repository-owned; pin it exactly.
 2. Lock every platform: `mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64` (the
    `lockfile_platforms` setting, where set, supplies the same list).

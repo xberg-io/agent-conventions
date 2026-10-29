@@ -1,7 +1,7 @@
 ---
 name: agent-coordination
 description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
-# Content-Hash: blake3:3d4e8cabb4e7413e8cca7bccbfe0daefff11921d6d9f495a78340eb792354927
+# Content-Hash: blake3:de7293d7d3a03d21cd007cc8b0495119e90d2c20d9ecda37f17f8211128ec9e6
 ---
 
 # Agent Coordination
@@ -21,7 +21,7 @@ result. A subagent dispatched for build or test work gets its own target directo
 
 `isolation: "worktree"` forks the session's own repo, not the repo the agent is told to work on, so
 an agent sent to another repo edits that repo's shared checkout directly. In the polyrepo, create
-the worktree with `task worktree:add` (the layout is in the polyrepo-structure context) and name its
+the worktree with `mise run worktree:add <repo> <branch>` (the layout is in the polyrepo-structure context) and name its
 path in the brief; elsewhere, enforce one writer per repo by scheduling. Saying "you have your own
 worktree" in a prompt does not create one.
 

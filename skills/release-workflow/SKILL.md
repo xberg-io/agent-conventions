@@ -1,7 +1,7 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:8c65387841342d4b35b515b5fa285f8db9ac0d2c06c612c68e1d08751dac487e
+# Content-Hash: blake3:7fea84af1f0e96932902190ebad682c3891a591e58f80cda15839686db18e797
 ---
 
 # Release Workflow (shared)
@@ -9,13 +9,13 @@ description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then
 Canonical publish sequence for a repo that tags versioned releases. One manifest
 (`Cargo.toml` in a Rust repo) is the single source of truth for the version, and
 the repo's version task syncs it to every other manifest. Task names differ per
-repo: find it with `task --list | grep -i version`.
+repo: find it with `mise tasks | grep -i version` (repos still on go-task: `task --list`).
 
 ## 1. Set the version
 
 Run the repo's version task. Some take the version as a `--` positional argument
-(`task <version-task> -- X.Y.Z`), others bump one part (`major`, `minor`,
-`patch`); read its `desc` in `task --list`. The task rewrites the
+(`mise run <version-task> -- X.Y.Z`), others bump one part (`major`, `minor`,
+`patch`); read its description in `mise tasks`. The task rewrites the
 source manifest, syncs the version to every other manifest and pinned version
 constant, and refreshes lock files. Never hand-edit a manifest's `version` — use
 the task so everything stays in lockstep. Verify with
@@ -34,12 +34,12 @@ changes, and re-create an empty `[Unreleased]`. Never tag an empty section.
 Never release a dirty or failing tree.
 
 ```bash
-poly lint .           # lint clean (task lint)
-poly fmt --check .     # formatting clean (task format:check)
-task test             # tests pass
+poly lint .            # lint clean (mise run lint)
+poly fmt --check .     # formatting clean (mise run format:check)
+mise run test          # tests pass
 ```
 
-Apply formatting with `poly fmt --fix .` (or `task format`) and re-stage. Fix any
+Apply formatting with `poly fmt --fix .` (or `mise run format`) and re-stage. Fix any
 lint or test failure at its source — do not release past a failure.
 
 If the repo carries a coding-agent plugin with its own version pin
@@ -106,7 +106,7 @@ on `$PATH`. Confirm `which <binary>` and `<binary> --version` reflect X.Y.Z.
 ## 6. Clean up build artifacts
 
 ```bash
-task clean        # runs cargo clean (removes target/) plus repo-specific cleanup
+mise run clean    # runs cargo clean (removes target/) plus repo-specific cleanup
 ```
 
 Reclaims disk by removing build output and generated caches (`target/`, `dist/`).

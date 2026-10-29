@@ -14,8 +14,8 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
 - **Rules, always on** (10): agent-workflow, basemind-usage, comment-discipline, commit-messages, commit-procedure,
   prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code, toolchain-management
 - **Context** (1): polyrepo-structure
-- **Skills** (8): agent-coordination, basemind-tools, mise-toolchains, poly-lint-format, release-workflow,
-  taskfile-structure, tdd-workflow, verification-harness
+- **Skills** (8): agent-coordination, basemind-tools, mise-tasks, mise-toolchains, poly-lint-format,
+  release-workflow, tdd-workflow, verification-harness
 
 `test-alongside-code` and `tdd-workflow` replace the `testing` builtin's rule and skill of the same ids, which say to
 run the full suite before committing, and `agent-workflow` replaces the `ai-governance` builtin's, adding the
@@ -23,6 +23,8 @@ subagent rules (no compiling in subagents, disjoint worktrees, implement-review-
 Each override works but raises `AR703 duplicate-collapsed`, which fails `ai-rulez validate --strict`; add
 `"!testing/test-alongside-code"`, `"!testing/tdd-workflow"` and `"!ai-governance/agent-workflow"` to `builtins` to
 keep the module items without the warning.
+`mise-tasks` replaces the `token-efficiency` builtin's go-task `task-runner` skill under a new name, so
+there is no warning: add `"!token-efficiency/task-runner"` to `builtins`, or both skills load and contradict.
 
 ### `modules/languages`: all repos with code
 
@@ -105,7 +107,7 @@ compact = true
 builtins = [
   "!agent-delegation", "!git-workflow", "!ai-governance/agent-workflow",
   "!testing/test-alongside-code", "!testing/tdd-workflow",
-  "!token-efficiency/output-awareness", "!ai-governance/explain-reasoning",
+  "!token-efficiency/output-awareness", "!token-efficiency/task-runner", "!ai-governance/explain-reasoning",
   "!security/least-privilege", "!security/input-validation",
   "default-commands",
 ]

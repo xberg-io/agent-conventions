@@ -44,7 +44,7 @@ A release may call a deployment workflow after its publication and verification 
   Do not add empty stages or serialize independent checks just to fit the sequence.
 - Keep job IDs and check names stable during filename-only refactors. Changing a required check name
   requires checking branch rules and coordinating the change, not assuming the rule is absent.
-- Invoke maintained task-runner commands for project checks/builds/tests. Actions install tooling,
+- Invoke the repo's tasks (`mise run <task>`) for project checks/builds/tests. Actions install tooling,
   authenticate, cache, and transfer artifacts; avoid duplicating application scripts in YAML.
 - Declare least-privilege permissions. Scope secrets and write permissions to jobs that use them.
 - Include the workflow itself and its actual script/task/config inputs in path filters. A negative
@@ -56,7 +56,7 @@ A release may call a deployment workflow after its publication and verification 
   tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
   a workflow.
 - Governance CI installs ai-rulez `latest`; a publish path that byte-checks committed bundles may pin
-  it, with a `~keep` reason. A Taskfile that guards a minimum version names it `AI_RULEZ_MIN_VERSION`.
+  it, with a `~keep` reason. A task that guards a minimum version names it `AI_RULEZ_MIN_VERSION`.
   The ai-rulez hook `revision` in `poly.toml` stays pinned.
 
 ## Rename and release audit

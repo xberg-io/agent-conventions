@@ -27,7 +27,7 @@ result. A subagent dispatched for build or test work gets its own target directo
 
 `isolation: "worktree"` forks the session's own repo, not the repo the agent is told to work on, so
 an agent sent to another repo edits that repo's shared checkout directly. In the polyrepo, create
-the worktree with `task worktree:add` (the layout is in the polyrepo-structure context) and name its
+the worktree with `mise run worktree:add <repo> <branch>` (the layout is in the polyrepo-structure context) and name its
 path in the brief; elsewhere, enforce one writer per repo by scheduling. Saying "you have your own
 worktree" in a prompt does not create one.
 

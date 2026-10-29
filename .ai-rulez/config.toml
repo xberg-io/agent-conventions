@@ -21,6 +21,7 @@ builtins = [
   "token-efficiency",
   "default-commands",
   "!token-efficiency/output-awareness",
+  "!token-efficiency/task-runner",
   "!ai-governance/explain-reasoning",
   "!security/least-privilege",
   "!security/input-validation",

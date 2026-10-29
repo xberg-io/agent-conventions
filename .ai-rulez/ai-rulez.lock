@@ -4,13 +4,13 @@
 version = 1
 ai_rulez_version = '5.9.2'
 scope = 'all'
-tree = 'sha256:1c664f4908b6106376dbc546c103c0caa116d47ec9dc12a423d9c3c62227aa7d'
+tree = 'sha256:91cad9e8d676249503ed1116d2f8dfd9d2ebb54f7697ead99c5b224c2fed1b0f'
 
 [[served]]
 name = 'agent-coordination'
 source = 'include:public-core/skills/agent-coordination/SKILL.md'
 commit = ''
-digest = 'sha256:e90c5be4a990678e8adb92b66af2a54bb2e4c1efbed08aee978b47f90e0b4b48'
+digest = 'sha256:24e1e82ac9008a98e08275e25263f1b59447205d04ed0865a1e1328be76d22f3'
 
 [[served]]
 name = 'basemind-tools'
@@ -64,7 +64,7 @@ digest = 'sha256:149dfb82ad14e4ff8f6014556ba28734985a9439ed4f9576d16bbb4f764dac9
 name = 'e2e-generation'
 source = 'include:public-bindings/skills/e2e-generation/SKILL.md'
 commit = ''
-digest = 'sha256:7cf2e2f53ce43f6943cdbc7258a0bf704b87ce124c6d8f4f87e775b63c7643ae'
+digest = 'sha256:919b04c3867571cd228867451a3e6f38a286d0fa242f2dba51c157b5cda1b511'
 
 [[served]]
 name = 'error-handling'
@@ -88,7 +88,7 @@ digest = 'sha256:276aed60958b6479e146a688351a39e70364b48ba74fd0cf272af8b74c1b6cb
 name = 'github-workflow-conventions'
 source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:c212bf4c27b2c4a464135e67bcbe0a95b9b796d8739ed8a2049caf1ed7ed865b'
+digest = 'sha256:c2447f22b656836ec6ecf13e68426f7860160152844f5301a84ce1b87df918ad'
 
 [[served]]
 name = 'incremental-approach'
@@ -103,10 +103,16 @@ commit = ''
 digest = 'sha256:5cb87728d1449fadda6d8557501fcc0823509c60a37058ce4d2dda123296f67c'
 
 [[served]]
+name = 'mise-tasks'
+source = 'include:public-core/skills/mise-tasks/SKILL.md'
+commit = ''
+digest = 'sha256:54f742c941db624fc04c0763384848caba6bc477b36514e2767166de9acd3ae3'
+
+[[served]]
 name = 'mise-toolchains'
 source = 'include:public-core/skills/mise-toolchains/SKILL.md'
 commit = ''
-digest = 'sha256:893ef7f3cb3d89ddb66fca44acf0d5b1cb1b9caf82b2c88c708a2d00d7718fd4'
+digest = 'sha256:70ac84a345c190d8fcb4560f85535058c201d4fb9e80b7ae1226c91622472585'
 
 [[served]]
 name = 'owasp-quick-reference'
@@ -130,7 +136,7 @@ digest = 'sha256:772854a122a129565f974e6c5ae84ef1169f7bc4f3a2068bfdc56b548c16169
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:eac7dfc698c0fbdf8fd4d45f2f29f05d89775cb5d4e81f78aee07e77ec45972b'
+digest = 'sha256:06f25cb150b837b13100b02fec046d41b5fabc8304980ba53a44754c263390ed'
 
 [[served]]
 name = 'scoop-distribution'
@@ -143,18 +149,6 @@ name = 'skill-authoring'
 source = 'builtin://universal/ai-governance/skills/skill-authoring/SKILL.md'
 commit = ''
 digest = 'sha256:7ab2b543dc6608f204c957fedfc55ae902d22fda9dc8a52252330ff9b1406ff1'
-
-[[served]]
-name = 'task-runner'
-source = 'builtin://universal/token-efficiency/skills/task-runner/SKILL.md'
-commit = ''
-digest = 'sha256:c57056e3a74a261b3a9d47638726c7d1f64c76b255838b6aaa3e635f3ffa8618'
-
-[[served]]
-name = 'taskfile-structure'
-source = 'include:public-core/skills/taskfile-structure/SKILL.md'
-commit = ''
-digest = 'sha256:2f52a956829d025b2e4e33b5d0e0de645dfa55be8ad886de87aa5e316f1b8a6d'
 
 [[served]]
 name = 'tdd-workflow'
@@ -178,37 +172,37 @@ digest = 'sha256:52ffa5fdd63293f4d0325b3f51a187d07eba9b69e2341da62c4603e2798dd94
 name = 'xberg-brand-and-docs'
 source = 'include:public-docs-sites/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:0c6a98eac1acb90a4c14806a08416931ea4e2fb96fef7b6a966abcdbf2182c38'
+digest = 'sha256:8cbcbbfc52e0443832bcaefec2c99ffb8755deb5a36b2bb720c6daf4c4078316'
 
 [[item]]
 kind = 'context'
 id = 'area-map'
 path = 'context/area-map.md'
-digest = 'sha256:9c0bc10a3cca970f8270c03740edbf5ca3419d87fed08e89fbc8ee34d4d88ecb'
+digest = 'sha256:67961113e6743ad936e9dbeb956c5ca92e1e591e166e94f5adc5fb2c90adc623'
 
 [[item]]
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:62d13a62ba19d57afbadc9769208f5ecb4904cde178c32b14ae385b571fa373e'
+digest = 'sha256:bccf6ef97aac748d6271e7c02026f9a308a16fcaa889fe3c8138accbb65d7fbb'
 
 [[item]]
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:5eb36597d6615d49f9d9f902cb48a8ea61df651a575175a5718fdd959d822003'
+digest = 'sha256:f5feab1b1863b0491e9eca4770be0680282c80714181786f30f75a0434684946'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:ef7b614bfb78453da01e61dd81e8e153407c8a6315418b985d7d34f53fe695aa'
+digest = 'sha256:8c77372e48cf68c0872fe3497f9eb30d1659d3fb6b50a3bd3d09bbae81f6e1de'
 
 [[item]]
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:9898addbde2831a757aa6b18231de5f213ae0328abf39d9ad9f97aed33921fb3'
+digest = 'sha256:08d5f7e4319744c23de5b86e3b56542f32b3602083d999644ceb1776f903fffc'
 
 [[item]]
 kind = 'local-include'

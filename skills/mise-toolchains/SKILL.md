@@ -1,7 +1,7 @@
 ---
 name: mise-toolchains
 description: "mise procedures: locked install, adding a tool, moving to a new baseline, matrix version legs, lock and rate-limit failures. Use when installing or changing a tool version."
-# Content-Hash: blake3:f63f400d289c450bd3f096bf595570fb45eddd94931945db7b8c029c3b2a8065
+# Content-Hash: blake3:5eec51755ae8c648404cce47f147371764d81ca4f99e7450e382bf64c6702a26
 ---
 
 # Mise toolchains
@@ -20,7 +20,7 @@ mise install --locked
 ## Add a tool
 
 1. Use the baseline's exact key, version and table options from `xberg-io/toolchains` `baseline.toml`
-   (`task = "3.54.0"`, `"github:Goldziher/poly" = "0.29.0"`). An alias (`nodejs`, `core:node`, `aqua:…`) is drift.
+   (`uv = "0.13.6"`, `"github:Goldziher/poly" = "0.29.0"`). An alias (`nodejs`, `core:node`, `aqua:…`) is drift.
    A tool the baseline does not list is repository-owned; pin it exactly.
 2. Lock every platform: `mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64` (the
    `lockfile_platforms` setting, where set, supplies the same list).
