@@ -14,7 +14,7 @@ This repository is configuration, not code. There is no build step.
 
 Edit the modules under `modules/` and merge. Consumers include them by `version = "^1"`, so nothing changes
 downstream until a release: push a `vX.Y.Z` tag or run `release-conventions.yaml` (README "Releasing"; it moves the
-floating `v1`), then move consumer pins with `task ai-rulez:update` at the polyrepo root (`ai-rulez update` in a
+floating `v1`), then move consumer pins with `mise run ai-rulez:update` at the polyrepo root (`ai-rulez update` in a
 single repo).
 
 ## What to keep in mind
@@ -57,11 +57,11 @@ plugin settings live separately in `config.plugins.toml`.
 ```sh
 ai-rulez validate --no-local
 ai-rulez generate --no-local --strict-config
-task governance:check
+mise run governance:check
 ```
 
 The final command checks the materialized local governance files, including ignored harness
-outputs. Installing governance hooks requires Python 3.11 or newer. Run `task governance:hooks:install` to install the repository's reviewed Poly hooks.
+outputs. Installing governance hooks requires Python 3.11 or newer. Run `mise run governance:hooks:install` to install the repository's reviewed Poly hooks.
 The hooks validate staged sources and verify shipped plugin artifacts where present; CI also
 validates the authored content. Shared convention modules come from `xberg-io/agent-conventions`;
 Git credentials are needed when an included repository requires access.

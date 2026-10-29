@@ -47,7 +47,7 @@ measurement:
 The action measures the `ai-rulez` server by default (`measure-mcp`), so it needs `ai-rulez` on `PATH`. Raising a
 budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
 
-Tests: `task context:test` (supplies PyYAML).
+Tests: `mise run context:test` (supplies PyYAML).
 
 ## Dynamic layer
 

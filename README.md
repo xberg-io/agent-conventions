@@ -157,7 +157,7 @@ ai-rulez release (CI installs `latest`; minimum 5.9.2) to validate and regenerat
 ```sh
 ai-rulez validate --no-local
 ai-rulez generate --no-local --strict-config
-task governance:check
+mise run governance:check
 ```
 
 ## Releasing
@@ -165,7 +165,7 @@ task governance:check
 Push a `vX.Y.Z` tag, or run the Conventions Release workflow (`release-conventions.yaml`) from the default branch
 with a version: it validates, creates the tag if needed, moves the floating `vX` tag to it with a lease (never
 backwards), and publishes the GitHub release. Consumers then move their pins with `ai-rulez update` (the polyrepo
-root runs it everywhere with `task ai-rulez:update`); `ai-rulez lock --outdated` shows what would move.
+root runs it everywhere with `mise run ai-rulez:update`); `ai-rulez lock --outdated` shows what would move.
 Bump the major version only for a change that breaks consumers, such as removing or renaming a module or item.
 
 Consumers generate local harness files from these modules. Product plugin content is maintained
@@ -173,15 +173,15 @@ separately under each product's `plugin/.ai-rulez/`; its public `skills/` export
 integration instructions. It does not expose this repository's internal contributor conventions.
 CI gates the start context with `actions/context-exposure` (budgets, leaks, description length); see
 [tools/context-evals](tools/context-evals/README.md) and [docs/load-mechanics.md](docs/load-mechanics.md).
-Reviewed Poly hooks validate staged source configuration; `task governance:check` checks the
+Reviewed Poly hooks validate staged source configuration; `mise run governance:check` checks the
 materialized local output. See [CONTRIBUTING.md](CONTRIBUTING.md) for editing and hook setup.
 
 ## Installable skills
 
 The public [`skills/`](skills/) directory contains the Agent Skills maintained in these modules
 plus the ai-rulez built-in governance skills. A native ai-rulez provider projects their consumer frontmatter
-and supporting resources; edit the source modules and run `task skills:generate`, then
-`task skills:check`. The generated export is committed and checked in CI.
+and supporting resources; edit the source modules and run `mise run skills:generate`, then
+`mise run skills:check`. The generated export is committed and checked in CI.
 
 ```sh
 npx skills add xberg-io/agent-conventions --skill release-workflow

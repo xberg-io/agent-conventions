@@ -6,6 +6,38 @@ lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64", "windows-x64"]
 [tools]
 python = "3.13.18"
 uv = "0.13.6"
-task = "3.54.0"
 "github:Goldziher/poly" = "0.31.2"
 "github:Goldziher/ai-rulez" = "5.9.2"
+
+# Subrepository tasks; the polyrepo root's tasks are inherited but refuse to run here. File tasks
+# live in mise-tasks/. ~keep
+[tasks.setup]
+description = "Install the mise toolchain and development hooks"
+run = ["mise install", { task = "governance:hooks:install" }]
+
+[tasks."governance:check"]
+description = "Check materialized local governance outputs against shared sources"
+depends = ["governance:runtime"]
+run = "ai-rulez generate --check --no-local --strict-config"
+
+[tasks."skills:generate"]
+description = "Export public Agent Skills from the shared modules"
+depends = ["governance:runtime"]
+run = "ai-rulez generate --no-local --strict-config"
+
+[tasks."skills:check"]
+description = "Verify public Agent Skills match the shared modules"
+depends = ["governance:runtime"]
+run = ["ai-rulez lock --check", "ai-rulez generate --check --no-local --strict-config"]
+
+[tasks."context:test"]
+description = "Unit-test the context harness"
+run = "uv run --no-project --with pyyaml==6.0.2 python -m unittest discover tools/context-evals"
+
+[tasks."context:cases"]
+description = "Validate the eval cases (mise run context:cases -- --repo-root ../xberg --repo xberg)"
+run = "uv run --no-project --with pyyaml==6.0.2 python tools/context-evals/harness.py validate-cases"
+
+[tasks."context:exposure"]
+description = "Report start context and leaks for consumer checkouts (mise run context:exposure -- ../xberg)"
+run = "python3 tools/context-evals/exposure.py"

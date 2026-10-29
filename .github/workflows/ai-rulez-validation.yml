@@ -13,6 +13,8 @@ on:
       - ".claude-plugin/**"
       - ".codex/**"
       - "scripts/sync*"
+      - "mise.toml"
+      - "mise-tasks/**"
       - "Cargo.toml"
       - "pyproject.toml"
       - "package.json"
@@ -30,6 +32,8 @@ on:
       - ".claude-plugin/**"
       - ".codex/**"
       - "scripts/sync*"
+      - "mise.toml"
+      - "mise-tasks/**"
       - "Cargo.toml"
       - "pyproject.toml"
       - "package.json"
@@ -68,6 +72,8 @@ jobs:
     env:
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
+      # Only python and uv are installed; the tasks need nothing else. ~keep
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
@@ -82,6 +88,6 @@ jobs:
           path: ~/.cache/uv
           key: uv-${{ runner.os }}-${{ steps.python.outputs.version }}-context-harness
       - name: Unit-test the context harness
-        run: uv run --no-project --with pyyaml==6.0.2 python -m unittest discover tools/context-evals
+        run: mise run context:test
       - name: Validate the eval cases
-        run: uv run --no-project --with pyyaml==6.0.2 python tools/context-evals/harness.py validate-cases
+        run: mise run context:cases
