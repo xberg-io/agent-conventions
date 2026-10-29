@@ -22,7 +22,7 @@ run `task <name>` there, and convert with the mapping below.
   order; `{ task = "x" }` in the array runs a task at that point).
 - Anything longer: a file task `mise-tasks/<ns>/<verb>.sh` is `ns:verb` (mise strips the extension). Make it
   executable, `#!/usr/bin/env bash`, `set -euo pipefail`, `#MISE description="…"`, and other keys as
-  `#MISE depends=["x"]` or `#MISE hide=true`. Put sourced helpers in a dot directory (`mise-tasks/.lib/`).
+  `#MISE depends=["x"]` or `#MISE hide=true`. Put sourced helpers in a dot directory such as `.lib` inside the task directory.
 - Names are `ns:verb` and stay unchanged in a conversion. Common: `setup`, `build`, `test`, `lint`, `format`,
   `format:check`, `docs:build`/`docs:serve`, `update`, `clean`, `version:sync`/`version:check`, `cov:all` and a
   repo-specific benchmark task where present. Where a repo defines `BUILD_PROFILE` (most alef binding repos) it

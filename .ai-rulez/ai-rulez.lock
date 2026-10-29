@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.2'
 scope = 'all'
-tree = 'sha256:91cad9e8d676249503ed1116d2f8dfd9d2ebb54f7697ead99c5b224c2fed1b0f'
+tree = 'sha256:5fff0b3fd0db6f6e7677952e0e3f81917a810d074d47e58704c4bbe0a7204468'
 
 [[served]]
 name = 'agent-coordination'
@@ -106,7 +106,7 @@ digest = 'sha256:5cb87728d1449fadda6d8557501fcc0823509c60a37058ce4d2dda123296f67
 name = 'mise-tasks'
 source = 'include:public-core/skills/mise-tasks/SKILL.md'
 commit = ''
-digest = 'sha256:54f742c941db624fc04c0763384848caba6bc477b36514e2767166de9acd3ae3'
+digest = 'sha256:39ff76879eb6d4ce0f9cb8ec643a6122f1d66ae99ce5711a052cc0145545a487'
 
 [[served]]
 name = 'mise-toolchains'
@@ -196,7 +196,7 @@ digest = 'sha256:f5feab1b1863b0491e9eca4770be0680282c80714181786f30f75a043468494
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:8c77372e48cf68c0872fe3497f9eb30d1659d3fb6b50a3bd3d09bbae81f6e1de'
+digest = 'sha256:e3c7e04a659fedd92eb6d12720dd299b19e4df45861ed3d518df8d84371fe609'
 
 [[item]]
 kind = 'local-include'

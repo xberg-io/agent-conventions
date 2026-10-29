@@ -1,7 +1,7 @@
 ---
 name: mise-tasks
 description: "Run and write tasks with mise: mise run, ns:verb names, mise.toml vs mise-tasks/ file tasks, usage args, depends, root-task guard, CI, go-task conversion. Use before a raw build, test, lint or format command, or when adding a task."
-# Content-Hash: blake3:aa2f1cb4ff078c69a5a04c7d9959678fa6f84e25f0dfa8fd385f3857f829bdc8
+# Content-Hash: blake3:b55470a7392fa6e40ac82e42e39df89a0f2ee50066d0399fbb1b9a1e68f5f980
 ---
 
 # Mise tasks
@@ -17,7 +17,7 @@ run `task <name>` there, and convert with the mapping below.
   order; `{ task = "x" }` in the array runs a task at that point).
 - Anything longer: a file task `mise-tasks/<ns>/<verb>.sh` is `ns:verb` (mise strips the extension). Make it
   executable, `#!/usr/bin/env bash`, `set -euo pipefail`, `#MISE description="…"`, and other keys as
-  `#MISE depends=["x"]` or `#MISE hide=true`. Put sourced helpers in a dot directory (`mise-tasks/.lib/`).
+  `#MISE depends=["x"]` or `#MISE hide=true`. Put sourced helpers in a dot directory such as `.lib` inside the task directory.
 - Names are `ns:verb` and stay unchanged in a conversion. Common: `setup`, `build`, `test`, `lint`, `format`,
   `format:check`, `docs:build`/`docs:serve`, `update`, `clean`, `version:sync`/`version:check`, `cov:all` and a
   repo-specific benchmark task where present. Where a repo defines `BUILD_PROFILE` (most alef binding repos) it
