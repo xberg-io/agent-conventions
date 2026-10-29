@@ -209,12 +209,12 @@
     - id: allowlist
       check: "The answer says .dockerignore ignores everything and allowlists crates, so !crates/xberg-djvu/ must be added."
     - id: verify-task
-      check: "The answer says to run task verify:docker-crates."
+      check: "The answer says to run mise run verify:docker-crates."
   reference:
     facts:
       - ".dockerignore excludes everything and allowlists each crate with !crates/<name>/."
-      - "task verify:docker-crates runs scripts/ci/docker/check-dockerfile-crate-coverage.sh."
-    sources: [.dockerignore, Taskfile.yml]
+      - "mise run verify:docker-crates runs scripts/ci/docker/check-dockerfile-crate-coverage.sh."
+    sources: [.dockerignore, mise.toml]
   sandbox: result
 
 - id: xberg-crate-structure-native-pdf-log-target
@@ -246,10 +246,10 @@
     - id: add-to-windows
       check: "The answer says the feature must also be added to windows-target (and the other guarded subsets)."
     - id: names-check
-      check: "The answer names task verify:feature-parity or scripts/ci/check-feature-parity.py."
+      check: "The answer names mise run verify:feature-parity or scripts/ci/check-feature-parity.py."
   reference:
     facts: ["check-feature-parity.py guards windows-target against full; only heic may be missing."]
-    sources: [scripts/ci/check-feature-parity.py, Taskfile.yml]
+    sources: [scripts/ci/check-feature-parity.py, mise.toml]
   sandbox: result
 
 - id: xberg-feature-sevenz-opt-level
@@ -462,15 +462,15 @@
   expect: ['version:sync|versions:sync']
   criteria:
     - id: sync
-      check: "The answer says to run task version:sync rather than hand-editing manifests."
+      check: "The answer says to run mise run version:sync rather than hand-editing manifests."
     - id: integrations
       check: "The answer says integrations and the Helm chart are synced by scripts/sync_integration_versions.py, not by alef."
     - id: check
-      check: "The answer mentions task version:check to detect drift."
+      check: "The answer mentions mise run version:check to detect drift."
   reference:
     facts:
-      - ".task/tools/version-sync.yml sync runs alef sync-versions, python3 scripts/sync_integration_versions.py, then plugin:generate."
-    sources: [.task/tools/version-sync.yml, scripts/sync_integration_versions.py]
+      - "mise.toml version:sync runs alef sync-versions, python3 scripts/sync_integration_versions.py, then plugin:generate."
+    sources: [mise.toml, scripts/sync_integration_versions.py]
   sandbox: result
 
 - id: xberg-ts-integration-lockfiles
@@ -702,7 +702,7 @@
       check: "The answer asks which tests or job are failing (or for the failure output) instead of guessing."
   reference:
     facts: ["xberg has Rust tests, generated e2e suites in e2e/ and benchmark-harness tests."]
-    sources: [e2e, Taskfile.yml]
+    sources: [e2e, mise.toml]
   sandbox: procedure
 
 - id: xberg-either-bump-version
@@ -714,10 +714,10 @@
   must_use: [xberg-release]
   criteria:
     - id: task
-      check: "The answer uses task version:bump:major|minor|patch or task version:set, or asks which bump level is wanted."
+      check: "The answer uses mise run version:bump:major|minor|patch or mise run version:set <version>, or asks which bump level is wanted."
   reference:
-    facts: [".task/tools/version-sync.yml defines bump:major, bump:minor, bump:patch, each followed by sync."]
-    sources: [.task/tools/version-sync.yml]
+    facts: ["mise.toml defines version:bump:major, version:bump:minor, version:bump:patch, each followed by version:sync."]
+    sources: [mise.toml]
   sandbox: procedure
 
 - id: xberg-nohint-long-extraction-route

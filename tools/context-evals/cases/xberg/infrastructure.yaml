@@ -11,7 +11,7 @@
   expect: ['sync_integration_versions|version:sync']
   criteria:
     - id: script-owns
-      check: "The answer says the chart's version, appVersion, ArtifactHub image tag and prerelease flag are written by scripts/sync_integration_versions.py (run via task version:sync), not by hand."
+      check: "The answer says the chart's version, appVersion, ArtifactHub image tag and prerelease flag are written by scripts/sync_integration_versions.py (run via mise run version:sync), not by hand."
   reference:
     facts: ["sync_integration_versions.py syncs charts/xberg/Chart.yaml and its README; Chart.yaml carries the version in several places."]
     sources: [scripts/sync_integration_versions.py, charts/xberg/Chart.yaml]

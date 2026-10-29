@@ -7,7 +7,7 @@
   cwd: crates/xberg/src/extractors
   persona: contributor
   prompt: >-
-    I added a DjvuExtractor struct and now `task alef:generate` dies and nothing in packages/ regenerates. The impl
+    I added a DjvuExtractor struct and now `mise run alef:generate` dies and nothing in packages/ regenerates. The impl
     block has #[cfg_attr(alef, alef(skip))] already. What's wrong?
   behaviour: answer
   must_use: [alef-generated-bindings]
@@ -69,26 +69,26 @@
     - id: generated
       check: "The answer says lib.rs is Alef-generated and a regen would restore the typo."
     - id: fix-source
-      check: "The answer says to fix the Rust doc comment (or alef.toml) and regenerate with task alef:generate."
+      check: "The answer says to fix the Rust doc comment (or alef.toml) and regenerate with mise run alef:generate."
   reference:
-    facts: ["task alef:verify runs alef verify --exit-code; task alef:generate runs alef all --clean."]
-    sources: [crates/xberg-py/src/lib.rs, Taskfile.yml]
+    facts: ["mise run alef:verify runs alef verify --exit-code; mise run alef:generate runs alef all --clean."]
+    sources: [crates/xberg-py/src/lib.rs, mise.toml]
   sandbox: result
 
 - id: xberg-bindings-no-alef-format
   domain: bindings
   repo: xberg
   cwd: packages
-  prompt: "After regenerating, how do I format the generated binding code? Is there a task alef:format?"
+  prompt: "After regenerating, how do I format the generated binding code? Is there a mise task alef:format?"
   behaviour: answer
   must_use: [alef]
   expect: ['(?i)poly']
   criteria:
     - id: poly
-      check: "The answer says there is no alef:format task and formatting is done by poly (task format or poly fmt --fix .)."
+      check: "The answer says there is no alef:format task and formatting is done by poly (mise run format or poly fmt --fix .)."
   reference:
-    facts: ["Taskfile.yml alef namespace has generate, verify, build, sync, docs and verify:* tasks; no alef:format."]
-    sources: [Taskfile.yml]
+    facts: ["mise.toml alef namespace has generate, verify, build, sync, docs and verify:* tasks; no alef:format."]
+    sources: [mise.toml]
   sandbox: result
 
 - id: xberg-bindings-freshness-scope
@@ -103,10 +103,10 @@
     - id: under-scoped
       check: "The answer says packages/ is under-scoped because generated output also lands in crates/xberg-py, crates/xberg-ffi and other binding crates and e2e/."
     - id: use-verify
-      check: "The answer recommends task alef:verify."
+      check: "The answer recommends mise run alef:verify."
   reference:
     facts: ["Generated files such as crates/xberg-py/src/lib.rs and e2e/ live outside packages/."]
-    sources: [Taskfile.yml, crates/xberg-py/src/lib.rs, e2e]
+    sources: [mise.toml, crates/xberg-py/src/lib.rs, e2e]
   sandbox: result
 
 - id: xberg-bindings-ffi-trait-default
@@ -176,12 +176,12 @@
   expect: ['(?i)sync-versions|version:sync']
   criteria:
     - id: alef-sync
-      check: "The answer says alef sync-versions (via task version:sync) writes the binding manifest versions from the root Cargo.toml."
+      check: "The answer says alef sync-versions (via mise run version:sync) writes the binding manifest versions from the root Cargo.toml."
     - id: no-hand-edit
       check: "The answer says not to hand-edit the package version."
   reference:
     facts: ["alef.toml [workspace.sync] lists the extra paths synced; version:sync runs alef sync-versions first."]
-    sources: [alef.toml, .task/tools/version-sync.yml]
+    sources: [alef.toml, mise.toml]
   sandbox: result
 
 - id: xberg-bindings-ask-broken

@@ -237,8 +237,8 @@
     - id: upgrade
       check: "The answer says to run cargo upgrade --incompatible after a dependency change, then rebuild."
   reference:
-    facts: ["Taskfile.yaml upgrade task runs cargo upgrade --incompatible."]
-    sources: [Taskfile.yaml, .ai-rulez/rules/rust-checks.md]
+    facts: ["mise.toml upgrade task runs cargo upgrade --incompatible."]
+    sources: [mise.toml, .ai-rulez/rules/rust-checks.md]
   sandbox: result
 
 # --- negatives on shared trigger words ----------------------------------------------------------
@@ -257,10 +257,10 @@
     - id: tag
       check: "The answer says pushing a v* tag runs publish.yaml, which publishes sceptre then sceptre-cli via trusted publishing (no stored token)."
     - id: dry-run
-      check: "The answer mentions task release:dry-run for local packaging validation."
+      check: "The answer mentions mise run release:dry-run for local packaging validation."
   reference:
     facts: ["ADR 0023 supersedes 0020: tag-triggered publish of sceptre then sceptre-cli through crates-io-auth-action."]
-    sources: [adrs/0023-publish-to-crates-io-via-trusted-publishing.md, .github/workflows/publish.yaml, Taskfile.yaml]
+    sources: [adrs/0023-publish-to-crates-io-via-trusted-publishing.md, .github/workflows/publish.yaml, mise.toml]
   sandbox: procedure
 
 - id: sceptre-neg-benchmark
@@ -274,12 +274,12 @@
   expect: ['latest\.json']
   criteria:
     - id: publish
-      check: "The answer says to publish through sceptre_rs_tools.publish (task python:publish) into benchmarks/published/latest.json, which renders the marked README regions, not to hand-edit numbers."
+      check: "The answer says to publish through sceptre_rs_tools.publish (mise run python:publish) into benchmarks/published/latest.json, which renders the marked README regions, not to hand-edit numbers."
     - id: check
       check: "The answer mentions the --check / python:publish:check gate that fails on stale tables."
   reference:
     facts: ["ADR 0030: benchmarks/published/latest.json is the committed artifact; generated regions use marker pairs; python:publish:check runs in CI."]
-    sources: [adrs/0030-published-benchmark-artifact-and-drift-gate.md, benchmarks/published/latest.json, .task/python.yml]
+    sources: [adrs/0030-published-benchmark-artifact-and-drift-gate.md, benchmarks/published/latest.json, mise.toml]
   sandbox: result
 
 - id: sceptre-neg-ocr-accuracy
