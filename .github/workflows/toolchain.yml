@@ -8,6 +8,7 @@ on:
       - "mise.*.toml"
       - "mise.*.lock"
       - "toolchains.toml"
+      - "mise-tasks/**"
       - ".github/workflows/toolchain.yml"
   push:
     branches: [main]
@@ -17,6 +18,7 @@ on:
       - "mise.*.toml"
       - "mise.*.lock"
       - "toolchains.toml"
+      - "mise-tasks/**"
       - ".github/workflows/toolchain.yml"
   workflow_dispatch:
 
