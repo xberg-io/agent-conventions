@@ -1,7 +1,7 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:7fea84af1f0e96932902190ebad682c3891a591e58f80cda15839686db18e797
+# Content-Hash: blake3:198c45b949a791d898be1ec139040cdc6ca859c094bdb5c9b42ca6595023c5a9
 ---
 
 # Release Workflow (shared)
@@ -9,7 +9,7 @@ description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then
 Canonical publish sequence for a repo that tags versioned releases. One manifest
 (`Cargo.toml` in a Rust repo) is the single source of truth for the version, and
 the repo's version task syncs it to every other manifest. Task names differ per
-repo: find it with `mise tasks | grep -i version` (repos still on go-task: `task --list`).
+repo: find it with `mise tasks | grep -i version`.
 
 ## 1. Set the version
 

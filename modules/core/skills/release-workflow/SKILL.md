@@ -14,7 +14,7 @@ x-ai-rulez:
 Canonical publish sequence for a repo that tags versioned releases. One manifest
 (`Cargo.toml` in a Rust repo) is the single source of truth for the version, and
 the repo's version task syncs it to every other manifest. Task names differ per
-repo: find it with `mise tasks | grep -i version` (repos still on go-task: `task --list`).
+repo: find it with `mise tasks | grep -i version`.
 
 ## 1. Set the version
 

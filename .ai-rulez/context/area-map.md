@@ -12,7 +12,7 @@ x-ai-rulez:
   `vX.Y.Z` release (README "Releasing") and the polyrepo root's `ai-rulez:update` task.
 - Every module item must be true in each includer (`grep -l 'modules/<name>' ../*/.ai-rulez/config.toml` from the
   checkout; see polyrepo-structure for worktrees). AR101 and AR403 are off in the modules, so check each `paths:` glob
-  against the includers' `git ls-files`, and each tool or task named against their mise tasks (or Taskfile) and CI.
+  against the includers' `git ls-files`, and each tool or task named against their mise tasks and CI.
 - `skills/` — generated public export: `mise run skills:generate`, then `mise run skills:check` (CI fails on drift).
 - `tools/context-evals/`, `actions/context-exposure/` — start-context harness and the consumer CI gate
   (`mise run context:test`).
