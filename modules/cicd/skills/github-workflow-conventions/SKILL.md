@@ -56,8 +56,8 @@ A release may call a deployment workflow after its publication and verification 
   tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
   a workflow.
 - Governance CI installs ai-rulez `latest`; a publish path that byte-checks committed bundles may pin
-  it, with a `~keep` reason. A task that guards a minimum version names it `AI_RULEZ_MIN_VERSION`.
-  The ai-rulez hook `revision` in `poly.toml` stays pinned.
+  it, with a `~keep` reason. Tasks rely on the exact pin in `mise.toml` and add no minimum-version
+  check. The ai-rulez hook `revision` in `poly.toml` stays pinned.
 
 ## Rename and release audit
 

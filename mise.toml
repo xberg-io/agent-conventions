@@ -9,8 +9,7 @@ uv = "0.13.6"
 "github:Goldziher/poly" = "0.31.2"
 "github:Goldziher/ai-rulez" = "5.9.2"
 
-# Subrepository tasks; the polyrepo root's tasks are inherited but refuse to run here. File tasks
-# live in mise-tasks/. ~keep
+# Subrepository tasks; the polyrepo root's tasks are inherited but refuse to run here. ~keep
 [tasks.setup]
 description = "Install the mise toolchain and development hooks"
 run = ["mise install", { task = "governance:hooks:install" }]
@@ -20,17 +19,14 @@ file = "https://raw.githubusercontent.com/xberg-io/toolchains/v1.5.0/tasks/gover
 
 [tasks."governance:check"]
 description = "Check materialized local governance outputs against shared sources"
-depends = ["governance:runtime"]
 run = "ai-rulez generate --check --no-local --strict-config"
 
 [tasks."skills:generate"]
 description = "Export public Agent Skills from the shared modules"
-depends = ["governance:runtime"]
 run = "ai-rulez generate --no-local --strict-config"
 
 [tasks."skills:check"]
 description = "Verify public Agent Skills match the shared modules"
-depends = ["governance:runtime"]
 run = ["ai-rulez lock --check", "ai-rulez generate --check --no-local --strict-config"]
 
 [tasks."context:test"]

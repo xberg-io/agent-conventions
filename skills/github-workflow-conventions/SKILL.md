@@ -1,7 +1,7 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:aa614596930f20f3efaa0f376f84e95ab81e327b1c1efb95951d0e5f6bddd58d
+# Content-Hash: blake3:bb5636d889a64c60cee73ba62e0636605f789447b9c642c7c986a0a17833f7cd
 ---
 
 # GitHub workflow conventions
@@ -48,8 +48,8 @@ A release may call a deployment workflow after its publication and verification 
   tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
   a workflow.
 - Governance CI installs ai-rulez `latest`; a publish path that byte-checks committed bundles may pin
-  it, with a `~keep` reason. A task that guards a minimum version names it `AI_RULEZ_MIN_VERSION`.
-  The ai-rulez hook `revision` in `poly.toml` stays pinned.
+  it, with a `~keep` reason. Tasks rely on the exact pin in `mise.toml` and add no minimum-version
+  check. The ai-rulez hook `revision` in `poly.toml` stays pinned.
 
 ## Rename and release audit
 
