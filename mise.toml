@@ -13,14 +13,6 @@ uv = "0.13.6"
 [tasks.setup]
 description = "Install the mise toolchain and development hooks"
 run = ["mise install", { task = "governance:hooks:install" }]
-
-[tasks."governance:hooks:install"]
-file = "https://raw.githubusercontent.com/xberg-io/toolchains/v1.5.0/tasks/governance/hooks-install.sh"
-
-[tasks."governance:check"]
-description = "Check materialized local governance outputs against shared sources"
-run = "ai-rulez generate --check --no-local --strict-config"
-
 [tasks."skills:generate"]
 description = "Export public Agent Skills from the shared modules"
 run = "ai-rulez generate --no-local --strict-config"
@@ -40,3 +32,6 @@ run = "uv run --no-project --with pyyaml==6.0.2 python tools/context-evals/harne
 [tasks."context:exposure"]
 description = "Report start context and leaks for consumer checkouts (mise run context:exposure -- ../xberg)"
 run = "python3 tools/context-evals/exposure.py"
+
+[task_config]
+includes = ["mise-tasks", "mise-tasks/shared.toml"]
