@@ -1,7 +1,7 @@
 ---
 name: mise-tasks
 description: "Run and write tasks with mise: mise run, ns:verb names, mise.toml vs mise-tasks/ file tasks, usage args, depends, root-task guard, CI. Use before a raw build, test, lint or format command, or when adding a task."
-# Content-Hash: blake3:9f4505f05663e774b38cae57d662739e97eae3dd57e3008e4ecf1d3a0ad90130
+# Content-Hash: blake3:b1ef99df887ef99bf211888db5e7ed1af42e68b1dfb61f9d6bd5537f353a236e
 ---
 
 # Mise tasks
@@ -44,4 +44,5 @@ name overrides the root's.
 ## CI
 
 `uses: xberg-io/actions/setup-mise@v1`, then `run: mise run <task>`; do not copy the task's commands into YAML.
-To install only some tools, pass `install-args` and set `MISE_TASK_RUN_AUTO_INSTALL: "false"`.
+Pass `install-args` to install only some tools, or `install: "false"` for none; setup-mise then turns off task
+auto-install, sets Git Bash as the Windows inline shell and keeps `mise run` output unprefixed.

@@ -49,4 +49,5 @@ name overrides the root's.
 ## CI
 
 `uses: xberg-io/actions/setup-mise@v1`, then `run: mise run <task>`; do not copy the task's commands into YAML.
-To install only some tools, pass `install-args` and set `MISE_TASK_RUN_AUTO_INSTALL: "false"`.
+Pass `install-args` to install only some tools, or `install: "false"` for none; setup-mise then turns off task
+auto-install, sets Git Bash as the Windows inline shell and keeps `mise run` output unprefixed.
