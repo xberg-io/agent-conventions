@@ -15,6 +15,9 @@ uv = "0.13.6"
 description = "Install the mise toolchain and development hooks"
 run = ["mise install", { task = "governance:hooks:install" }]
 
+[tasks."governance:hooks:install"]
+file = "https://raw.githubusercontent.com/xberg-io/toolchains/v1.5.0/tasks/governance/hooks-install.sh"
+
 [tasks."governance:check"]
 description = "Check materialized local governance outputs against shared sources"
 depends = ["governance:runtime"]

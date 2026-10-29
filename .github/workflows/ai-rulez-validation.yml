@@ -72,8 +72,6 @@ jobs:
     env:
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
-      # Only python and uv are installed; the tasks need nothing else. ~keep
-      MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
