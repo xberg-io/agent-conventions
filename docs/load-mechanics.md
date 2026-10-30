@@ -39,7 +39,7 @@ instructions and tool definitions. This is not the same quantity as repository i
 | Skill with `disable-model-invocation: true` | Also listed at start; do not assume Claude's frontmatter gate applies to Codex. |
 | Skill body | Absent at start; visible after explicit invocation. |
 | `.codex/agents/*.toml` | A directory-only agent was not visible. With multi-agent enabled and the agent explicitly registered through `agents.<name>.description` and `config_file`, its marker was visible. |
-| MCP schemas | Outside the isolated instruction/skill probe; no production schema-cost claim is made. |
+| MCP schemas | Outside the instruction probe; a separate [offline code-mode probe](codex-mcp-mechanics.md) measures startup omission and runtime definition retrieval. |
 
 The explicit-model root-start run used 20,074 input tokens. Codex usage after tool calls is cumulative over model
 requests, so its read/search totals must not be interpreted as initial context size. These observations agree with
@@ -106,8 +106,8 @@ tool or asking a hosted model to select one.
 
 This resolves the startup transport question for the measured CLI/server configurations. It does **not** measure
 native model input tokens, provider billing, natural model tool choices, account-specific production settings or
-Codex MCP deferral. Request byte totals also include built-ins, instructions and message wrappers; their difference
-must not be reported as an MCP token saving. Static exposure remains an upper-bound inventory, not runtime input
+Codex MCP behavior beyond the separate [code-mode probe](codex-mcp-mechanics.md). Request byte totals also
+include built-ins, instructions and message wrappers; their difference must not be reported as an MCP token saving. Static exposure remains an upper-bound inventory, not runtime input
 cost, and the historical instruction-probe usage measurements above remain unchanged.
 
 Controlled raw MCP exchanges, CLI initialization records, API request bodies, capture scripts and SHA256 evidence
