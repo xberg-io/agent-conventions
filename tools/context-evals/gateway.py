@@ -66,7 +66,7 @@ def manifest() -> dict:
     source = b"".join((Path(__file__).parent / name).read_bytes() for name in files)
     return {
         "version": POLICY_VERSION,
-        "protocol": "hard-gateway-2",
+        "protocol": "hard-gateway-3",
         "source_sha256": hashlib.sha256(source).hexdigest(),
         "source_files": list(files),
         "context_tokens": CONTEXT_TOKENS,
