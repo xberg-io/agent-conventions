@@ -1,7 +1,7 @@
 ---
 name: agent-coordination
 description: "Dispatch, monitor, recover and verify subagents and worktree peers in a shared repo. Use when spawning a subagent, checking a quiet one, merging an agent's branch, or writing a brief for another agent."
-# Content-Hash: blake3:de7293d7d3a03d21cd007cc8b0495119e90d2c20d9ecda37f17f8211128ec9e6
+# Content-Hash: blake3:86db00e09e3b2beb13ceec38fb2f86b482abc110897b64c3e615f9216f7f21de
 ---
 
 # Agent Coordination
@@ -17,13 +17,17 @@ strict: concurrent compiles fill the disk, contend for a shared target directory
 other's half-edited artifacts, and a subagent's green build proves little about the integrated
 result. A subagent dispatched for build or test work gets its own target directory.
 
-## Worktree isolation is repo-local, not target-local
+## Worktrees: the polyrepo task, never the harness's
 
-`isolation: "worktree"` forks the session's own repo, not the repo the agent is told to work on, so
-an agent sent to another repo edits that repo's shared checkout directly. In the polyrepo, create
-the worktree with `mise run worktree:add <repo> <branch>` (the layout is in the polyrepo-structure context) and name its
-path in the brief; elsewhere, enforce one writer per repo by scheduling. Saying "you have your own
-worktree" in a prompt does not create one.
+Every worktree lives at `<polyrepo root>/.worktrees/<repo>/<name>` (the layout is in the polyrepo-structure context).
+Create it before dispatch, from the root, with `mise run worktree:add <repo> <branch> [--base <ref>]`, name its
+absolute path in the brief, and remove it after the merge with `mise run worktree:remove <repo> <branch>`.
+
+Do not use Claude Code's built-in worktrees: the EnterWorktree tool, `claude --worktree` and Agent
+`isolation: "worktree"` all create them under `.claude/worktrees/` inside the session's repo. They also fork the
+session's own repo, not the repo the agent is told to work on, so an agent sent to another repo edits that repo's
+shared checkout directly. Saying "you have your own worktree" in a prompt does not create one; outside the polyrepo,
+enforce one writer per repo by scheduling.
 
 ## Stash, checkout, reset, and clean are shared, not worktree-local
 

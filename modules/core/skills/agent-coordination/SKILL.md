@@ -23,13 +23,17 @@ strict: concurrent compiles fill the disk, contend for a shared target directory
 other's half-edited artifacts, and a subagent's green build proves little about the integrated
 result. A subagent dispatched for build or test work gets its own target directory.
 
-## Worktree isolation is repo-local, not target-local
+## Worktrees: the polyrepo task, never the harness's
 
-`isolation: "worktree"` forks the session's own repo, not the repo the agent is told to work on, so
-an agent sent to another repo edits that repo's shared checkout directly. In the polyrepo, create
-the worktree with `mise run worktree:add <repo> <branch>` (the layout is in the polyrepo-structure context) and name its
-path in the brief; elsewhere, enforce one writer per repo by scheduling. Saying "you have your own
-worktree" in a prompt does not create one.
+Every worktree lives at `<polyrepo root>/.worktrees/<repo>/<name>` (the layout is in the polyrepo-structure context).
+Create it before dispatch, from the root, with `mise run worktree:add <repo> <branch> [--base <ref>]`, name its
+absolute path in the brief, and remove it after the merge with `mise run worktree:remove <repo> <branch>`.
+
+Do not use Claude Code's built-in worktrees: the EnterWorktree tool, `claude --worktree` and Agent
+`isolation: "worktree"` all create them under `.claude/worktrees/` inside the session's repo. They also fork the
+session's own repo, not the repo the agent is told to work on, so an agent sent to another repo edits that repo's
+shared checkout directly. Saying "you have your own worktree" in a prompt does not create one; outside the polyrepo,
+enforce one writer per repo by scheduling.
 
 ## Stash, checkout, reset, and clean are shared, not worktree-local
 
