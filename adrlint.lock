@@ -1,0 +1,77 @@
+version = 1
+canonical = 1
+
+[adrs."adrs/0000-record-architecture-decisions.md"]
+number = 0
+status = "accepted"
+blake3 = "ff4d014367b47a9576453bb62b686969087a57d63a0ac9fb78facc0d3354cc1b"
+
+[adrs."adrs/0001-polyrepo-with-a-root-workspace.md"]
+number = 1
+status = "accepted"
+blake3 = "cef401e4cbc1d454df33195e720e371ff56622891f8386f3ef7008687f219185"
+
+[adrs."adrs/0002-rust-cores-with-alef-generated-bindings.md"]
+number = 2
+status = "accepted"
+blake3 = "4527502ab80a38bb315b995c5357ce1ee9a6c480a522b74cc4cb48ef9ac54fd5"
+
+[adrs."adrs/0003-licensing-line.md"]
+number = 3
+status = "accepted"
+blake3 = "2b37e981b767e9ce4bef8ebe8fb874e2f524633e7323a70675cd1719a4fd230f"
+
+[adrs."adrs/0004-mise-toolchain-baseline.md"]
+number = 4
+status = "accepted"
+blake3 = "1c14874f45737da581df76db2e8ab30709d43ade1f1162d72890f84888255661"
+
+[adrs."adrs/0005-mise-tasks-and-shared-task-sets.md"]
+number = 5
+status = "accepted"
+blake3 = "8e4ec0bd89dd9526a516f29bfc5897b641398994eef7ea277649e860b1141ad0"
+
+[adrs."adrs/0006-poly-as-the-single-lint-and-format-gate.md"]
+number = 6
+status = "accepted"
+blake3 = "ddfcd2e98cc56b2e119ae918357169052d362ea0ccced29e72466e102f13661d"
+
+[adrs."adrs/0007-ai-rulez-with-shared-agent-conventions-modules.md"]
+number = 7
+status = "accepted"
+blake3 = "2e1fc9f0e42d66a48ae335d96283d54c533abf3d24215482324f343f9b335655"
+
+[adrs."adrs/0008-pin-actions-to-major-tags.md"]
+number = 8
+status = "accepted"
+blake3 = "23e752cc84a3a1f669d6fee7e35cf8008167280e61ff9149601acc78936a0266"
+
+[adrs."adrs/0009-macos-runners-macos-26-only.md"]
+number = 9
+status = "accepted"
+blake3 = "b6ae084aab27d5895155594c7214ecd885ada6b823bc7a0ff4c9421d4a6024e9"
+
+[adrs."adrs/0010-starlight-docs-sites-with-the-shared-theme.md"]
+number = 10
+status = "accepted"
+blake3 = "970ed241e2f3663bb5875a4e13ab9458df860271b8b8a3206785486f2a5368d3"
+
+[adrs."adrs/0011-shared-cargo-feature-flag-names.md"]
+number = 11
+status = "accepted"
+blake3 = "e361d25f800a8f031b7e2cadfbe4127d478730b5605c87a5c8e3722a4f98dafc"
+
+[adrs."adrs/0012-language-tooling-policy.md"]
+number = 12
+status = "accepted"
+blake3 = "335283d091fd7f820be4b5d9184412f63449397802c78746eb50b83be24f1e66"
+
+[adrs."adrs/0013-renovate-extends-the-toolchains-preset.md"]
+number = 13
+status = "accepted"
+blake3 = "d5c79cb2b3cb07b031e2a16f8f214699385a32b50a0224e24aab12904c7cb7b9"
+
+[adrs."adrs/0014-shared-assets-and-distribution-channels.md"]
+number = 14
+status = "accepted"
+blake3 = "8956e8b663dff4964dafd1575bfcdfdbe66424fef6dd7006c61d40eb09f1421b"
