@@ -22,5 +22,9 @@ run = "uv run --no-project --with pyyaml==6.0.2 python -m unittest discover tool
 description = "Validate the eval cases (mise run context:cases -- --repo-root ../xberg --repo xberg)"
 run = "uv run --no-project --with pyyaml==6.0.2 python tools/context-evals/harness.py validate-cases"
 
+[tasks."context:eval"]
+description = "Run the context evaluation harness with explicit paid-execution policy"
+run = "uv run --python python --no-project --with pyyaml==6.0.2 python tools/context-evals/harness.py"
+
 [task_config]
 includes = ["mise-tasks", "mise-tasks/shared.toml"]
