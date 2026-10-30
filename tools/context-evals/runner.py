@@ -51,6 +51,25 @@ class Completed:
     collection: dict = field(default_factory=dict)
 
 
+class Interrupted(KeyboardInterrupt):
+    def __init__(self, completed: Completed) -> None:
+        super().__init__("isolated CLI interrupted")
+        self.completed = completed
+
+
+def save_interrupted(transcripts: Path, name: str, meta: SessionMeta, completed: Completed) -> None:
+    evidence = transcripts / "interrupted"
+    evidence.mkdir(exist_ok=True)
+    meta.returncode, meta.stderr = 130, completed.stderr[-STDERR_TAIL:]
+    meta.error = "interrupted; partial evidence is not a completed trial"
+    with (evidence / f"{name}.jsonl").open("x") as stream:
+        stream.write(completed.stdout)
+    with (evidence / f"{name}.stderr").open("x") as stream:
+        stream.write(completed.stderr)
+    with (evidence / f"{name}.meta.json").open("x") as stream:
+        stream.write(json.dumps(asdict(meta), indent=2) + "\n")
+
+
 Execute = Callable[[list[str], Path, Mapping[str, str], float], Completed]
 
 
@@ -310,9 +329,14 @@ class Runner:
                     case.prompt, self.config.model, self.config.max_turns, mcp, self.config.allowed_tools
                 )
                 started = time.monotonic()
-                done = self.execute(
-                    self.adapter.command(spec), cwd, self.adapter.env(Path(home), self.environ), self.config.timeout
-                )
+                try:
+                    done = self.execute(
+                        self.adapter.command(spec), cwd, self.adapter.env(Path(home), self.environ), self.config.timeout
+                    )
+                except Interrupted as exc:
+                    meta.seconds = round(time.monotonic() - started, 3)
+                    save_interrupted(transcripts, name, meta, exc.completed)
+                    raise
                 meta.seconds = round(time.monotonic() - started, 3)
             meta.returncode, meta.stderr = done.returncode, done.stderr[-STDERR_TAIL:]
             meta.bounded_failure = done.bounded_failure

@@ -26,6 +26,38 @@ BODY_BYTES = 4 * 1024 * 1024
 MODELS = ("claude-sonnet-5-5", "claude-sonnet-5")
 TOKEN_KEYS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 
+POLICY_ERRORS = (
+    "invalid or overflowing token/cost counter",
+    "unpriced model",
+    "unknown cache policy",
+    "unpriced cache duration",
+    "invalid message content",
+    "invalid content block",
+    "unsupported content or server feature",
+    "tool profile mismatch",
+    "unsupported request option",
+    "output limit must be positive",
+    "server compaction and unknown context editing are unavailable",
+    "request body too large",
+    "invalid request JSON",
+    "messages missing",
+    "invalid message",
+    "unknown per-message option",
+    "unpriced service tier",
+    "unpriced routing or speed",
+    "invalid tool schema",
+    "server or deferred tools are unavailable",
+    "unknown thinking policy",
+    "unknown thinking option",
+    "thinking budget exceeds output cap",
+    "unknown output policy",
+    "CLI/request model mismatch",
+)
+POLICY_ERROR_CODES = {message: message.lower().replace(" ", "_").replace("/", "_") for message in POLICY_ERRORS}
+SHAPE_CONTENT_TYPES = ("text", "tool_use", "tool_result", "thinking", "redacted_thinking", "image", "document")
+SHAPE_TOOL_NAMES = (*runner.DEFAULT_TOOLS, "Write", "Edit", "Bash", "Task", "ToolSearch")
+SHAPE_LIMIT = 64
+
 
 class GatewayError(runner.RunnerError):
     pass
@@ -117,6 +149,31 @@ def safe_stream_shape(value: dict) -> dict:
     }
 
 
+def safe_policy_shape(data: dict) -> dict:
+    def count(name: str) -> int | None:
+        value = data.get(name)
+        return min(value, SHAPE_LIMIT) if type(value) is int and value >= 0 else None
+
+    def names(name: str, allowed: tuple) -> list:
+        values = data.get(name)
+        if not isinstance(values, list):
+            return []
+        return sorted(
+            {value if isinstance(value, str) and value in allowed else "unknown" for value in values[:SHAPE_LIMIT]}
+        )
+
+    return {
+        "message_count": count("message_count"),
+        "tool_count": count("tool_count"),
+        "content_types": names("content_types", SHAPE_CONTENT_TYPES),
+        "tool_names": names("tool_names", SHAPE_TOOL_NAMES),
+        "tool_use_names": names("tool_use_names", SHAPE_TOOL_NAMES),
+        "has_thinking": data.get("has_thinking") is True,
+        "has_output_config": data.get("has_output_config") is True,
+        "has_context_management": data.get("has_context_management") is True,
+    }
+
+
 def safe_diagnostic(data: dict) -> dict:
     import re
 
@@ -147,6 +204,13 @@ def safe_diagnostic(data: dict) -> dict:
 
     if isinstance(data.get("stream_shape"), dict):
         result["stream_shape"] = safe_stream_shape(data["stream_shape"])
+    if "policy_error" in data:
+        code = data["policy_error"]
+        result["policy_error"] = (
+            code if isinstance(code, str) and code in POLICY_ERROR_CODES.values() else "unclassified_policy_failure"
+        )
+    if isinstance(data.get("policy_shape"), dict):
+        result["policy_shape"] = safe_policy_shape(data["policy_shape"])
     return result
 
 

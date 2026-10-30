@@ -76,6 +76,27 @@ class RunnerTest(unittest.TestCase):
         config = runner.RunConfig(model="m-1", max_turns=7, timeout=30, repeats=2, generate=generate)
         return runner.Runner(self.repo, self.out, config, execute=fake, environ=environ)
 
+    def test_interrupted_session_preserves_partial_evidence_without_a_completed_trial(self) -> None:
+        partial = '{"type":"system","subtype":"init"}\n'
+
+        def interrupted(_argv: list[str], _cwd: Path, _env: Mapping[str, str], _timeout: float) -> runner.Completed:
+            raise runner.Interrupted(runner.Completed(130, partial, "offline interrupted stderr"))
+
+        instance = self.make(interrupted, generate=False)
+        self.out.mkdir()
+        (self.out / "transcripts").mkdir()
+        with self.assertRaises(KeyboardInterrupt):
+            instance.session(self.repo, self.cases[0], 0)
+        name = runner.session_name(self.cases[0].id, 0)
+        evidence = self.out / "transcripts" / "interrupted"
+        self.assertEqual((evidence / f"{name}.jsonl").read_text(), partial)
+        self.assertEqual((evidence / f"{name}.stderr").read_text(), "offline interrupted stderr")
+        meta = json.loads((evidence / f"{name}.meta.json").read_text())
+        self.assertEqual(meta["returncode"], 130)
+        self.assertEqual(meta["error"], "interrupted; partial evidence is not a completed trial")
+        self.assertFalse(meta["bounded_failure"])
+        self.assertFalse((self.out / "transcripts" / f"{name}.meta.json").exists())
+
     def test_sessions_are_hermetic_reset_and_cleaned_up(self) -> None:
         fake = FakeAgent()
         metas = self.make(fake).run(runner.resolve_ref(self.repo, "main"), self.cases)

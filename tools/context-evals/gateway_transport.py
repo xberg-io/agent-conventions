@@ -94,6 +94,40 @@ def stream_shape(data: bytes) -> dict:
     return gateway.safe_stream_shape(shape)
 
 
+def policy_diagnostic(payload: dict, exception: Exception) -> dict:
+    value = payload if isinstance(payload, dict) else {}
+    messages, tools = value.get("messages"), value.get("tools")
+    messages = messages if isinstance(messages, list) else []
+    tools = tools if isinstance(tools, list) else []
+    content = [message.get("content") for message in messages[: gateway.SHAPE_LIMIT] if isinstance(message, dict)]
+    stack, kinds, names = [value.get("system"), *content], [], []
+    for _ in range(gateway.SHAPE_LIMIT):
+        if not stack:
+            break
+        block = stack.pop()
+        if isinstance(block, list):
+            stack.extend(block[: gateway.SHAPE_LIMIT])
+        elif isinstance(block, dict):
+            kinds.append(block.get("type"))
+            if block.get("type") == "tool_use":
+                names.append(block.get("name"))
+            elif block.get("type") == "tool_result":
+                stack.append(block.get("content"))
+    shape = {
+        "message_count": len(messages),
+        "tool_count": len(tools),
+        "content_types": kinds,
+        "tool_names": [tool.get("name") for tool in tools[: gateway.SHAPE_LIMIT] if isinstance(tool, dict)],
+        "tool_use_names": names,
+        "has_thinking": "thinking" in value,
+        "has_output_config": "output_config" in value,
+        "has_context_management": "context_management" in value,
+    }
+    message = str(exception) if type(exception) is gateway.GatewayError else ""
+    code = gateway.POLICY_ERROR_CODES.get(message, "unclassified_policy_failure")
+    return {"category": "policy", "policy_error": code, "policy_shape": gateway.safe_policy_shape(shape)}
+
+
 class Backend:
     def __init__(self, ledger: gateway.Ledger, provider: Provider) -> None:
         self.ledger, self.provider = ledger, provider
@@ -119,6 +153,8 @@ class Backend:
             return content_type, data
         except Exception as exc:
             diagnostic = exc.diagnostic if isinstance(exc, ProviderFailure) else metadata | {"category": stage}
+            if stage == "policy":
+                diagnostic = policy_diagnostic(payload, exc)
             if reservation is None:
                 self.ledger.stop("request policy or reservation refused", diagnostic)
             else:
@@ -516,13 +552,15 @@ def isolated_process(
     ]
     for reader in readers:
         reader.start()
-    deadline, timed_out = time.monotonic() + timeout, False
+    deadline, timed_out, interrupted = time.monotonic() + timeout, False, False
     try:
         while process.poll() is None:
             if failed.is_set() or time.monotonic() >= deadline:
                 timed_out = not failed.is_set()
                 break
             time.sleep(0.02)
+    except KeyboardInterrupt:
+        interrupted = True
     finally:
         if process.poll() is None:
             try:
@@ -534,12 +572,12 @@ def isolated_process(
         reader.join(timeout=2)
     if any(reader.is_alive() for reader in readers) or failed.is_set():
         raise gateway.GatewayError("CLI output failed its bounded capture contract")
-    return runner.Completed(
-        process.returncode,
-        output.decode("utf-8", errors="replace"),
-        errors.decode("utf-8", errors="replace"),
-        timed_out=timed_out,
-    )
+    stdout = output.decode("utf-8", errors="replace")
+    stderr = errors.decode("utf-8", errors="replace")
+    result = runner.Completed(130 if interrupted else process.returncode, stdout, stderr, timed_out=timed_out)
+    if interrupted:
+        raise runner.Interrupted(result)
+    return result
 
 
 def terminal_event(stdout: str) -> dict | None:
