@@ -19,9 +19,12 @@
       check: "The answer says a missing skip aborts the whole regen, leaving the tree stale."
   reference:
     facts:
-      [
-        "Extractor structs in crates/xberg/src/extractors carry #[cfg_attr(alef, alef(skip))] on the struct, e.g. odt.rs.",
-      ]
+      - >-
+        Put #[cfg_attr(alef, alef(skip))] on the DjvuExtractor struct declaration, not merely its impl block;
+        OdtExtractor in crates/xberg/src/extractors/odt.rs shows the required placement.
+      - >-
+        A missing struct-level skip can abort Alef regeneration globally, leaving packages/ and the other
+        generated bindings stale; fix the core struct annotation before regenerating.
     sources: [crates/xberg/src/extractors/odt.rs, alef.toml]
   sandbox: result
 
@@ -39,7 +42,15 @@
     - id: derive-default
       check: "The answer says to drop #[non_exhaustive] and derive Default instead, keeping #[non_exhaustive] only on types in [crates.exclude]."
   reference:
-    facts: ["alef.toml has a [crates.exclude] table; ChunkingConfig is binding-facing."]
+    facts:
+      - >-
+        Generated From impls construct the core type using a struct literal across crate boundaries;
+        #[non_exhaustive] forbids that external construction and causes E0639 in generated binding crates.
+      - >-
+        Remove #[non_exhaustive] from the binding-facing ChunkingConfig and retain its existing manual Default
+        implementation (1000 max characters and 200 overlap), rather than adding a conflicting derive(Default);
+        For binding-facing types without a Default implementation, provide or derive one; reserve
+        #[non_exhaustive] for types excluded in [crates.exclude].
     sources: [alef.toml, crates/xberg/src/core/config/processing.rs]
   sandbox: result
 
@@ -56,7 +67,13 @@
     - id: jni-owner
       check: "The answer says xberg-jni backs packages/kotlin-android."
   reference:
-    facts: ['alef.toml [crates.java] sets ffi_style = "panama".']
+    facts:
+      - >-
+        The Java package uses Panama FFM over xberg-ffi: alef.toml [crates.java] sets ffi_style = "panama";
+        Debug that FFI/native path for packages/java rather than assuming it uses xberg-jni.
+      - >-
+        xberg-jni backs packages/kotlin-android; it is the Kotlin Android JNI bridge, separate from the Panama
+        Java package.
     sources: [alef.toml, crates/xberg-jni]
   sandbox: result
 
@@ -75,9 +92,13 @@
       check: "The answer says to fix the Rust doc comment (or alef.toml) and regenerate with alef generate (or alef all)."
   reference:
     facts:
-      [
-        "mise run alef:verify runs alef verify --exit-code; there is no alef:generate task, so regeneration is alef generate or alef all.",
-      ]
+      - >-
+        Do not edit crates/xberg-py/src/lib.rs by hand: it is Alef-generated, and regeneration would restore the
+        typo.
+      - >-
+        Fix the originating Rust doc comment or alef.toml configuration, then regenerate with alef generate or
+        alef all; Run mise run alef:verify (alef verify --exit-code) afterward to check freshness; there is no
+        alef:generate task.
     sources: [crates/xberg-py/src/lib.rs, mise.toml]
   sandbox: result
 
@@ -93,7 +114,10 @@
     - id: poly
       check: "The answer says there is no alef:format task and formatting is done by poly (mise run format or poly fmt --fix .)."
   reference:
-    facts: ["mise.toml alef namespace has build, verify and verify:* tasks; no alef:format."]
+    facts:
+      - >-
+        There is no mise task alef:format; Format generated bindings with Poly through mise run format or poly
+        fmt --fix .; the Alef workflow also formats via Poly during regeneration.
     sources: [mise.toml]
   sandbox: result
 
@@ -133,9 +157,14 @@
       check: "The answer says a failed or missing host callback falls back to Default::default()."
   reference:
     facts:
-      [
-        "crates/xberg-ffi/src/lib.rs defines XbergOcrBackendBridge and deserializes returns with serde_json::from_str::<xberg::...>.",
-      ]
+      - >-
+        Generated trait return values cross the FFI bridge through JSON decoding with serde_json::from_str; The
+        new supported_scripts return type ScriptSet therefore needs Default + Serialize + Deserialize, including
+        when it is a unit-only enum.
+      - >-
+        For such a non-Result return, XbergOcrBackendBridge returns Default::default() when the host callback
+        slot is missing, fails, returns null or supplies invalid JSON, as its existing backend_type and related
+        methods demonstrate.
     sources: [crates/xberg-ffi/src/lib.rs, crates/xberg/src/plugins/ocr.rs]
   sandbox: result
 
@@ -171,7 +200,14 @@
     - id: order
       check: "The answer says the fix ships upstream, alef is released and the pinned version bumped, then xberg regenerates."
   reference:
-    facts: ["packages/go is generated from alef.toml [crates.go]."]
+    facts:
+      - >-
+        Ship the fix upstream, release Alef, bump the consumer's pinned Alef version, and only then regenerate
+        Xberg with that released tool; A locally modified sibling Alef checkout does not make the pinned
+        consumer reproducible.
+      - >-
+        Fix the reusable Option<u32> generation defect in the Alef repository; packages/go is generated output,
+        so work around it in Xberg only when necessary rather than treating the consumer as the generator owner.
     sources:
       [alef.toml, .ai-rulez/skills/polyrepo-boundaries/SKILL.md, .ai-rulez/skills/alef-generated-bindings/SKILL.md]
   sandbox: result
@@ -190,7 +226,14 @@
     - id: no-hand-edit
       check: "The answer says not to hand-edit the package version."
   reference:
-    facts: ["alef.toml [workspace.sync] lists the extra paths synced; version:sync runs alef sync-versions first."]
+    facts:
+      - >-
+        Run mise run version:sync: it invokes alef sync-versions to propagate the root Cargo.toml version to the
+        Alef-managed binding manifests, including the Python package, with extra paths configured by
+        [workspace.sync] in alef.toml.
+      - >-
+        Do not hand-edit the Python package version; use the version synchronization task so the binding
+        manifest remains aligned with the Rust core.
     sources: [alef.toml, mise.toml]
   sandbox: result
 
@@ -205,8 +248,8 @@
       check: "The answer asks which binding or language and what failure (build error, test failure, stale generated output) before changing anything."
   reference:
     facts:
-      [
-        "xberg generates bindings for Python, Node, Ruby, PHP, Elixir, WASM, Go, Java, C#, Dart, Kotlin Android, Swift, Zig and the C FFI from alef.toml.",
-      ]
+      - >-
+        Which binding/language is broken and what exact compilation error, e2e failure or generated-output
+        freshness diff do you see, including the failing command?
     sources: [alef.toml, packages]
   sandbox: result

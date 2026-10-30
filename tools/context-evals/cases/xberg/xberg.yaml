@@ -23,8 +23,12 @@
       check: "The answer names is_extractor_fallback_eligible or core/extractor/file.rs as where this is decided."
   reference:
     facts:
-      - "is_extractor_fallback_eligible matches only XbergError::UnsupportedFormat and XbergError::Plugin."
-      - "Parsing, Io, Ocr and Validation errors abort the extractor chain."
+      - >-
+        A Parsing error aborts the extractor chain by design; the absent fallback is not a bug.
+      - >-
+        Only XbergError::UnsupportedFormat and XbergError::Plugin are fallback-eligible, as decided by
+        is_extractor_fallback_eligible in crates/xberg/src/core/extractor/file.rs; Parsing, Io, Ocr and
+        Validation errors do not advance to another extractor.
     sources: [crates/xberg/src/core/extractor/file.rs]
   sandbox: result
 
@@ -46,8 +50,14 @@
       check: "The answer says builds without git metadata (Docker builds or crates.io tarballs) get an empty XBERG_BUILD_ID, which is when a CACHE_SCHEMA_VERSION bump is needed."
   reference:
     facts:
-      - "cache/version.rs folds CACHE_SCHEMA_VERSION and XBERG_BUILD_ID into the cache version tag."
-      - "build.rs emits XBERG_BUILD_ID; .dockerignore excludes **/.git/, so Docker builds have no git metadata."
+      - >-
+        Without git metadata and without an explicit XBERG_BUILD_ID override, build.rs emits an empty build ID;
+        Docker contexts exclude **/.git/ and crates.io source tarballs lack git metadata; same-version builds in
+        that situation need a CACHE_SCHEMA_VERSION bump when output behavior changes; An explicit nonempty
+        build-ID override is the supported escape hatch.
+      - >-
+        The cache version tag includes XBERG_BUILD_ID as well as the crate version, CACHE_SCHEMA_VERSION and
+        debug/release bit, so git-derived build IDs separate different commits without a manual schema bump.
     sources: [crates/xberg/src/cache/version.rs, crates/xberg/build.rs, .dockerignore]
   sandbox: result
 
@@ -87,7 +97,12 @@
       check: "The answer says batches go through POST /extract-async and are polled at /jobs/{job_id}."
   reference:
     facts:
-      - "router.rs registers /extract, /extract-async, /jobs/{job_id}, /detect and others; there is no /extract-url or /batch route."
+      - >-
+        URL ingestion is a field on the ExtractInput accepted by POST /extract, not a separate POST /extract-url
+        route.
+      - >-
+        Submit a batch through POST /extract-async and poll GET /jobs/{job_id} for its job status/result; there
+        is no POST /batch route; These routes are registered in crates/xberg/src/api/router.rs.
     sources: [crates/xberg/src/api/router.rs]
   sandbox: result
 
@@ -129,7 +144,11 @@
     - id: dispatch-only
       check: "The answer says benchmarks.yaml is dispatch-only and does not run on push or gate merges."
   reference:
-    facts: ["benchmarks.yaml triggers only on workflow_dispatch."]
+    facts:
+      - >-
+        No: .github/workflows/benchmarks.yaml is workflow_dispatch-only; It does not run automatically on push
+        or pull_request and does not automatically gate a merge; dispatch it explicitly for a quality
+        comparison.
     sources: [.github/workflows/benchmarks.yaml]
   sandbox: result
 
@@ -191,7 +210,12 @@
       check: "The answer says both defaults must be changed."
   reference:
     facts:
-      ["pub struct TesseractConfig exists in both crates/xberg/src/types/formats.rs and crates/xberg/src/ocr/types.rs."]
+      - >-
+        TesseractConfig has two separate definitions and Default implementations: the public type in
+        crates/xberg/src/types/formats.rs and the internal engine type in crates/xberg/src/ocr/types.rs.
+      - >-
+        Change both defaults together and keep their synchronization test passing; changing only one leaves the
+        public and internal OCR configurations inconsistent.
     sources: [crates/xberg/src/types/formats.rs, crates/xberg/src/ocr/types.rs]
   sandbox: result
 
@@ -213,8 +237,12 @@
       check: "The answer says to run mise run verify:docker-crates."
   reference:
     facts:
-      - ".dockerignore excludes everything and allowlists each crate with !crates/<name>/."
-      - "mise run verify:docker-crates runs scripts/ci/docker/check-dockerfile-crate-coverage.sh."
+      - >-
+        .dockerignore starts by ignoring everything and then allowlists individual crates; Add
+        !crates/xberg-djvu/ so the new workspace member reaches the Docker build context.
+      - >-
+        Run mise run verify:docker-crates, which invokes scripts/ci/docker/check-dockerfile-crate-coverage.sh,
+        to verify the Docker crate allowlist covers the workspace.
     sources: [.dockerignore, mise.toml]
   sandbox: result
 
@@ -231,7 +259,11 @@
     - id: constant
       check: "The answer says to derive the filter from xberg_native_pdf::LOG_TARGET_ROOT rather than a string literal."
   reference:
-    facts: ["crates/xberg-native-pdf/src/lib.rs defines pub const LOG_TARGET_ROOT: &str = module_path!()."]
+    facts:
+      - >-
+        Derive the tracing filter from xberg_native_pdf::LOG_TARGET_ROOT instead of hardcoding a target string;
+        crates/xberg-native-pdf/src/lib.rs defines that public constant with module_path!(), so it follows the
+        crate target name.
     sources: [crates/xberg-native-pdf/src/lib.rs]
   sandbox: result
 
@@ -249,7 +281,14 @@
     - id: names-check
       check: "The answer names mise run verify:feature-parity or scripts/ci/check-feature-parity.py."
   reference:
-    facts: ["check-feature-parity.py guards windows-target against full; only heic may be missing."]
+    facts:
+      - >-
+        Add the new code-bearing feature to windows-target as well as full, and update the other guarded
+        platform/subset feature lists where applicable; Windows is intended to retain the full surface except
+        the documented heic native blocker.
+      - >-
+        Run mise run verify:feature-parity; scripts/ci/check-feature-parity.py checks these guarded feature
+        relationships so a compiling Windows subset cannot silently omit functionality.
     sources: [scripts/ci/check-feature-parity.py, mise.toml]
   sandbox: result
 
@@ -265,7 +304,11 @@
     - id: keep-opt-level-1
       check: "The answer says no: opt-level 2 still crashed with SIGBUS in go:e2e."
   reference:
-    facts: ["Cargo.toml: sevenz-rust2 requires opt-level=1 specifically (opt-level=2 still SIGBUS'd in go:e2e)."]
+    facts:
+      - >-
+        No: retain opt-level = 1 for sevenz-rust2 in the release profile; Cargo.toml records that opt-level = 2
+        still crashed with SIGBUS in go:e2e; a standalone 7z round-trip is not evidence that the failing cgo
+        boundary is safe.
     sources: [Cargo.toml]
   sandbox: result
 
@@ -283,7 +326,14 @@
     - id: alef-skip
       check: "The answer mentions the extractor struct needs #[cfg_attr(alef, alef(skip))]."
   reference:
-    facts: ["SecurityBudget and ZipBombValidator are defined in extractors/security.rs."]
+    facts:
+      - >-
+        Use SecurityBudget threaded through the Office/ODF XML walkers to enforce nesting, event/iteration,
+        entity and output-growth limits; ZipBombValidator is not a substitute for that XML complexity budget;
+        ZIP-container validation is a separate concern, and OdtExtractor also has archive checks.
+      - >-
+        Put #[cfg_attr(alef, alef(skip))] on the new extractor struct declaration, as on OdtExtractor in
+        crates/xberg/src/extractors/odt.rs, so Alef does not try to bind the internal extractor type.
     sources: [crates/xberg/src/extractors/security.rs, crates/xberg/src/extractors/odt.rs]
   sandbox: result
 
@@ -336,7 +386,15 @@
     - id: font-info
       check: "The answer says hocr_font_info must be enabled for Tesseract typography (otherwise sizes fall back to a default)."
   reference:
-    facts: ["hocr_parser.rs reads x_fsize, which is present only when the hocr_font_info variable is enabled."]
+    facts:
+      - >-
+        Do not apply one 14 pt threshold to both backends: Tesseract font size comes from hOCR x_fsize
+        typography, while Paddle/Sceptre font size is a geometric detection-box proxy; They measure different
+        quantities.
+      - >-
+        Enable hocr_font_info=1 to obtain Tesseract typography; Without it x_fsize is absent and downstream font
+        sizes fall back to a default; a missing typography measurement is not comparable to the other backends'
+        geometric estimate.
     sources: [crates/xberg/src/ocr/hocr_parser.rs]
   sandbox: result
 
@@ -354,7 +412,14 @@
     - id: native
       check: "The answer says the native backend is the one with annotations, attachments and the full pipeline."
   reference:
-    facts: ["pdfium_engine.rs implements the pdfium comparison backend behind pdf-pdfium."]
+    facts:
+      - >-
+        The pdf-pdfium comparison backend intentionally has a narrower surface: text, page count and
+        Info-dictionary metadata; pdfium_engine.rs appends a processing warning about unsupported tables,
+        images, annotations, forms, embedded files and OCR fallback.
+      - >-
+        Use the default native PDF backend for the full pipeline, including annotations and attachments;
+        selecting Pdfium does not provide that native capability set.
     sources: [crates/xberg/src/extractors/pdf/pdfium_engine.rs, crates/xberg/Cargo.toml]
   sandbox: result
 
@@ -372,7 +437,14 @@
     - id: collision
       check: "The answer says an equal MIME and priority registration replaces the earlier entry (with a warning), so priorities should differ."
   reference:
-    facts: ["InternalDocumentExtractor and DocumentExtractor are both declared in plugins/extractor/trait.rs."]
+    facts:
+      - >-
+        An in-crate extractor implements InternalDocumentExtractor; crates/xberg/src/plugins/extractor/trait.rs
+        supplies DocumentExtractor through its blanket impl for InternalDocumentExtractor implementors.
+      - >-
+        The registry stores one extractor per MIME-type/priority slot; Registering a different extractor at the
+        same MIME and priority replaces the earlier slot and emits a warning; give the two extractors distinct
+        priorities to keep both reachable.
     sources: [crates/xberg/src/plugins/extractor/trait.rs, crates/xberg/src/plugins/registry/extractor.rs]
   sandbox: result
 
@@ -413,8 +485,14 @@
       check: "The answer gives a fix: symlink the main tree's test_documents into the worktree, or use a separate CARGO_TARGET_DIR in the main checkout."
   reference:
     facts:
-      - "test_documents is a submodule (.gitmodules)."
-      - "read_test_fixture prints SKIP: fixture ... not available and returns None when the file is absent."
+      - >-
+        A new git worktree does not populate the test_documents submodule; If its fixtures are absent,
+        read_test_fixture prints SKIP and returns None, so an apparently passing fixture suite can be a vacuous
+        control.
+      - >-
+        Make the corpus available in the control worktree, for example by symlinking the main checkout's
+        populated test_documents directory, or run the control in the main checkout with its own
+        CARGO_TARGET_DIR; Confirm the fixture-dependent tests actually execute.
     sources: [.gitmodules, crates/xberg/src/utils/mod.rs]
   sandbox: result
 
@@ -432,7 +510,14 @@
     - id: helper
       check: "The answer recommends crate::utils::read_test_fixture and returning early on None."
   reference:
-    facts: ["utils::read_test_fixture is pub(crate), cfg(test), and returns Option<Vec<u8>>."]
+    facts:
+      - >-
+        Do not use include_bytes! for a test_documents fixture: an unpopulated submodule would then cause a
+        compile-time build failure.
+      - >-
+        In a crate unit test use crate::utils::read_test_fixture, which returns Option<Vec<u8>>, and return
+        early on None; The helper reports the unavailable fixture and fetch instruction instead of making a
+        missing corpus a build failure.
     sources: [crates/xberg/src/utils/mod.rs]
   sandbox: result
 
@@ -448,7 +533,10 @@
     - id: limit
       check: "The answer cites the 2 MB MAX_HTML_SIZE_BYTES cap in extraction/html/stack_management.rs."
   reference:
-    facts: ["MAX_HTML_SIZE_BYTES = 2 * 1024 * 1024 in crates/xberg/src/extraction/html/stack_management.rs."]
+    facts:
+      - >-
+        The WASM HTML extraction cap is MAX_HTML_SIZE_BYTES = 2 * 1024 * 1024, or 2 MiB, in
+        crates/xberg/src/extraction/html/stack_management.rs.
     sources: [crates/xberg/src/extraction/html/stack_management.rs]
   sandbox: result
 
@@ -470,7 +558,15 @@
       check: "The answer mentions mise run version:check to detect drift."
   reference:
     facts:
-      - "mise.toml version:sync runs alef sync-versions, python3 scripts/sync_integration_versions.py, then plugin:generate."
+      - >-
+        Run mise run version:sync instead of hand-editing release manifests; It first runs alef sync-versions
+        for Alef-managed binding versions.
+      - >-
+        The following scripts/sync_integration_versions.py step owns integration versions and the Helm chart,
+        which Alef does not synchronize; the task also regenerates the public skills/plugin resources.
+      - >-
+        Run mise run version:check to detect integration/chart drift; It shows the Cargo version and runs
+        sync_integration_versions.py --check; it is not a dry-run of alef sync-versions.
     sources: [mise.toml, scripts/sync_integration_versions.py]
   sandbox: result
 
@@ -486,7 +582,11 @@
     - id: own-lockfile
       check: "The answer says packages under integrations/node are outside the pnpm workspace and use their own npm lockfile (package-lock.json)."
   reference:
-    facts: ["integrations/node/langchain-xberg has its own package-lock.json."]
+    facts:
+      - >-
+        The integrations/node packages are outside pnpm-workspace.yaml's package globs; Use each integration's
+        own npm package-lock.json, such as integrations/node/langchain-xberg/package-lock.json, rather than
+        assuming the root pnpm lockfile owns it.
     sources: [integrations/node/langchain-xberg/package-lock.json, pnpm-workspace.yaml]
   sandbox: result
 
@@ -503,7 +603,12 @@
     - id: max-pages
       check: "The answer says SecurityLimits.max_pages is the only guard on per-page work and defaults to None."
   reference:
-    facts: ["extractors/security.rs: pub max_pages: Option<usize> bounds page work; byte limits do not."]
+    facts:
+      - >-
+        SecurityLimits.max_pages is the explicit guard on how many pages/slides/frames enter supported per-page
+        pipelines and defaults to None, meaning unlimited; Byte-size limits do not bound that count or its
+        OCR/layout/rendering work; Set a workload-appropriate page cap explicitly; security.rs documents which
+        formats enforce it.
     sources: [crates/xberg/src/extractors/security.rs]
   sandbox: result
 
@@ -537,7 +642,11 @@
     - id: timeout
       check: "The answer says to use tokio::time::timeout, and that tokio::select! is reserved for MCP server and API startup paths."
   reference:
-    facts: ["tokio::select! appears only in api/startup.rs and mcp/server.rs."]
+    facts:
+      - >-
+        Use tokio::time::timeout for a slow extraction, not tokio::select! with a sleep branch; The extraction
+        async convention reserves select! for the MCP server and API startup paths, represented by mcp/server.rs
+        and api/startup.rs.
     sources: [crates/xberg/src/api/startup.rs, crates/xberg/src/mcp/server.rs]
   sandbox: result
 
@@ -551,7 +660,11 @@
     - id: no-entry
       check: "The answer says CI and dependency-maintenance changes do not get a CHANGELOG entry because they are not user-visible."
   reference:
-    facts: ["changelog-policy: omit CI, tests, generators and dependency maintenance unless users are affected."]
+    facts:
+      - >-
+        Do not add a user-facing CHANGELOG entry for CI-only or dependency-maintenance changes; The changelog
+        policy omits CI, tests, generators and dependency maintenance unless they affect user-visible behavior,
+        compatibility, packaging, installation, performance or security.
     sources: [.ai-rulez/rules/changelog-policy.md, CHANGELOG.md]
   sandbox: result
 
@@ -592,9 +705,13 @@
       check: "The answer asks for the distribution (median, cases that moved the other way) or accepted-page comparison rather than a single headline."
   reference:
     facts:
-      [
-        "measurement-discipline: a ratio over output whose length changed can show improvement while content is deleted.",
-      ]
+      - >-
+        Compare the absolute count of valid words, not just the valid-word ratio: deleting low-quality but real
+        content can raise the ratio while reducing useful extracted content.
+      - >-
+        Report the distribution, including the median and cases that moved the other way, or compare accepted
+        pages on the same inputs; A single favorable headline or a largest-delta tail is not a
+        population-quality result.
     sources: [.ai-rulez/rules/measurement-discipline.md]
   sandbox: result
 
@@ -612,7 +729,15 @@
     - id: names
       check: "The answer says private individuals' names in quoted text are written as [NAME]."
   reference:
-    facts: ["partner-corpus-handling defines sha1(relpath)[:10] ids and [NAME] redaction for private individuals."]
+    facts:
+      - >-
+        Refer to a document by sha1(relpath)[:10], with relpath relative to the corpus root, rather than its
+        filename or an absolute-path hash; Pair the opaque ID with its sha256 when an authorized recipient needs
+        the exact bytes.
+      - >-
+        When quoting evidence, replace a private individual's name with [NAME]; Prefer headings, numbers or
+        boilerplate; an official acting in an official capacity is distinguished from a private individual by
+        the document-corpus-handling policy.
     sources: [.claude/skills/document-corpus-handling/SKILL.md, ATTRIBUTIONS.md]
   sandbox: result
 
@@ -630,7 +755,11 @@
     - id: unit-scope
       check: "The answer proposes an ordinary Rust unit test next to the RTF extractor, not a benchmark fixture."
   reference:
-    facts: ["The RTF extractor lives under crates/xberg/src/extractors/rtf/."]
+    facts:
+      - >-
+        Add an ordinary Rust unit test beside the RTF extractor under crates/xberg/src/extractors/rtf/,
+        exercising the regression with the expected parsed result; This request does not require adding a
+        benchmark fixture or running the benchmark workflow.
     sources: [crates/xberg/src/extractors/rtf]
   sandbox: result
 
@@ -684,7 +813,13 @@
     - id: cache-or-ask
       check: "The answer either asks which surface (CLI extract, OCR, API, bindings) is stale, or explains that extraction and OCR caches key on XBERG_BUILD_ID and suggests disabling the cache."
   reference:
-    facts: ["Extraction and OCR caches include XBERG_BUILD_ID in their version tag."]
+    facts:
+      - >-
+        Which surface is stale (CLI extraction, OCR, the API or a language binding), and what command/input and
+        comparison produced the stale result?
+      - >-
+        The public cache version tag combines the crate/schema version, build identity and debug/release
+        profile; these are distinct inputs to cache identity.
     sources: [crates/xberg/src/cache/version.rs]
   sandbox: result
 
@@ -713,7 +848,10 @@
     - id: which
       check: "The answer asks which tests or job are failing (or for the failure output) instead of guessing."
   reference:
-    facts: ["xberg has Rust tests, generated e2e suites in e2e/ and benchmark-harness tests."]
+    facts:
+      - >-
+        Which tests or CI job are failing, and can you provide the failing command/job and error output before a
+        fix is chosen?
     sources: [e2e, mise.toml]
   sandbox: procedure
 
@@ -729,9 +867,8 @@
       check: "The answer uses mise run version:bump:major|minor|patch, or asks which bump level is wanted."
   reference:
     facts:
-      [
-        "mise-tasks/shared.toml defines version:bump:major, version:bump:minor, version:bump:patch, each followed by version:sync.",
-      ]
+      - >-
+        Which semantic-version bump do you want: major, minor or patch?
     sources: [mise-tasks/shared.toml]
   sandbox: procedure
 
@@ -746,7 +883,10 @@
     - id: async
       check: "The answer says to submit to POST /extract-async and poll GET /jobs/{job_id}."
   reference:
-    facts: ["router.rs registers /extract-async and /jobs/{job_id} with status and cancel handlers."]
+    facts:
+      - >-
+        Submit long-running work to POST /extract-async and poll GET /jobs/{job_id} for completion/result
+        instead of holding the synchronous upload request open for five minutes.
     sources: [crates/xberg/src/api/router.rs]
   sandbox: result
 

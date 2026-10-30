@@ -8,12 +8,17 @@
   prompt: "For the 1.5.0 release, should I edit version and appVersion in charts/xberg/Chart.yaml myself?"
   behaviour: answer
   must_use: [xberg-release]
-  expect: ['sync_integration_versions|version:sync']
+  expect: ["sync_integration_versions|version:sync"]
   criteria:
     - id: script-owns
       check: "The answer says the chart's version, appVersion, ArtifactHub image tag and prerelease flag are written by scripts/sync_integration_versions.py (run via mise run version:sync), not by hand."
   reference:
-    facts: ["sync_integration_versions.py syncs charts/xberg/Chart.yaml and its README; Chart.yaml carries the version in several places."]
+    facts:
+      - >-
+        Do not edit the chart release fields by hand; Run mise run version:sync:
+        scripts/sync_integration_versions.py writes charts/xberg/Chart.yaml's version, appVersion,
+        artifacthub.io/images tag and artifacthub.io/prerelease flag from the core version, and synchronizes the
+        chart README.
     sources: [scripts/sync_integration_versions.py, charts/xberg/Chart.yaml]
   sandbox: result
 
@@ -29,7 +34,12 @@
     - id: image-exists
       check: "The answer says appVersion, the container tag and every artifacthub.io/images entry must name an image that exists in GHCR."
   reference:
-    facts: ["values.yaml image tag defaults to Chart.AppVersion when empty."]
+    facts:
+      - >-
+        Before publishing, verify that the chart appVersion, the selected container image tag and every
+        artifacthub.io/images entry all name images that actually exist in GHCR; An empty image.tag uses
+        Chart.AppVersion; a chart naming a missing compatibility tag can publish successfully while Artifact Hub
+        image scanning fails.
     sources: [charts/xberg/Chart.yaml, charts/xberg/values.yaml]
   sandbox: procedure
 
@@ -39,12 +49,16 @@
   cwd: charts/xberg
   prompt: "How do I install xberg on our Kubernetes cluster with this repo's chart and pin the image tag?"
   behaviour: answer
-  must_not_mention: ['(?i)ArgoCD', '(?i)Mimir', '(?i)xberg-enterprise']
+  must_not_mention: ["(?i)ArgoCD", "(?i)Mimir", "(?i)xberg-enterprise"]
   must_not_use: [gcloud-conventions]
   criteria:
     - id: chart-values
       check: "The answer uses the charts/xberg chart and sets image.tag in values (which otherwise defaults to the chart appVersion)."
   reference:
-    facts: ["charts/xberg/values.yaml: image.repository xberg-io/xberg, tag empty defaults to Chart.AppVersion."]
+    facts:
+      - >-
+        Install the charts/xberg chart with Helm and pin its image through values, for example helm upgrade
+        --install xberg ./charts/xberg --set image.tag=<version>; image.registry defaults to ghcr.io and
+        image.repository to xberg-io/xberg; an empty image.tag defaults to the chart appVersion.
     sources: [charts/xberg/values.yaml, charts/xberg/Chart.yaml]
   sandbox: procedure
