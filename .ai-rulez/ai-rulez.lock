@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.2'
 scope = 'all'
-tree = 'sha256:0fab2197ff349f28904de31d0d1a63794b9e448800cef198ebe010e311bbb1f8'
+tree = 'sha256:fe5a6304f369288f7bd2668edf3ba6bafac688ab2dfe9f708c1c0c16ebcd1356'
 
 [[served]]
 name = 'agent-coordination'
@@ -178,7 +178,7 @@ digest = 'sha256:8cbcbbfc52e0443832bcaefec2c99ffb8755deb5a36b2bb720c6daf4c407831
 kind = 'context'
 id = 'area-map'
 path = 'context/area-map.md'
-digest = 'sha256:57e25d0d5e43bf93a53cc65f0e760020f9f77c1219b5e170c982d84882e606a7'
+digest = 'sha256:bb47380b8076f98da183aa2c2179c27acf304423f8a63417947b705a349af9a7'
 
 [[item]]
 kind = 'local-include'

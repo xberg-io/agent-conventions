@@ -182,8 +182,8 @@ materialized local output. See [CONTRIBUTING.md](CONTRIBUTING.md) for editing an
 
 The public [`skills/`](skills/) directory contains the Agent Skills maintained in these modules
 plus the ai-rulez built-in governance skills. A native ai-rulez provider projects their consumer frontmatter
-and supporting resources; edit the source modules and run `mise run skills:generate`, then
-`mise run skills:check`. The generated export is committed and checked in CI.
+and supporting resources; edit the source modules and run `ai-rulez generate --no-local --strict-config`,
+then `mise run governance:check`. The generated export is committed and checked in CI.
 
 ```sh
 npx skills add xberg-io/agent-conventions --skill release-workflow
