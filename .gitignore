@@ -41,3 +41,4 @@ plugin/.ai-rulez/.generated-manifest.json
 # Machine-local ai-rulez overlays; kept outside the managed block so a regenerate cannot drop them.
 .ai-rulez/config.local.*
 .ai-rulez/local/
+.env
