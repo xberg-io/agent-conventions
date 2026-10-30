@@ -62,8 +62,14 @@ class BoundedExecute:
             raise runner.RunnerError("paid call returned no valid cost; reservation retained, stopping round")
         with self.connection() as db:
             db.execute("UPDATE calls SET charged = ?, settled = 1 WHERE rowid = ?", (cost, reservation))
-        if cost > self.per_call or done.timed_out or done.returncode or result.get("is_error"):
-            raise runner.RunnerError("paid call failed or exceeded its cap; stopping round")
+        case_limit = result.get("subtype") == "error_max_turns"
+        if cost > self.per_call or done.timed_out or ((done.returncode or result.get("is_error")) and not case_limit):
+            evidence = self.path.parent / "failed-calls"
+            evidence.mkdir(exist_ok=True)
+            (evidence / f"{reservation}.jsonl").write_text(done.stdout)
+            raise runner.RunnerError(
+                f"paid call failed ({result.get('subtype')}, ${cost:.4f}, cap ${self.per_call:.2f}); stopping round"
+            )
         return done
 
     @staticmethod

@@ -49,6 +49,15 @@ class BudgetTest(unittest.TestCase):
                 paid(["claude", "-p", "test"], Path(tmp), {}, 1)
             self.assertAlmostEqual(paid.spent(), 0.2)
 
+    def test_turn_limit_failure_is_returned_for_case_scoring(self) -> None:
+        result = runner.Completed(
+            1, json.dumps({"total_cost_usd": 0.05, "is_error": True, "subtype": "error_max_turns"}), ""
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            paid = budget.BoundedExecute(Path(tmp) / "budget.sqlite3", 1, 0.2, lambda *_args: result)
+            self.assertEqual(paid(["claude", "-p", "test"], Path(tmp), {}, 1), result)
+            self.assertAlmostEqual(paid.spent(), 0.05)
+
     def test_non_model_commands_are_not_charged(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             paid = budget.BoundedExecute(

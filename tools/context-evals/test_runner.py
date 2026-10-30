@@ -160,6 +160,26 @@ class RunnerTest(unittest.TestCase):
             runner.Runner(self.repo, self.out, config, execute=failing, environ=ENV).run(self.commit, self.cases)
         self.assertEqual(len(git(self.repo, "worktree", "list").splitlines()), 1)
 
+    def test_resume_reuses_saved_sessions_without_new_model_calls(self) -> None:
+        fake = FakeAgent()
+        configured = self.make(fake)
+        configured.run(self.commit, self.cases)
+        again = FakeAgent()
+        resumed = self.make(again)
+        resumed.config.resume = True
+        metas = resumed.run(self.commit, self.cases)
+        self.assertEqual(len(metas), 4)
+        self.assertEqual([c for c in again.calls if c["argv"][0] == "claude"], [])
+
+    def test_parallel_workers_keep_separate_checkouts(self) -> None:
+        fake = FakeAgent()
+        configured = self.make(fake)
+        configured.config.jobs = 2
+        metas = configured.run(self.commit, self.cases)
+        calls = [c for c in fake.calls if c["argv"][0] == "claude"]
+        self.assertEqual(len(metas), 4)
+        self.assertEqual(len({c["cwd"].parents[1] if c["cwd"].name == "xberg" else c["cwd"] for c in calls}), 2)
+
     def test_unknown_ref_is_an_error(self) -> None:
         with self.assertRaises(runner.RunnerError):
             runner.resolve_ref(self.repo, "no-such-ref")

@@ -143,6 +143,14 @@ class HarnessTest(unittest.TestCase):
         with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
             harness.main(["run", "--repo", str(self.repo), "--ref", "main", "--out", str(self.base / "x")])
 
+    def test_incomplete_run_cannot_report_a_successful_score(self) -> None:
+        out = self.run_harness("missing-transcript")
+        transcript = next((out / "transcripts").glob("*.jsonl"))
+        transcript.unlink()
+        code, _, err = self.main("score", str(out))
+        self.assertEqual(code, 2)
+        self.assertIn("expected 6 sessions, found 5", err)
+
     def test_judge_masks_until_validated_then_report(self) -> None:
         out = self.run_harness("hold", BASE, "--split", "holdout")
         code, stdout, err = self.main("judge", str(out), "--model", "judge-m")
@@ -177,6 +185,17 @@ class HarnessTest(unittest.TestCase):
         code, _, err = self.main("judge", str(out), "--model", "other-judge")
         self.assertEqual(code, 0)
         self.assertIn("validity report is for another judge", err)
+        self.assertEqual(
+            records.read_sessions(out / "sessions.jsonl")[0].criteria, {"names-dpi-default": None, "names-engine": None}
+        )
+
+    def test_failed_mutation_validation_keeps_criteria_unscored(self) -> None:
+        out = self.run_harness("invalid-judge", BASE, "--split", "holdout")
+        self.main("judge-validate", str(out), "--model", "judge-m", "--second-model", "judge-n")
+        path = out / "judge/validity.json"
+        validity = json.loads(path.read_text())
+        path.write_text(json.dumps({**validity, "judge_valid": False}))
+        self.main("judge", str(out), "--model", "judge-m")
         self.assertEqual(
             records.read_sessions(out / "sessions.jsonl")[0].criteria, {"names-dpi-default": None, "names-engine": None}
         )

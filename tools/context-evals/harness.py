@@ -101,7 +101,7 @@ def cmd_validate_cases(args: argparse.Namespace) -> int:
 def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[str, str]) -> int:
     domains = load_domains(args.domains)
     out: Path = args.out.resolve()
-    if out.exists() and any(out.iterdir()):
+    if out.exists() and any(out.iterdir()) and not args.resume:
         raise HarnessError(f"{out} is not empty; every run gets a fresh directory")
     corpus = cases_mod.load_corpus(args.cases_dir, domains)
     name = args.repo_name or args.repo.resolve().name
@@ -115,6 +115,8 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         timeout=args.timeout,
         repeats=args.repeats,
         generate=not args.skip_generate,
+        jobs=args.jobs,
+        resume=args.resume,
     )
     commit = runner.resolve_ref(args.repo.resolve(), args.ref)
     started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -139,6 +141,13 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         "cases": [c.id for c in selected],
         "started_at": started,
     }
+    if args.resume:
+        previous = read_json(out / "run.json")
+        stable = ("commit", "model", "split", "repeats", "max_turns", "timeout", "case_corpus_hash", "harness_version")
+        if any(previous.get(key) != meta[key] for key in stable):
+            raise HarnessError("resume parameters differ from the recorded run")
+        meta["started_at"], meta["run_id"] = previous["started_at"], previous["run_id"]
+    meta["jobs"] = args.jobs
     write_json(out / "run.json", meta)
     write_json(out / "cases.json", [asdict(c) for c in selected])
     runner.Runner(args.repo, out, config, execute=execute, environ=environ).run(commit, selected)
@@ -171,6 +180,9 @@ def score_run(run_dir: Path, domains: dict) -> int:
                     root=info.root if info else None,
                 )
             )
+    expected = len(meta["cases"]) * meta["repeats"]
+    if len(out) != expected:
+        raise HarnessError(f"expected {expected} sessions, found {len(out)}; run is incomplete")
     apply_judge(run_dir, out)
     records.write_sessions(run_dir / "sessions.jsonl", out)
     errors = sum(1 for r in out if r.error)
@@ -194,7 +206,7 @@ def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
             and models <= {validity.get("models", {}).get("primary")}
         )
         if same:
-            valid = set(validity["valid_criteria"])
+            valid = set(validity["valid_criteria"]) if validity.get("judge_valid") else set()
         else:
             print("warning: judge validity report is for another judge; criteria stay None", file=sys.stderr)
     judge.apply(sessions, rows, valid)
@@ -393,6 +405,8 @@ def parser() -> argparse.ArgumentParser:
     r.add_argument("--split", choices=("tune", "holdout", "all"), default="tune")
     r.add_argument("--repeats", type=int, default=3)
     r.add_argument("--max-turns", type=int, default=20)
+    r.add_argument("--jobs", type=int, default=1)
+    r.add_argument("--resume", action="store_true", help="reuse saved sessions with identical run parameters")
     r.add_argument("--timeout", type=float, default=600.0)
     r.add_argument("--skip-generate", action="store_true", help="the ref has its generated outputs committed")
     r.add_argument("--out", type=Path, required=True)

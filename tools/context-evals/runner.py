@@ -19,6 +19,7 @@ import subprocess
 import tempfile
 import time
 from collections.abc import Callable, Iterator, Mapping
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -174,11 +175,13 @@ class RunConfig:
     repeats: int = 1
     allowed_tools: tuple[str, ...] = DEFAULT_TOOLS
     generate: bool = True
+    jobs: int = 1
+    resume: bool = False
 
     def __post_init__(self) -> None:
         if not self.model:
             raise RunnerError("a model is required")
-        if self.repeats < 1 or self.max_turns < 1 or self.timeout <= 0:
+        if self.repeats < 1 or self.max_turns < 1 or self.timeout <= 0 or self.jobs < 1:
             raise RunnerError("repeats, max turns and timeout must be positive")
 
 
@@ -244,20 +247,34 @@ class Runner:
         (transcripts / f"{name}.meta.json").write_text(json.dumps(asdict(meta), indent=2) + "\n")
         return meta
 
+    def run_worker(self, commit: str, cases: list[Case], index: int) -> list[SessionMeta]:
+        metas = []
+        with worktree(self.repo, commit) as checkout:
+            self.generate(checkout)
+            if index == 0:
+                snapshot_context(checkout, self.out / "context")
+            for case in cases:
+                for repeat in range(self.config.repeats):
+                    previous = read_meta(self.out / "transcripts", case.id, repeat) if self.config.resume else None
+                    raw = self.out / "transcripts" / f"{session_name(case.id, repeat)}.jsonl"
+                    if previous is not None and raw.is_file():
+                        metas.append(previous)
+                        continue
+                    metas.append(self.session(checkout, case, repeat))
+                    self.reset(checkout)
+        return metas
+
     def run(self, commit: str, cases: list[Case]) -> list[SessionMeta]:
         preflight(self.environ)
         if shutil.which("git") is None:
             raise RunnerError("git is not on PATH")
         (self.out / "transcripts").mkdir(parents=True, exist_ok=True)
-        metas = []
-        with worktree(self.repo, commit) as checkout:
-            self.generate(checkout)
-            snapshot_context(checkout, self.out / "context")
-            for case in cases:
-                for repeat in range(self.config.repeats):
-                    metas.append(self.session(checkout, case, repeat))
-                    self.reset(checkout)
-        return metas
+        jobs = min(self.config.jobs, len(cases))
+        if jobs <= 1:
+            return self.run_worker(commit, cases, 0)
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            pending = [pool.submit(self.run_worker, commit, cases[i::jobs], i) for i in range(jobs)]
+            return [meta for future in pending for meta in future.result()]
 
 
 def read_meta(transcripts: Path, case_id: str, repeat: int) -> SessionMeta | None:
