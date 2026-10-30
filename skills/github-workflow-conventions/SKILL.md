@@ -1,7 +1,7 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:a5b2c15c42c13fdd9c1e942e57c8a712b4ab308bbcf74c44edbf2aaaaa02dc39
+# Content-Hash: blake3:63119887156587d864719f226c95b3d4dc9607417461015fbadd497c8876c490
 ---
 
 # GitHub workflow conventions
@@ -51,8 +51,8 @@ A release may call a deployment workflow after its publication and verification 
 <!-- ai-rulez-lint-ignore: AR021 ~keep -->
 - Tasks run `npx -y ai-rulez@latest`: ai-rulez is never pinned (org ADR-0015). Workflows use
   `xberg-io/actions/setup-ai-rulez@v1`, which installs latest whatever `ai-rulez-version` says. The
-  ai-rulez hook source in `poly.toml` uses the floating `revision = "v5"`; its hooks run `ai-rulez`
-  from PATH (`npm install -g ai-rulez@latest`) until Goldziher/ai-rulez#526 adds an npm channel.
+  ai-rulez hook source in `poly.toml` uses the floating `revision = "v5"`; its hooks run on poly's
+  `npm` channel, npx at the npm `latest` tag (org ADR-0017).
 
 ## Rename and release audit
 

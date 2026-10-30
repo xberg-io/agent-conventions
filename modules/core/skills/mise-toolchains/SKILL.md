@@ -50,8 +50,8 @@ ai-rulez is in no baseline, `mise.toml` or `mise.lock`, and always runs the late
 - Tasks: `npx -y` at the npm `latest` tag, the command the toolchain-management rule gives. It needs Node 22 or
   later (in the baseline); the shim downloads the release binary and verifies its checksum.
 - CI: `xberg-io/actions/setup-ai-rulez@v1`, which installs latest whatever `ai-rulez-version` says.
-- Hooks: the poly hooks run `ai-rulez` from PATH (`npm install -g ai-rulez@latest`, rerun to update) until
-  Goldziher/ai-rulez#526 adds an npm channel.
+- Hooks: `governance:hooks:install` allows the poly hooks' `npm` channel first (npx at the npm `latest` tag, org
+  ADR-0017), then `system` (an `ai-rulez` on PATH).
 
 A release that changes output turns `generate --check`, `lock --check` and the context budgets red; regenerate,
 re-lock and re-measure in one sweep.

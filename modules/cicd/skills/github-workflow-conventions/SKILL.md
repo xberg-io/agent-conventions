@@ -59,8 +59,8 @@ A release may call a deployment workflow after its publication and verification 
 <!-- ai-rulez-lint-ignore: AR021 ~keep -->
 - Tasks run `npx -y ai-rulez@latest`: ai-rulez is never pinned (org ADR-0015). Workflows use
   `xberg-io/actions/setup-ai-rulez@v1`, which installs latest whatever `ai-rulez-version` says. The
-  ai-rulez hook source in `poly.toml` uses the floating `revision = "v5"`; its hooks run `ai-rulez`
-  from PATH (`npm install -g ai-rulez@latest`) until Goldziher/ai-rulez#526 adds an npm channel.
+  ai-rulez hook source in `poly.toml` uses the floating `revision = "v5"`; its hooks run on poly's
+  `npm` channel, npx at the npm `latest` tag (org ADR-0017).
 
 ## Rename and release audit
 

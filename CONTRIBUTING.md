@@ -50,7 +50,7 @@ Agent Conventions is written following strict AI engineering practices. That is,
 ### Conventions
 
 ai-rulez is never pinned and always runs the latest release: tasks through `npx -y ai-rulez@latest`, CI through
-`xberg-io/actions/setup-ai-rulez`, and the hooks from a global `npm install -g ai-rulez@latest`. Edit authored content under
+`xberg-io/actions/setup-ai-rulez`, and the hooks through poly's `npm` channel. Edit authored content under
 `.ai-rulez/`; `AGENTS.md`, `CLAUDE.md` and harness directories are generated outputs.
 The main `config.toml` selects the `plugins` layer through `default_layers`; marketplace and
 plugin settings live separately in `config.plugins.toml`.

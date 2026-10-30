@@ -23,3 +23,4 @@ convention. Repository logs cite these records as `org ADR-NNNN` instead of rest
 | [0014](../adrs/0014-shared-assets-and-distribution-channels.md) | Shared assets and distribution channels | accepted | 2026-08-07 |
 | [0015](../adrs/0015-ai-rulez-runs-at-latest-through-npx.md) | ai-rulez runs at latest through npx | accepted | 2026-10-30 |
 | [0016](../adrs/0016-agent-plugin-bundles-ship-local-brand-assets.md) | Agent plugin bundles ship local brand assets | accepted | 2026-10-30 |
+| [0017](../adrs/0017-the-poly-hooks-run-ai-rulez-through-the-npm-channel.md) | The poly hooks run ai-rulez through the npm channel | accepted | 2026-10-30 |

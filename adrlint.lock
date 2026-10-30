@@ -85,3 +85,8 @@ blake3 = "3eb9b4a52335e676a3d63c7be6ceb37dc74f41b6ef9175987ff97f3d554f8760"
 number = 16
 status = "accepted"
 blake3 = "2d1436abcaf68da741553f1d952ecdf7f970f6fd877ed75b264d3881db4b810f"
+
+[adrs."adrs/0017-the-poly-hooks-run-ai-rulez-through-the-npm-channel.md"]
+number = 17
+status = "accepted"
+blake3 = "eb2a57fee8ac2432dc7ce6d9db16fbae41d320eb8634895926e987930c44edf6"

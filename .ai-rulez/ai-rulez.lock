@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.6'
 scope = 'all'
-tree = 'sha256:9a312aeee9c9ee1d5021c66212548a77ff5b3cda854d8bf5302c5e5a81253e94'
+tree = 'sha256:7f80c9dcddf81088b9ca0a7a83bf71f9e9e34832aa695cbf0ac928624ec575f5'
 
 [[served]]
 name = 'adr-authoring'
@@ -94,7 +94,7 @@ digest = 'sha256:276aed60958b6479e146a688351a39e70364b48ba74fd0cf272af8b74c1b6cb
 name = 'github-workflow-conventions'
 source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:3a13a940f3dc82330ef632bf2f9ee36fb561940566a43286b703e61d8a788530'
+digest = 'sha256:a0ae86e372033aacc75a08d3f9967a2740d09e141f48a0dd5724600c6efc4022'
 
 [[served]]
 name = 'incremental-approach'
@@ -118,7 +118,7 @@ digest = 'sha256:31534b5c6a3277702ec20250ac3791d5a55c3d2e7ed288f81afe7100bd6ae68
 name = 'mise-toolchains'
 source = 'include:public-core/skills/mise-toolchains/SKILL.md'
 commit = ''
-digest = 'sha256:5ff1c382dfbd0c7a9cf99e3880abfe2a8cb7546f6d25787d4b48645b09464641'
+digest = 'sha256:dd45aafb89b7f46bb3e95ff9b66cb93e331d55e59c30e76614d58c69263ff4c4'
 
 [[served]]
 name = 'owasp-quick-reference'
@@ -196,13 +196,13 @@ digest = 'sha256:3fa45fe6fdc8ba694de701aa7e60eaee22c4ca98796d66203367fea374e7853
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:ef4f00d543dc51e5350fb45cb9ea35d73c0e62f727d5e495d70abea202b0075e'
+digest = 'sha256:27dde8ff43bc9d3a5d0cc2298e5d48c0b1ad7d35145d1cc0559dd1eb4f9d0d7e'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:eb2d1fec51c5e08501e90df9f89cc2d4c24169808a033a1a6bfe89aa83815d35'
+digest = 'sha256:37e5016f376e883dacebfa3ed559c9354756210108e4c948eaf2e59c4fa0e3dc'
 
 [[item]]
 kind = 'local-include'

@@ -156,7 +156,7 @@ gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put ma
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
 your repository uses, by version range (`version = "^1"`; the lock records the exact tag and commit). ai-rulez is never
 pinned and always runs the latest release: tasks through `npx -y ai-rulez@latest`, CI through
-`xberg-io/actions/setup-ai-rulez`, and the hooks from a global `npm install -g ai-rulez@latest`. Validate and
+`xberg-io/actions/setup-ai-rulez`, and the hooks through poly's `npm` channel. Validate and
 regenerate after editing sources:
 
 ```sh
