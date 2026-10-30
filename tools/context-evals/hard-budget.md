@@ -119,3 +119,9 @@ separate counter. A crash or failed check rolls back the complete transition.
 After an independently reviewed transition, any permitted continuation uses fresh output directories with the
 same original repository refs and case corpus. Old runs, transcripts and provenance remain unchanged. No
 transition or paid continuation is implied by these offline tests; both require the reviewed operator action.
+
+A terminal CLI `error_max_turns` remains a failed evaluation session with its original return code, transcript
+and turn limit. It alone does not stop the financial round when its exact known terminal schema and initialized
+model/tool profile match, every request in the current epoch is settled, and this controller owns settled
+requests. Existing stops, unknown failures, timeouts, malformed terminals, profile drift and unsettled or
+uncertain billing still stop the round. This classification does not turn a failed task into a successful answer.
