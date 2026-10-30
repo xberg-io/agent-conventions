@@ -25,6 +25,24 @@ CREDENTIAL_PATHS = (
 )
 
 
+PROCESS_ENV_PROBE = """import ctypes,json,os,sys
+libc=ctypes.CDLL(None,use_errno=True)
+def inspect(pid,marker):
+    mib=(ctypes.c_int*3)(1,49,pid);size=ctypes.c_size_t()
+    first=libc.sysctl(mib,3,None,ctypes.byref(size),None,0)
+    code=ctypes.get_errno()
+    if first!=0:return {'rc':first,'errno':code,'visible':False}
+    if not 0<size.value<1048576:raise RuntimeError('invalid bounded fixture process size')
+    buffer=ctypes.create_string_buffer(size.value)
+    ctypes.set_errno(0)
+    second=libc.sysctl(mib,3,buffer,ctypes.byref(size),None,0)
+    return {'rc':second,'errno':ctypes.get_errno(),'visible':(b'ANTHROPIC_API_KEY='+marker) in buffer.raw}
+print(json.dumps({'own_environment_available':os.environ.get('ANTHROPIC_API_KEY')=='OFFLINE_CHILD_ONLY',
+                  'self':inspect(os.getpid(),b'OFFLINE_CHILD_ONLY'),
+                  'sibling':inspect(int(sys.argv[1]),b'OFFLINE_SIBLING_ONLY')}))
+"""
+
+
 def stream_body(final_usage: dict | None = None) -> bytes:
     initial = usage()
     initial["output_tokens"] = 0
@@ -517,3 +535,46 @@ print(json.dumps(rows))
             os.link(source, home / "alias")
             with self.assertRaises(gateway.GatewayError):
                 gateway_transport.file_profile(workspace, home)
+
+
+@unittest.skipUnless(sys.platform == "darwin", "macOS process boundary")
+class ProcessBoundaryTest(unittest.TestCase):
+    def test_sysctl_can_read_self_but_cannot_recover_a_controlled_siblings_dummy_key(self) -> None:
+        import errno
+        import subprocess
+
+        probe = PROCESS_ENV_PROBE
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            workspace, home = root / "case", root / "home"
+            workspace.mkdir()
+            home.mkdir()
+            executable = str(Path(sys.executable).resolve())
+            sibling = subprocess.Popen(
+                [executable, "-I", "-c", "import time;time.sleep(30)"],
+                env={"PATH": "/usr/bin:/bin", "ANTHROPIC_API_KEY": "OFFLINE_SIBLING_ONLY"},
+            )
+            try:
+                self.assertIsNone(sibling.poll())
+                command = gateway_transport.sandbox_command(
+                    12345, [executable, "-I", "-c", probe, str(sibling.pid)], workspace=workspace, home=home
+                )
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    env={"PATH": "/usr/bin:/bin", "ANTHROPIC_API_KEY": "OFFLINE_CHILD_ONLY"},
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                rows = json.loads(result.stdout)
+                self.assertTrue(rows["own_environment_available"])
+                self.assertEqual(rows["self"]["rc"], 0, rows)
+                self.assertTrue(rows["self"]["visible"])
+                self.assertEqual(rows["sibling"]["rc"], -1, rows)
+                self.assertIn(rows["sibling"]["errno"], (errno.EACCES, errno.EPERM))
+                self.assertFalse(rows["sibling"]["visible"])
+                self.assertIsNone(sibling.poll())
+            finally:
+                sibling.terminate()
+                sibling.wait(timeout=5)

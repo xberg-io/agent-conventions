@@ -50,7 +50,9 @@ The same sandbox denies writes globally, allowing only the isolated session home
 TMPDIR/config/cache) and `/dev/null`. The case worktree, controller source and budget ledger remain read-only.
 Direct and symlink writes are denied; new hardlinks are denied and preexisting writable-home hardlinks are
 refused before launch. Generic Mach/AppleEvent brokers and privileged task-port access are also denied so
-project hooks cannot delegate protected-file access to another process.
+project hooks cannot delegate protected-file access to another process. Process information is restricted to
+the sandboxed process itself: an actual `sysctl(KERN_PROCARGS2)` fixture proves a sibling's dummy API key cannot
+be recovered from its environment, while self inspection remains available.
 
 The sandbox denies reads from the original home directory, with narrow exceptions for the session
 worktree, its temporary home and exact CLI/Python runtime directories. Environment files and common private-key

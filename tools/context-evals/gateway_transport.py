@@ -158,9 +158,12 @@ def sandbox_command(
 
     if sys.platform != "darwin" or not 0 < port < 65536:
         raise gateway.GatewayError("hard-budget OS network confinement is unavailable")
+    # ~keep KERN_PROCARGS2 needs a sysctl-read denial; process-info alone does not protect sibling environments.
     profile = (
         "(version 1)(allow default)(deny file-write*)(deny file-link)"
-        "(deny mach-lookup)(deny appleevent-send)(deny mach-priv-task-port)(deny network*)"
+        "(deny mach-lookup)(deny appleevent-send)(deny mach-priv-task-port)"
+        "(deny process-info*)(allow process-info* (target self))"
+        '(deny sysctl-read (sysctl-name-prefix "kern.proc"))(deny network*)'
         f'(allow network-outbound (remote tcp4 "localhost:{port}"))'
     )
     if workspace is not None:
