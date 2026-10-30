@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+import gateway_epochs
 import runner
 
 POLICY_VERSION = "anthropic-standard-sonnet-2026-10-30-1"
@@ -62,11 +63,11 @@ def rates(model: str) -> dict[str, int]:
 
 
 def manifest() -> dict:
-    files = ("gateway.py", "gateway_transport.py", "harness.py", "runner.py", "judge.py")
+    files = ("gateway.py", "gateway_transport.py", "gateway_epochs.py", "harness.py", "runner.py", "judge.py")
     source = b"".join((Path(__file__).parent / name).read_bytes() for name in files)
     return {
         "version": POLICY_VERSION,
-        "protocol": "hard-gateway-3",
+        "protocol": "hard-gateway-4",
         "source_sha256": hashlib.sha256(source).hexdigest(),
         "source_files": list(files),
         "context_tokens": CONTEXT_TOKENS,
@@ -78,6 +79,63 @@ def manifest() -> dict:
 
 def policy_hash() -> str:
     return hashlib.sha256(json.dumps(manifest(), sort_keys=True).encode()).hexdigest()
+
+
+def safe_stream_shape(value: dict) -> dict:
+    events = {
+        "message_start",
+        "message_delta",
+        "message_stop",
+        "content_block_start",
+        "content_block_delta",
+        "content_block_stop",
+        "ping",
+        "error",
+        "unknown",
+    }
+    names = value.get("events", [])
+    names = names if isinstance(names, list) else []
+    presence = value.get("initial_usage_present", {})
+    presence = presence if isinstance(presence, dict) else {}
+    return {
+        "events": sorted({name if isinstance(name, str) and name in events else "unknown" for name in names[:12]}),
+        "initial_usage_present": {key: presence.get(key) is True for key in TOKEN_KEYS},
+        "final_output_present": value.get("final_output_present") is True,
+        "parseable": value.get("parseable") is True,
+    }
+
+
+def safe_diagnostic(data: dict) -> dict:
+    import re
+
+    categories = {"upstream_http", "transport", "policy", "reservation", "usage", "settlement"}
+    errors = {
+        "invalid_request_error",
+        "authentication_error",
+        "permission_error",
+        "not_found_error",
+        "request_too_large",
+        "rate_limit_error",
+        "api_error",
+        "overloaded_error",
+    }
+    status, request_id = data.get("status"), data.get("request_id")
+    result = {
+        "category": data.get("category")
+        if isinstance(data.get("category"), str) and data.get("category") in categories
+        else "transport",
+        "status": status if isinstance(status, int) and not isinstance(status, bool) and 100 <= status <= 599 else None,
+        "request_id": request_id
+        if isinstance(request_id, str) and re.fullmatch(r"req_[A-Za-z0-9]{1,120}", request_id)
+        else None,
+        "error_type": data.get("error_type")
+        if isinstance(data.get("error_type"), str) and data.get("error_type") in errors
+        else "unknown",
+    }
+
+    if isinstance(data.get("stream_shape"), dict):
+        result["stream_shape"] = safe_stream_shape(data["stream_shape"])
+    return result
 
 
 def check_cache(block: dict) -> None:
@@ -293,15 +351,25 @@ class Ledger:
             legacy = db.execute("SELECT name FROM sqlite_master WHERE name = 'calls'").fetchone()
             if legacy and db.execute("SELECT COUNT(*) FROM calls").fetchone()[0]:
                 raise GatewayError("hard rounds cannot reuse a historical soft-budget ledger")
-            self.initialize_round(db)
+            fresh = self.initialize_round(db)
             db.execute(
                 "CREATE TABLE IF NOT EXISTS hard_requests (id INTEGER PRIMARY KEY, model TEXT, max_tokens INTEGER, charge INTEGER, state TEXT, owner INTEGER, birth TEXT)"
             )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS hard_diagnostics (seq INTEGER PRIMARY KEY, request INTEGER, epoch INTEGER, data TEXT)"
+            )
+            db.execute("CREATE TABLE IF NOT EXISTS hard_rejections (id INTEGER PRIMARY KEY CHECK(id=1), count INTEGER)")
+            db.execute("INSERT OR IGNORE INTO hard_rejections VALUES (1, 0)")
+            for operation in ("UPDATE", "DELETE"):
+                db.execute(
+                    f"CREATE TRIGGER IF NOT EXISTS hard_diagnostics_{operation.lower()} BEFORE {operation} ON hard_diagnostics BEGIN SELECT RAISE(ABORT,'immutable diagnostic history'); END"
+                )
+            self.epochs = gateway_epochs.Epochs(db, manifest(), GatewayError, fresh=fresh)
             owners = db.execute("SELECT DISTINCT owner, birth FROM hard_requests WHERE state='pending'").fetchall()
             if any(process_identity(pid) != birth for pid, birth in owners):
-                db.execute("UPDATE hard_round SET stopped='orphaned in-flight request' WHERE id=1")
+                self.record_stop(db, "orphaned in-flight request", None, None)
 
-    def initialize_round(self, db: sqlite3.Connection) -> None:
+    def initialize_round(self, db: sqlite3.Connection) -> bool:
         import uuid
 
         db.execute(
@@ -311,13 +379,16 @@ class Ledger:
         columns = {row[1] for row in db.execute("PRAGMA table_info(hard_round)")}
         if not {"round_uuid", "canonical_path"} <= columns:
             raise GatewayError("legacy hard round lacks immutable identity; use a fresh approved round")
-        db.execute(
-            "INSERT OR IGNORE INTO hard_round VALUES (1, ?, ?, '', ?, ?)",
-            (self.total, policy_hash(), str(uuid.uuid4()), str(self.path)),
-        )
-        actual = db.execute("SELECT total, policy, canonical_path FROM hard_round WHERE id=1").fetchone()
-        if actual != (self.total, policy_hash(), str(self.path)):
-            raise GatewayError("round budget, pricing or canonical ledger identity changed")
+        fresh = db.execute("SELECT id FROM hard_round WHERE id=1").fetchone() is None
+        if fresh:
+            db.execute(
+                "INSERT INTO hard_round VALUES (1, ?, ?, '', ?, ?)",
+                (self.total, policy_hash(), str(uuid.uuid4()), str(self.path)),
+            )
+        actual = db.execute("SELECT total, canonical_path FROM hard_round WHERE id=1").fetchone()
+        if actual != (self.total, str(self.path)):
+            raise GatewayError("round budget or canonical ledger identity changed")
+        return fresh
 
     def identity(self) -> dict:
         with self.connection() as db:
@@ -329,6 +400,7 @@ class Ledger:
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
         db = sqlite3.connect(self.path, timeout=30)
+        db.execute("PRAGMA foreign_keys=ON")
         try:
             with db:
                 yield db
@@ -346,49 +418,97 @@ class Ledger:
             raise GatewayError("cannot establish request owner identity")
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
-            if db.execute("SELECT stopped FROM hard_round WHERE id=1").fetchone()[0]:
-                raise GatewayError("round stopped")
+            if self.epochs.policy != policy_hash():
+                raise GatewayError("controller source changed after initialization")
+            self.epochs.guard(db)
             spent = db.execute("SELECT COALESCE(SUM(charge), 0) FROM hard_requests").fetchone()[0]
             if spent + amount > self.total:
                 raise GatewayError("round budget cannot reserve another complete request")
-            return db.execute(
+            request = db.execute(
                 "INSERT INTO hard_requests VALUES (NULL, ?, ?, ?, 'pending', ?, ?)",
                 (model, max_tokens, amount, os.getpid(), birth),
             ).lastrowid
+            db.execute("INSERT INTO hard_request_epochs VALUES(?,?,?)", (request, self.epochs.epoch, self.epochs.actor))
+            return request
 
     def settle(self, reservation: int, cost: int) -> None:
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
+            self.epochs.own(db, reservation, os.getpid(), process_identity(os.getpid()))
             row = db.execute("SELECT charge, state FROM hard_requests WHERE id=?", (reservation,)).fetchone()
             if row is None or row[1] != "pending":
                 raise GatewayError("request is absent or already settled")
             integer(cost, row[0])
             db.execute("UPDATE hard_requests SET charge=?, state='settled' WHERE id=?", (cost, reservation))
 
-    def uncertain(self, reservation: int, reason: str) -> None:
-        with self.connection() as db:
-            db.execute("UPDATE hard_requests SET state='uncertain' WHERE id=? AND state='pending'", (reservation,))
-            db.execute("UPDATE hard_round SET stopped=? WHERE id=1", (reason,))
+    def record_stop(self, db: sqlite3.Connection, reason: str, diagnostic: dict | None, request: int | None) -> None:
+        changed = self.epochs.stop(db, reason)
+        if not changed:
+            db.execute("UPDATE hard_rejections SET count=count+1 WHERE id=1")
+        if diagnostic is not None:
+            db.execute(
+                "INSERT INTO hard_diagnostics VALUES (NULL, ?, ?, ?)",
+                (request, self.epochs.epoch, json.dumps(safe_diagnostic(diagnostic), sort_keys=True)),
+            )
 
-    def stop(self, reason: str) -> None:
+    def uncertain(self, reservation: int, reason: str, diagnostic: dict | None = None) -> None:
         with self.connection() as db:
-            db.execute("UPDATE hard_round SET stopped=? WHERE id=1", (reason,))
+            self.epochs.own(db, reservation, os.getpid(), process_identity(os.getpid()))
+            db.execute("UPDATE hard_requests SET state='uncertain' WHERE id=? AND state='pending'", (reservation,))
+            self.record_stop(db, reason, diagnostic, reservation)
+
+    def stop(self, reason: str, diagnostic: dict | None = None) -> None:
+        with self.connection() as db:
+            self.record_stop(db, reason, diagnostic, None)
 
     def snapshot(self) -> dict:
         with self.connection() as db:
-            stop = db.execute("SELECT stopped FROM hard_round WHERE id=1").fetchone()[0]
-            rows = db.execute("SELECT id, model, max_tokens, charge, state FROM hard_requests ORDER BY id").fetchall()
+            description = self.epochs.describe(db)
+            rows = db.execute(
+                "SELECT r.id,r.model,r.max_tokens,r.charge,r.state,e.epoch FROM hard_requests r JOIN hard_request_epochs e ON e.request=r.id ORDER BY r.id"
+            ).fetchall()
+            diagnostics = db.execute("SELECT seq, request, epoch, data FROM hard_diagnostics ORDER BY seq").fetchall()
+            rejections = db.execute("SELECT count FROM hard_rejections WHERE id=1").fetchone()[0]
         return {
-            "policy": manifest(),
-            "policy_sha256": policy_hash(),
+            "policy": description["epoch_history"][-1]["manifest"],
+            "policy_sha256": description["admission_epoch"]["policy_sha256"],
             "total_nanos": self.total,
             "round": self.identity(),
             "reserved_or_spent_nanos": sum(row[3] for row in rows),
-            "stop_reason": stop,
+            **description,
+            "diagnostics": [
+                {"seq": row[0], "request": row[1], "epoch": row[2], "data": json.loads(row[3])} for row in diagnostics
+            ],
+            "rejections": rejections,
             "requests": [
-                dict(zip(("id", "model", "max_tokens", "charge_nanos", "state"), row, strict=True)) for row in rows
+                dict(zip(("id", "model", "max_tokens", "charge_nanos", "state", "epoch"), row, strict=True))
+                | {"policy_sha256": description["epoch_history"][row[5]]["policy_sha256"]}
+                for row in rows
             ],
         }
+
+
+def verify_reviewed_source(ref: str) -> None:
+    import re
+
+    if not isinstance(ref, str) or not re.fullmatch(r"[0-9a-f]{40}", ref):
+        raise GatewayError("reviewed source must be an exact commit SHA")
+    root = Path(__file__).resolve().parents[2]
+    for name in manifest()["source_files"]:
+        result = subprocess.run(
+            ["git", "show", f"{ref}:tools/context-evals/{name}"],
+            cwd=root,
+            capture_output=True,
+            check=False,
+            env={"PATH": os.environ.get("PATH", "/usr/bin:/bin")},
+        )
+        if result.returncode or result.stdout != (Path(__file__).parent / name).read_bytes():
+            raise GatewayError("reviewed source commit does not match the current controller")
+
+
+def recover_round(path: Path, identity: dict, previous: dict, approval: dict) -> None:
+    verify_reviewed_source(approval.get("reviewed_ref", ""))
+    gateway_epochs.recover(path, identity, previous, manifest(), approval, GatewayError)
 
 
 class StreamUsage:
