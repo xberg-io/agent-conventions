@@ -72,6 +72,18 @@ class HookPinsTest(unittest.TestCase):
             self.assertEqual(len(errors), 2)
             self.assertIn("poly.toml", errors[0])
 
+    def test_rejects_missing_and_file_consumer_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "file"
+            file.write_text("fixture")
+            for consumer in (root / "missing", file):
+                with self.subTest(consumer=consumer.name):
+                    self.assertEqual(
+                        hook_pins.check(consumer, "v5"),
+                        [f"{consumer}: consumer must be an existing directory"],
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()

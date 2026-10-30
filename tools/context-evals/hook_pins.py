@@ -32,6 +32,8 @@ def has_hooks(consumer: Path) -> bool:
 
 
 def check(consumer: Path, expected_revision: str) -> list[str]:
+    if not consumer.is_dir():
+        return [f"{consumer}: consumer must be an existing directory"]
     errors = []
     if not has_hooks(consumer):
         return errors
