@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when a consumer's local ai-rulez hooks differ from the convention pin."""
+"""Fail when a consumer's ai-rulez hook source differs from the convention repository's (org ADR-0015)."""
 
 from __future__ import annotations
 
@@ -18,10 +18,10 @@ def source(path: Path, table: str) -> dict:
     return found[0]
 
 
-def check(consumer: Path, expected_version: str, expected_commit: str) -> list[str]:
+def check(consumer: Path, expected_revision: str, expected_commit: str) -> list[str]:
     errors = []
     for filename, table, expected in (
-        ("poly.toml", "hooks", f"v{expected_version}"),
+        ("poly.toml", "hooks", expected_revision),
         ("poly-hooks.lock", "sources", expected_commit),
     ):
         try:
@@ -39,8 +39,7 @@ def main() -> int:
     parser.add_argument("--conventions", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     try:
-        tools = tomllib.loads((args.conventions / "mise.toml").read_text())["tools"]
-        expected = tools["github:Goldziher/ai-rulez"]
+        expected = source(args.conventions / "poly.toml", "hooks")["revision"]
         commit = source(args.conventions / "poly-hooks.lock", "sources")["revision"]
         errors = check(args.consumer, expected, commit)
     except (OSError, ValueError, KeyError) as exc:
@@ -48,7 +47,7 @@ def main() -> int:
     for error in errors:
         print(f"error: {error}", file=sys.stderr)
     if not errors:
-        print(f"checked 1 consumer: ai-rulez v{expected}, lock {commit}")
+        print(f"checked 1 consumer: ai-rulez {expected}, lock {commit}")
     return int(bool(errors))
 
 

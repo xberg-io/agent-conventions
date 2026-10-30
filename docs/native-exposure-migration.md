@@ -15,6 +15,6 @@ Keep `tools/context-evals/exposure.py` and the existing two-preset consumer gate
   estimated tokens with the previous 3.9-byte estimator. These are current-checkout measurements; the historical
   2026-10-26 totals came from different generated artifacts and cannot establish parity today.
 
-The validation workflow now pins 5.9.2 instead of `latest`. Do not delete the existing classifier or move its
+The validation workflow runs the latest ai-rulez release (org ADR-0015). Do not delete the existing classifier or move its
 budgets into native `[exposure]` until both presets and ignored files are covered. Re-run the positive fixture,
 its ignored-file negative control, and the same-checkout comparison before switching the consumer gate.
