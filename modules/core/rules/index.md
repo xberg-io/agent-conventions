@@ -1,5 +1,6 @@
 # Concepts
 
+* [ADR Discipline](adr-discipline.md)
 * [Agent Workflow](agent-workflow.md)
 * [Basemind Usage](basemind-usage.md)
 * [Comment Discipline](comment-discipline.md)

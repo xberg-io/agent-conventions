@@ -1,6 +1,7 @@
 {
   "version": "1",
   "files": [
+    ".agents/skills/adr-authoring/SKILL.md",
     ".agents/skills/agent-coordination/SKILL.md",
     ".agents/skills/basemind-tools/SKILL.md",
     ".agents/skills/binding-architecture/SKILL.md",
@@ -34,6 +35,7 @@
     ".claude/agents/docs-writer.md",
     ".claude/agents/security-auditor.md",
     ".claude/settings.json",
+    ".claude/skills/adr-authoring/SKILL.md",
     ".claude/skills/agent-coordination/SKILL.md",
     ".claude/skills/basemind-tools/SKILL.md",
     ".claude/skills/binding-architecture/SKILL.md",
@@ -73,6 +75,7 @@
     "AGENTS.md",
     "CLAUDE.md",
     "opencode.json",
+    "skills/adr-authoring/SKILL.md",
     "skills/agent-coordination/SKILL.md",
     "skills/basemind-tools/SKILL.md",
     "skills/binding-architecture/SKILL.md",

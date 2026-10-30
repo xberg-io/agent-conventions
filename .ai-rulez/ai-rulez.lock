@@ -4,7 +4,13 @@
 version = 1
 ai_rulez_version = '5.9.2'
 scope = 'all'
-tree = 'sha256:f82abbaef576dd7e740b7c511e698a6babff1e965584277a648515a2a745716c'
+tree = 'sha256:f63662343145022e9206ff638b7d57eba5d81b3cbf24bc31f68c2c73ff2071cc'
+
+[[served]]
+name = 'adr-authoring'
+source = 'include:public-core/skills/adr-authoring/SKILL.md'
+commit = ''
+digest = 'sha256:c6794bb6669bd8155019a75435e33e12f4d71e96f000ee25aa97d8715a550f89'
 
 [[served]]
 name = 'agent-coordination'
@@ -196,7 +202,7 @@ digest = 'sha256:de0d7d8b2fbc13025c14fa7b62d0fd76a248161cbd8c6fb69d8ff3c80c87171
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:41c88cb7067a062d9c5642661e26fc580ae5c940d1bbccbd5c8b643dea397764'
+digest = 'sha256:4ee07840889d97b2031b8a8185038be6e8016d33b3ffc2446f53542030ce874b'
 
 [[item]]
 kind = 'local-include'

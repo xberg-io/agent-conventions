@@ -1,5 +1,6 @@
 # Subdirectories
 
+* [adr-authoring](adr-authoring/index.md)
 * [agent-coordination](agent-coordination/index.md)
 * [basemind-tools](basemind-tools/index.md)
 * [mise-tasks](mise-tasks/index.md)
