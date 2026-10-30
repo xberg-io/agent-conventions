@@ -26,8 +26,15 @@ def source(path: Path, table: str) -> dict:
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 
 
+def has_hooks(consumer: Path) -> bool:
+    """A consumer without poly.toml or poly-hooks.lock runs no poly hooks, so it has no hook source to pin."""
+    return (consumer / "poly.toml").exists() or (consumer / "poly-hooks.lock").exists()
+
+
 def check(consumer: Path, expected_revision: str) -> list[str]:
     errors = []
+    if not has_hooks(consumer):
+        return errors
     try:
         actual = source(consumer / "poly.toml", "hooks").get("revision")
         if actual != expected_revision:
@@ -55,7 +62,9 @@ def main() -> int:
         errors = [str(exc)]
     for error in errors:
         print(f"error: {error}", file=sys.stderr)
-    if not errors:
+    if not errors and not has_hooks(args.consumer):
+        print("checked 0 consumers: no poly.toml or poly-hooks.lock, so no poly hooks")
+    elif not errors:
         print(f"checked 1 consumer: ai-rulez {expected}")
     return int(bool(errors))
 

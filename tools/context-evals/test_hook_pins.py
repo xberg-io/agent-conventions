@@ -63,6 +63,15 @@ class HookPinsTest(unittest.TestCase):
                     (repo / "poly-hooks.lock").write_text(f'[[sources]]\nid="ai-rulez"\nrevision="{commit}"\n')
                     self.assertEqual(hook_pins.check(repo, "v5"), [])
 
+    def test_skips_a_consumer_without_poly_hooks_but_not_a_lone_lock(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            self.assertEqual(hook_pins.check(repo, "v5"), [])
+            (repo / "poly-hooks.lock").write_text('[[sources]]\nid="ai-rulez"\nrevision="v5"\n')
+            errors = hook_pins.check(repo, "v5")
+            self.assertEqual(len(errors), 2)
+            self.assertIn("poly.toml", errors[0])
+
 
 if __name__ == "__main__":
     unittest.main()
