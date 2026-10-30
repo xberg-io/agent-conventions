@@ -1,7 +1,7 @@
 ---
 name: adr-authoring
 description: "Write, supersede or seed MADR decision records with adrlint: shape, Confirmation, lock, index. Use when adding or changing an ADR or an adrs/ log."
-# Content-Hash: blake3:abc35bf97f90238a73d631a7f40783fe4cc15765d65143edb99d308da1f0988b
+# Content-Hash: blake3:f11d4e5928acfcc8b0d69e5b887b25f5dcdc969571c9f75438beaea7a03cbd82
 ---
 
 # ADR authoring
@@ -20,7 +20,8 @@ record (`org ADR-NNNN`) rather than restating it.
 ## Shape (MADR 4)
 
 - Front matter: `status` (proposed, accepted, rejected, deprecated, superseded), `date` (YYYY-MM-DD, when the decision
-  was made), `decision-makers` (a list), and `superseded-by: "NNNN"` or `amends: ["NNNN"]` where they apply.
+  was made), `decision-makers` (a list, even of one), and `supersedes: "NNNN"`, `superseded-by: "NNNN"` or
+  `amends: ["NNNN"]` where they apply. Every ADR id is a quoted four-digit string.
 - Sections: `# Title`, `## Context and Problem Statement`, `## Considered Options`, `## Decision Outcome`. The outcome
   starts with `Chosen option: "<option>", because <rationale>` and holds `### Consequences` (`* Good, because …`,
   `* Bad, because …`) and `### Confirmation`.
@@ -32,7 +33,7 @@ record (`org ADR-NNNN`) rather than restating it.
 
 An accepted record is immutable once locked (`adrlint.lock`, checked by `adrlint lock --check`).
 
-- Supersede: write the new record, then `adrlint unlock adrs/<old>.md --reason "<why>"`, set the old record's
+- Supersede: write the new record with `supersedes: "<old>"`, then `adrlint unlock adrs/<old>.md --reason "<why>"`, set the old record's
   `status: superseded` and `superseded-by: "<new>"`, change nothing else in it, and `adrlint lock`.
 - Amend a part: a new record with `amends: ["<old>"]`; the old record is not touched.
 - Never fix an accepted record's wording in place, even a typo: the lock check fails and the history is lost.
