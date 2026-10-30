@@ -99,6 +99,8 @@ class SessionRecord:
         if unknown:
             raise ValueError(f"unknown session record fields: {sorted(unknown)}")
         data = dict(data)
+        if type(data.get("version")) is not int or data["version"] not in (1, RECORD_VERSION):
+            raise ValueError("serialized session requires an explicit supported integer version")
         data["usage"] = Usage(**data.get("usage", {}))
         data["loaded"] = [Loaded(**item) for item in data.get("loaded", [])]
         record = cls(**data)
