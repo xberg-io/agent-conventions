@@ -5,9 +5,11 @@ standard API charge in one SQLite ledger **before** forwarding each Messages req
 request at 4,096 output tokens; it is a new study protocol, not a comparable continuation of older runs.
 The historical soft-budget attempt stays invalid.
 
-No real-provider traffic has been used to verify this implementation. The real installed Claude CLI is tested
-against a local mocked provider; its usage and costs in those tests are synthetic. A successful offline contract
-proves routing and accounting, not provider acceptance or model quality. A fresh review must precede paid use.
+A real-provider attempt stopped with uncertain accounting; it did not establish a valid baseline. The transport
+now derives documented beta headers from validated request fields and records only bounded HTTP status,
+provider request ID, error type and redacted SSE/usage-presence metadata. It never logs credentials, request
+prompts, response text or provider error messages. Offline mocked usage remains synthetic: a passing local
+contract proves routing and accounting, not provider acceptance or model quality. Fresh review precedes paid use.
 
 ## Price bound
 
@@ -91,3 +93,27 @@ Resume,
 comparison and paid judging reject a different execution policy. An old report cannot validate a new round. Record the committed source SHA, CLI version, models,
 rubric/taxonomy versions and final ledger snapshot alongside the round. Recheck the official pricing before
 using this dated policy; it assumes those documented prices, not undisclosed or future account-specific charges.
+
+
+## Reviewed recovery within the same ceiling
+
+A controller-policy change is refused by normal ledger construction. `gateway.recover_round` is a separate,
+explicit operator action; it is never called by a run, an HTTP request, a retry or constructor. The caller must
+supply the exact original round identity, previous policy manifest and approval binding the old/new policy
+hashes to a reviewed Git commit. Every controller file must byte-match that immutable commit. This is a trusted
+operator workflow: the audit hash chain records approval; it does not grant authorization by itself.
+
+Recovery preserves the original UUID, canonical ledger path, $25 ceiling, every request/charge and the legacy
+stop/policy fields. An uncertain $6.14096 reservation remains fully charged against admission. Pricing, context
+and output bounds must be canonically identical. Pending requests block the transaction. An append-only epoch
+records the old and new manifests, approval and hash chain before the active admission cursor advances.
+
+Legacy controllers remain fenced by the permanently retained legacy stop. New controllers recheck their
+captured epoch and policy atomically at every reservation and sum charges across all epochs. Immutable request
+bindings include epoch and controller actor; settlement can reduce only that actor's own pending ticket.
+Historical uncertain rows cannot be rewritten. Stops preserve their first cause; later refusals increment a
+separate counter. A crash or failed check rolls back the complete transition.
+
+After an independently reviewed transition, any permitted continuation uses fresh output directories with the
+same original repository refs and case corpus. Old runs, transcripts and provenance remain unchanged. No
+transition or paid continuation is implied by these offline tests; both require the reviewed operator action.

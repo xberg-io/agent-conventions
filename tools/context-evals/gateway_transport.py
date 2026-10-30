@@ -8,7 +8,8 @@ import signal
 import subprocess
 import threading
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Self
 
@@ -16,7 +17,8 @@ import gateway
 import runner
 
 RESPONSE_BYTES = 16 * 1024 * 1024
-Provider = Callable[[dict], tuple[str, bytes]]
+CHUNK_BYTES = 64 * 1024
+ERROR_BYTES = CHUNK_BYTES
 
 
 def decode_json(data: bytes) -> dict:
@@ -57,26 +59,70 @@ def response_cost(content_type: str, data: bytes, model: str, maximum: int, stre
     return stream.cost()
 
 
+@dataclass(frozen=True)
+class ProviderResponse:
+    content_type: str
+    data: bytes
+    diagnostic: dict
+
+    def __iter__(self) -> Iterator[str | bytes]:
+        yield self.content_type
+        yield self.data
+
+
+Provider = Callable[[dict], tuple[str, bytes] | ProviderResponse]
+
+
+def stream_shape(data: bytes) -> dict:
+    shape = {"events": [], "initial_usage_present": {}, "final_output_present": False, "parseable": True}
+    try:
+        for frame in data.decode("utf-8").replace("\r\n", "\n").split("\n\n"):
+            lines = [line[5:].lstrip() for line in frame.splitlines() if line.startswith("data:")]
+            if not lines:
+                continue
+            event = decode_json("\n".join(lines).encode())
+            kind = event.get("type")
+            if kind not in shape["events"]:
+                shape["events"].append(kind)
+            if kind == "message_start":
+                usage = event.get("message", {}).get("usage", {})
+                shape["initial_usage_present"] = {key: key in usage for key in gateway.TOKEN_KEYS}
+            if kind == "message_delta":
+                shape["final_output_present"] = "output_tokens" in event.get("usage", {})
+    except (ValueError, UnicodeError, TypeError, AttributeError, gateway.GatewayError):
+        shape["parseable"] = False
+    return gateway.safe_stream_shape(shape)
+
+
 class Backend:
     def __init__(self, ledger: gateway.Ledger, provider: Provider) -> None:
         self.ledger, self.provider = ledger, provider
 
     def respond(self, payload: dict, model: str, tools: tuple[str, ...]) -> tuple[str, bytes]:
-        reservation = None
+        reservation, stage, metadata = None, "policy", {}
         try:
             request = gateway.Policy().prepare(payload, tools)
             if request["model"] != model:
                 raise gateway.GatewayError("CLI/request model mismatch")
+            stage = "reservation"
             reservation = self.ledger.reserve(model, request["max_tokens"])
-            content_type, data = self.provider(request)
+            stage = "transport"
+            response = self.provider(request)
+            content_type, data = response
+            metadata = getattr(response, "diagnostic", {})
+            stage = "usage"
+            if request.get("stream", False):
+                metadata = metadata | {"stream_shape": stream_shape(data)}
             cost = response_cost(content_type, data, model, request["max_tokens"], request.get("stream", False))
+            stage = "settlement"
             self.ledger.settle(reservation, cost)
             return content_type, data
         except Exception as exc:
+            diagnostic = exc.diagnostic if isinstance(exc, ProviderFailure) else metadata | {"category": stage}
             if reservation is None:
-                self.ledger.stop("request policy or reservation refused")
+                self.ledger.stop("request policy or reservation refused", diagnostic)
             else:
-                self.ledger.uncertain(reservation, "provider request could not be safely settled")
+                self.ledger.uncertain(reservation, "provider request could not be safely settled", diagnostic)
             raise gateway.GatewayError("provider request refused or billing uncertain; round stopped") from exc
 
 
@@ -268,13 +314,40 @@ def provider_headers(payload: dict, api_key: str) -> dict[str, str]:
     betas = []
     if "context_management" in payload:
         betas.append("context-management-2025-06-27")
-    if any(message["role"] == "system" for message in payload["messages"]):
-        betas.append("mid-conversation-system-2026-04-07")
+    if payload.get("thinking", {}).get("display") == "updates":
+        betas.append("thinking-display-updates-2026-08-18")
     if any("output_config" in message for message in payload["messages"]):
-        betas.append("per-turn-control-2026-07-01")
+        betas.append("mid-conversation-output-config-2026-07-01")
     if betas:
         headers["anthropic-beta"] = ",".join(betas)
     return headers
+
+
+class ProviderFailure(gateway.GatewayError):
+    def __init__(self, response) -> None:
+        self.diagnostic = gateway.safe_diagnostic(
+            {
+                "category": "upstream_http",
+                "status": response.status,
+                "request_id": response.getheader("request-id"),
+                "error_type": provider_error_type(response),
+            }
+        )
+        super().__init__("provider rejected the request; billing remains uncertain")
+
+
+def provider_error_type(response) -> str | None:
+    chunks, size = [], 0
+    try:
+        while chunk := response.read1(min(CHUNK_BYTES, ERROR_BYTES + 1 - size)):
+            size += len(chunk)
+            if size > ERROR_BYTES:
+                return None
+            chunks.append(chunk)
+        value = decode_json(b"".join(chunks)).get("error", {})
+        return value.get("type") if isinstance(value, dict) else None
+    except (OSError, ValueError, TypeError, gateway.GatewayError):
+        return None
 
 
 class AnthropicProvider:
@@ -283,7 +356,7 @@ class AnthropicProvider:
             raise gateway.GatewayError("provider credential and bounded timeout are required")
         self._key, self.timeout = api_key, timeout
 
-    def __call__(self, payload: dict) -> tuple[str, bytes]:
+    def __call__(self, payload: dict) -> ProviderResponse:
         import http.client
         import ssl
         import time
@@ -304,8 +377,10 @@ class AnthropicProvider:
             headers = provider_headers(payload, self._key)
             connection.request("POST", "/v1/messages", json.dumps(payload, allow_nan=False), headers=headers)
             response = connection.getresponse()
-            if response.status != 200 or response.getheader("Content-Encoding") not in (None, "identity"):
-                raise gateway.GatewayError("upstream status or encoding refused")
+            if response.status != 200:
+                raise ProviderFailure(response)
+            if response.getheader("Content-Encoding") not in (None, "identity"):
+                raise gateway.GatewayError("upstream response encoding refused")
             chunks, size = [], 0
             while True:
                 remaining = deadline - time.monotonic()
@@ -313,14 +388,20 @@ class AnthropicProvider:
                     raise gateway.GatewayError("provider deadline exhausted")
                 if connection.sock is not None:
                     connection.sock.settimeout(remaining)
-                chunk = response.read1(min(65536, RESPONSE_BYTES + 1 - size))
+                chunk = response.read1(min(CHUNK_BYTES, RESPONSE_BYTES + 1 - size))
                 if not chunk:
                     break
                 size += len(chunk)
                 if size > RESPONSE_BYTES:
                     raise gateway.GatewayError("provider body exceeds bound")
                 chunks.append(chunk)
-            return response.getheader("Content-Type", ""), b"".join(chunks)
+            return ProviderResponse(
+                response.getheader("Content-Type", ""),
+                b"".join(chunks),
+                gateway.safe_diagnostic(
+                    {"category": "upstream_http", "status": 200, "request_id": response.getheader("request-id")}
+                ),
+            )
         finally:
             if timer is not None:
                 timer.cancel()

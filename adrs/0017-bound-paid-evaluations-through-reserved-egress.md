@@ -32,6 +32,9 @@ two dated Sonnet pricing profiles; unsupported platforms and unknown billing fea
   concurrent agent and judge traffic. Uncertain requests retain their reservation and stop the round.
 * Good, because exact tool initialization, API schemas, isolated credentials and operating-system network/file
   controls are verified without making hosted model calls.
+* Good, because an explicit reviewed compatibility recovery can append a fenced admission epoch within the same
+  UUID and ceiling, preserving every historical request and uncertain reservation. Normal construction never
+  migrates or resets a stopped round.
 * Bad, because whole-context reservations can stop the campaign below $25 and leave an honestly partial result.
 * Bad, because the first implementation supports macOS confinement only and must be re-reviewed when prices,
   CLI protocol or execution policy changes. A local mock does not prove provider acceptance or answer quality.
