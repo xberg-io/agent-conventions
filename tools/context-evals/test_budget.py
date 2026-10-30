@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from pathlib import Path
 from threading import Barrier
 from typing import TYPE_CHECKING
@@ -109,7 +110,7 @@ class BudgetTest(unittest.TestCase):
             with ThreadPoolExecutor(max_workers=2) as pool:
                 result = list(pool.map(initialize, [1, 2]))
             self.assertEqual(sorted(result), [False, True])
-            with sqlite3.connect(path) as db:
+            with closing(sqlite3.connect(path)) as db:
                 self.assertEqual(db.execute("SELECT COUNT(*) FROM round_limits").fetchone()[0], 1)
 
     def test_non_model_commands_are_not_charged(self) -> None:
