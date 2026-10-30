@@ -71,6 +71,25 @@ def verify_command(plan: Plan, repo: str, argv: list, cwd: Path, environment: di
     raise ContinuationError("collection cwd is outside the anchored frozen-worktree template")
 
 
+def next_planned_trial(plan: Plan, repo: str, out: Path) -> tuple:
+    import runner
+
+    remaining = [key for key in plan.sessions if key[0] == repo and key not in plan.prior]
+    pending = []
+    for key in remaining:
+        name = runner.session_name(key[1], key[2])
+        meta, raw = out / "transcripts" / f"{name}.meta.json", out / "transcripts" / f"{name}.jsonl"
+        if meta.exists() != raw.exists():
+            raise ContinuationError("fresh trial capture is incomplete; no subsequent trial may start")
+        if not meta.exists():
+            pending.append(key)
+        elif pending:
+            raise ContinuationError("fresh trials must remain the exact serialized plan prefix")
+    if not pending:
+        raise ContinuationError("sealed collection is already complete")
+    return pending[0]
+
+
 class ContinuedExecute:
     def __init__(self, plan: Plan, inner, out: Path, repo: str) -> None:
         self.plan, self.inner, self.out, self.repo = plan, inner, out, repo
@@ -79,6 +98,8 @@ class ContinuedExecute:
         import runner
 
         self.plan.recheck()
+        if self.plan.data["version"] == 2 and str(self.out.resolve()) != self.plan.data["outputs"][self.repo]:
+            raise ContinuationError("collection output is outside the sealed plan")
         if not argv:
             raise ContinuationError("continuation command is empty")
         expected = self.plan.data["next_admission"]
@@ -97,6 +118,11 @@ class ContinuedExecute:
         if json.loads((self.out / "context-identity.json").read_text()) != self.plan.identities[self.repo]:
             raise ContinuationError("fresh generated context identity differs from the original collection")
         verify_command(self.plan, self.repo, argv, cwd, environment, timeout)
+        if self.plan.data["version"] == 2:
+            key = next_planned_trial(self.plan, self.repo, self.out)
+            case = next(case for case in self.plan.selected[self.repo] if case.id == key[1])
+            if argv[2] != case.prompt:
+                raise ContinuationError("collection command does not match the next sealed trial")
 
     def __call__(self, argv: list, cwd: Path, environment: dict, timeout: float):
         from dataclasses import replace
@@ -110,7 +136,12 @@ class ContinuedExecute:
             return self.inner(argv, cwd, environment, timeout)
         ledger = self.inner.ledger
         before = actor_request_ids(ledger)
+        key = next_planned_trial(self.plan, self.repo, self.out) if self.plan.data["version"] == 2 else None
         result = self.inner(argv, cwd, environment, timeout)
+        if key == tuple(self.plan.data.get("technical_attempt", {}).get("session", [])) and (
+            (result.returncode or result.timed_out) and not result.bounded_failure
+        ):
+            ledger.stop("declared technical replacement failed")
         collection = {
             "epoch": ledger.epochs.epoch,
             "policy_sha256": ledger.epochs.policy,
@@ -363,12 +394,33 @@ def aggregate(plan: Plan, outputs: list[Path], domains: dict) -> dict:
         "sources": sources,
         "compatibility": plan.data["compatibility"],
         "summary": scoring.aggregate(rows),
+        **({"methodology": technical_attempt_summary(plan, rows)} if plan.data["version"] == 2 else {}),
         "financial": {
             "total_nanos": state["round"]["total_nanos"],
+            "upstream_attempts": len(state["requests"]),
+            "settled_requests": sum(row[4] == "settled" for row in state["requests"]),
+            "uncertain_requests": sum(row[4] == "uncertain" for row in state["requests"]),
             "settled_nanos": charges["settled"],
             "uncertain_reserved_nanos": charges["uncertain"],
             "pending_reserved_nanos": charges["pending"],
             "accounted_nanos": sum(charges.values()),
             "actual_billed_cost_known": not charges["uncertain"],
         },
+    }
+
+
+def technical_attempt_summary(plan: Plan, rows: list, *, repo: str | None = None) -> dict:
+    attempt = plan.data["technical_attempt"]
+    relevant = repo is None or repo == attempt["session"][0]
+    return {
+        "protocol": "single-declared-technical-replacement-1",
+        "scope": "reviewed baseline collection; earlier invalid protocol attempts remain in financial history",
+        "collection_epochs": sorted({row.provenance["epoch"] for row in rows}),
+        "verified_baseline_records": len(rows),
+        "cohort_agent_execution_attempts": len(rows) + int(relevant),
+        "unknown_technical_attempts": int(relevant),
+        "declared_replacements": int(relevant),
+        "unknown_attempt": attempt if relevant else None,
+        "unknown_attempt_outcome_or_profile_known": False,
+        "outcome_selection": False,
     }

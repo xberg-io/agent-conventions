@@ -7,6 +7,8 @@ import json
 import re
 from pathlib import Path
 
+UNKNOWN_ATTEMPT_REQUESTS = 5
+
 
 class ContinuationError(ValueError):
     pass
@@ -80,6 +82,54 @@ def validate_session_plan(plan: object, expected: set[tuple], prior: set[tuple])
     return output
 
 
+def validate_technical_attempt(
+    value: object, requests: list, order: list, prior: set, claimed: set, epoch: int
+) -> dict:
+    item = require_keys(
+        value, {"kind", "session", "epoch", "actor", "request_ids", "charge_nanos", "replacement_executions"}
+    )
+    session = item["session"]
+    ids = item["request_ids"]
+    if (
+        not isinstance(session, list)
+        or len(session) != 3
+        or not all(isinstance(value, str) for value in session[:2])
+        or type(session[2]) is not int
+        or session[2] < 0
+        or not isinstance(ids, list)
+        or any(type(value) is not int or value <= 0 for value in ids)
+    ):
+        raise ContinuationError("technical attempt requires a typed session tuple and integer request identities")
+    remaining = [key for key in order if key not in prior]
+    if not remaining or set(order[: len(prior)]) != prior or item["session"] != list(remaining[0]):
+        raise ContinuationError("technical replacement must be the next interrupted tuple after every completed trial")
+    if (
+        item["kind"] != "interrupted-unknown"
+        or type(item["epoch"]) is not int
+        or item["epoch"] != epoch
+        or type(item["replacement_executions"]) is not int
+        or item["replacement_executions"] != 1
+        or not isinstance(item["actor"], str)
+        or not item["actor"]
+    ):
+        raise ContinuationError("only one explicit unknown technical attempt and replacement are supported")
+    rows = [row for row in requests if row[7] == epoch]
+    unassigned = [row for row in rows if row[0] not in claimed]
+    ids = [row[0] for row in unassigned]
+    completed = [row[0] for row in rows if row[0] in claimed]
+    if (
+        len(ids) != UNKNOWN_ATTEMPT_REQUESTS
+        or item["request_ids"] != ids
+        or not completed
+        or min(ids) <= max(completed)
+        or any(row[4] != "settled" or row[8] != item["actor"] for row in rows)
+        or type(item["charge_nanos"]) is not int
+        or item["charge_nanos"] != sum(row[3] for row in unassigned)
+    ):
+        raise ContinuationError("unknown technical attempt must retain the exact five trailing settled orphan charges")
+    return item
+
+
 def ledger_state(path: Path) -> dict:
     import sqlite3
     from contextlib import closing
@@ -131,7 +181,9 @@ def recovery_approval(data: dict) -> dict:
     }
 
 
-def validate_financial(plan: dict, path: Path, *, before_recovery: bool, allow_stopped: bool = False) -> dict:
+def validate_financial(
+    plan: dict, path: Path, *, before_recovery: bool, allow_stopped: bool = False, historical: bool = False
+) -> dict:
     import gateway
     import gateway_epochs
 
@@ -142,7 +194,9 @@ def validate_financial(plan: dict, path: Path, *, before_recovery: bool, allow_s
         raise ContinuationError("continuation round or epoch sequence changed")
     if not gateway_epochs.equal_bounds(plan["previous_manifest"], plan["next_manifest"]):
         raise ContinuationError("continuation cannot change financial bounds")
-    if plan["next_manifest"] != gateway.manifest() or following["policy_sha256"] != gateway.policy_hash():
+    if following["policy_sha256"] != gateway_epochs.digest(plan["next_manifest"]) or (
+        not historical and plan["next_manifest"] != gateway.manifest()
+    ):
         raise ContinuationError("continuation requires the exact current controller policy")
     if previous["epoch"] >= len(state["history"]):
         raise ContinuationError("prior admission epoch is absent")
@@ -155,14 +209,18 @@ def validate_financial(plan: dict, path: Path, *, before_recovery: bool, allow_s
     collected = [row for row in rows if row[7] == previous["epoch"]]
     if not collected or any(row[4] != "settled" for row in collected):
         raise ContinuationError("every prior collection request must already be settled")
-    active = state["history"][-1]
+    if historical and following["epoch"] >= len(state["history"]):
+        raise ContinuationError("historical next admission is absent")
+    active = state["history"][following["epoch"]] if historical else state["history"][-1]
     expected = previous if before_recovery else following
     if any(expected[key] != active[key] for key in expected):
         raise ContinuationError("reviewed continuation admission is not current")
     if before_recovery:
         if active["epoch"] not in state["stops"]:
             raise ContinuationError("draft recovery requires the observed stopped epoch")
-    elif (active["epoch"] in state["stops"] and not allow_stopped) or active["approval"] != recovery_approval(plan):
+    elif (active["epoch"] in state["stops"] and not (allow_stopped or historical)) or active[
+        "approval"
+    ] != recovery_approval(plan):
         raise ContinuationError("continuation is stopped or uses an unreviewed transition")
     return state
 
@@ -500,7 +558,7 @@ def validate_context_sources(
     return identities, prior
 
 
-def validate_header(data: object, ledger: Path) -> dict:
+def validate_header(data: object, ledger: Path, *, historical: bool = False) -> dict:
     import gateway
 
     keys = {
@@ -518,10 +576,12 @@ def validate_header(data: object, ledger: Path) -> dict:
         "compatibility",
         "adjudications",
     }
+    if isinstance(data, dict) and data.get("version") == 2:
+        keys |= {"ancestor", "extension_source", "technical_attempt", "outputs"}
     plan = require_keys(data, keys)
     if (
         type(plan["version"]) is not int
-        or plan["version"] != 1
+        or plan["version"] not in (1, 2)
         or not isinstance(plan["reviewed_ref"], str)
         or not re.fullmatch(r"[0-9a-f]{40}", plan["reviewed_ref"])
     ):
@@ -531,9 +591,35 @@ def validate_header(data: object, ledger: Path) -> dict:
         raise ContinuationError("continuation ceiling is invalid")
     if identity["ledger_path"] != str(ledger):
         raise ContinuationError("continuation must use its original canonical ledger")
-    gateway.verify_reviewed_source(plan["reviewed_ref"])
+    if historical:
+        verify_historical_source(plan["reviewed_ref"], plan["next_manifest"])
+    else:
+        gateway.verify_reviewed_source(plan["reviewed_ref"])
     item = require_keys(plan["preflight"], {"path", "sha256"})
     return read_bound_json(controlled_path(item["path"], ledger), item["sha256"])
+
+
+def verify_historical_source(ref: str, manifest: dict) -> None:
+    import subprocess
+
+    import gateway
+
+    files = gateway.manifest()["source_files"]
+    if manifest.get("source_files") != files or not re.fullmatch(r"[0-9a-f]{40}", ref):
+        raise ContinuationError("historical controller source inventory or ref changed")
+    try:
+        content = b"".join(
+            subprocess.check_output(
+                ["git", "show", f"{ref}:tools/context-evals/{name}"],
+                cwd=Path(__file__).parents[2],
+                stderr=subprocess.DEVNULL,
+            )
+            for name in files
+        )
+    except subprocess.CalledProcessError as exc:
+        raise ContinuationError("historical controller source is unavailable") from exc
+    if hashlib.sha256(content).hexdigest() != manifest.get("source_sha256"):
+        raise ContinuationError("historical policy does not match its immutable source commit")
 
 
 def workspace_root() -> Path:
@@ -556,6 +642,7 @@ class Plan:
     ) -> None:
         self.path, self.sha256, self.data = path, sha256, data
         self.selected, self.prior, self.sessions, self.identities = selected, prior, sessions, identities
+        self.historical = False
         self.ledger, self.workspace, self.corpus = ledger, workspace, corpus
 
     def inherited(self, repo: str) -> dict:
@@ -585,6 +672,9 @@ class Plan:
     def wrap(self, execute, out: Path, repo: str):
         from continuation_runtime import ContinuedExecute
 
+        if self.historical:
+            raise ContinuationError("historical plans cannot execute")
+
         return ContinuedExecute(self, execute, out, repo)
 
     def recheck(self) -> None:
@@ -608,6 +698,13 @@ class Plan:
             cert = next(
                 (item["sha256"] for item in self.data["adjudications"] if item["payload"]["session"] == list(key)), None
             )
+            if "provenance" in row:
+                return (
+                    raw,
+                    info,
+                    row["provenance"]
+                    | {"source_manifest_sha256": row["provenance"]["manifest_sha256"], "manifest_sha256": self.sha256},
+                )
             return (
                 raw,
                 info,
@@ -639,13 +736,31 @@ class Plan:
         before_recovery: bool = False,
         allow_stopped: bool = False,
         workspace: Path | None = None,
+        historical: bool = False,
     ):
         import continuation_compat
 
         workspace = workspace or workspace_root()
         data = read_bound_json(path, sha256)
-        preflight = validate_header(data, ledger)
-        state = validate_financial(data, ledger, before_recovery=before_recovery, allow_stopped=allow_stopped)
+        if isinstance(data, dict) and data.get("version") == 2:
+            if historical:
+                raise ContinuationError("only the reviewed first continuation may be imported as history")
+            return load_extension(
+                path,
+                sha256,
+                data,
+                corpus,
+                ledger,
+                before_recovery=before_recovery,
+                allow_stopped=allow_stopped,
+                workspace=workspace,
+            )
+        if historical and before_recovery:
+            raise ContinuationError("historical import cannot draft or authorize recovery")
+        preflight = validate_header(data, ledger, historical=historical)
+        state = validate_financial(
+            data, ledger, before_recovery=before_recovery, allow_stopped=allow_stopped, historical=historical
+        )
         previous = state["history"][data["previous_admission"]["epoch"]]
         previous_ref = previous["approval"].get("reviewed_ref", preflight["controller_commit"])
         if preflight["policy"] != data["previous_manifest"] or preflight["controller_commit"] != previous_ref:
@@ -666,4 +781,167 @@ class Plan:
                 raise ContinuationError("inherited transcript, metadata, adjudication or billing identity changed")
         if data["adjudications"] != adjudications(data, prior):
             raise ContinuationError("bounded-failure adjudication is absent or not hash-bound")
-        return cls(path, sha256, data, selected, prior, sessions, identities, ledger, workspace, corpus)
+        plan = cls(path, sha256, data, selected, prior, sessions, identities, ledger, workspace, corpus)
+        plan.historical = historical
+        return plan
+
+
+def extension_prior(ancestor: Plan, source: Path) -> dict:
+    from dataclasses import asdict
+
+    from continuation_runtime import resolve_local, verified_run_metadata
+
+    verified_run_metadata(ancestor, source)
+    prior = {}
+    for key, row in ancestor.prior.items():
+        _, _, provenance = ancestor.resolve(*key, source)
+        prior[key] = row | {"provenance": provenance}
+    new = validate_prior_run(
+        source,
+        fingerprints(source),
+        ancestor.selected["xberg"],
+        ancestor.data["repos"]["xberg"]["ref"],
+        ancestor.identities["xberg"],
+        workspace=ancestor.workspace,
+    )
+    for key, row in new.items():
+        if key in prior or key not in ancestor.sessions or ancestor.sessions[key]["source"] is not None:
+            raise ContinuationError("extension cannot rerun or replace a completed source trial")
+        _, info, provenance = resolve_local(ancestor, *key, source)
+        prior[key] = row | {"meta": asdict(info), "request_ids": provenance["request_ids"], "provenance": provenance}
+    claimed = [value for row in prior.values() for value in row["request_ids"]]
+    if len(claimed) != len(set(claimed)):
+        raise ContinuationError("multi-source trials cannot share a financial request")
+    return prior
+
+
+def extension_outputs(value: object, ledger: Path, sources: tuple) -> dict:
+    output = require_keys(value, {"xberg", "sceptre"})
+    paths = [controlled_path(output[name], ledger) for name in ("xberg", "sceptre")]
+    if paths[0] == paths[1] or any(
+        first.is_relative_to(second) for first, second in ((paths[0], paths[1]), (paths[1], paths[0]))
+    ):
+        raise ContinuationError("sealed consumer output paths must be disjoint")
+    if any(path.is_relative_to(source) or source.is_relative_to(path) for path in paths for source in sources):
+        raise ContinuationError("extension outputs cannot overwrite or contain immutable source runs")
+    return output
+
+
+def extension_state(ancestor: Plan, state: dict, previous_epoch: int | None) -> dict:
+    import gateway_epochs
+
+    epoch = state["history"][-1]["epoch"] if previous_epoch is None else previous_epoch
+    if type(epoch) is not int or epoch != ancestor.data["next_admission"]["epoch"]:
+        raise ContinuationError("only one reviewed extension of the first continuation is supported")
+    rows = [row for row in state["requests"] if row[7] <= epoch]
+    before = state | {
+        "history": state["history"][: epoch + 1],
+        "requests": rows,
+        "requests_sha256": gateway_epochs.digest(rows),
+    }
+    if (
+        before["history"][-1]["manifest"] != ancestor.data["next_manifest"]
+        or state["stops"].get(epoch) != "request policy or reservation refused"
+    ):
+        raise ContinuationError("extension requires the exact retained local-policy stop and source policy")
+    return before
+
+
+def observed_attempt(ancestor: Plan, prior: dict, before: dict, replacement: tuple) -> dict:
+    epoch = before["history"][-1]["epoch"]
+    claimed = {value for item in prior.values() for value in item["request_ids"]}
+    orphan = [row for row in before["requests"] if row[7] == epoch and row[0] not in claimed]
+    attempt = {
+        "kind": "interrupted-unknown",
+        "session": list(replacement),
+        "epoch": epoch,
+        "actor": orphan[0][8] if orphan else "",
+        "request_ids": [row[0] for row in orphan],
+        "charge_nanos": sum(row[3] for row in orphan),
+        "replacement_executions": 1,
+    }
+    return validate_technical_attempt(attempt, before["requests"], list(ancestor.sessions), set(prior), claimed, epoch)
+
+
+def make_extension(
+    ancestor_path: Path,
+    ancestor_sha: str,
+    source: Path,
+    ledger: Path,
+    reviewed_ref: str,
+    outputs: dict,
+    replacement: tuple,
+    corpus: list,
+    *,
+    workspace: Path | None = None,
+    previous_epoch: int | None = None,
+) -> dict:
+    import continuation_compat
+
+    workspace = workspace or workspace_root()
+    ancestor_path = controlled_path(str(ancestor_path), ledger)
+    source = controlled_path(str(source), ledger)
+    ancestor = Plan.load(ancestor_path, ancestor_sha, corpus, ledger, historical=True, workspace=workspace)
+    before = extension_state(ancestor, ledger_state(ledger), previous_epoch)
+    prior = extension_prior(ancestor, source)
+    attempt = observed_attempt(ancestor, prior, before, replacement)
+    data = draft_header(before, Path(ancestor.data["preflight"]["path"]), reviewed_ref)
+    data.update(
+        version=2,
+        ancestor={"path": str(ancestor_path), "sha256": ancestor_sha},
+        extension_source={"root": str(source), "files": fingerprints(source)},
+        technical_attempt=attempt,
+        outputs=extension_outputs(outputs, ledger, (source, *(row["root"] for row in ancestor.prior.values()))),
+        repos=ancestor.data["repos"],
+        adjudications=ancestor.data["adjudications"],
+        compatibility=continuation_compat.extension_proof(ancestor.data["reviewed_ref"], reviewed_ref),
+    )
+    data["sessions"] = [
+        row | {"source": prior[key]["source"] | {"request_ids": prior[key]["request_ids"]} if key in prior else None}
+        for key, row in ancestor.sessions.items()
+    ]
+    return data
+
+
+def load_extension(
+    path: Path,
+    sha256: str,
+    data: dict,
+    corpus: list,
+    ledger: Path,
+    *,
+    before_recovery: bool,
+    allow_stopped: bool,
+    workspace: Path,
+) -> Plan:
+    validate_header(data, ledger)
+    validate_financial(data, ledger, before_recovery=before_recovery, allow_stopped=allow_stopped)
+    anchor = require_keys(data["ancestor"], {"path", "sha256"})
+    source = require_keys(data["extension_source"], {"root", "files"})
+    attempt = require_keys(
+        data["technical_attempt"],
+        {"kind", "session", "epoch", "actor", "request_ids", "charge_nanos", "replacement_executions"},
+    )
+    root = controlled_path(source["root"], ledger)
+    require_keys(source["files"], {"run.json", "cases.json", "context-identity.json"})
+    for name, digest in source["files"].items():
+        read_bound_json(root / name, digest)
+    ancestor_path = controlled_path(anchor["path"], ledger)
+    expected = make_extension(
+        ancestor_path,
+        require_hash(anchor["sha256"]),
+        root,
+        ledger,
+        data["reviewed_ref"],
+        data["outputs"],
+        tuple(attempt["session"]),
+        corpus,
+        workspace=workspace,
+        previous_epoch=data["previous_admission"]["epoch"],
+    )
+    if expected != data:
+        raise ContinuationError("multi-source continuation, attempt, provenance or exact session plan changed")
+    ancestor = Plan.load(ancestor_path, anchor["sha256"], corpus, ledger, historical=True, workspace=workspace)
+    prior = extension_prior(ancestor, root)
+    sessions = validate_session_plan(data["sessions"], set(ancestor.sessions), set(prior))
+    return Plan(path, sha256, data, ancestor.selected, prior, sessions, ancestor.identities, ledger, workspace, corpus)

@@ -156,3 +156,118 @@ def proof(previous_ref: str, reviewed_ref: str) -> dict:
             "exact inherited trial selection",
         ],
     }
+
+
+CAPTURE_TAIL = """stdout = output.decode("utf-8", errors="replace")
+stderr = errors.decode("utf-8", errors="replace")
+result = runner.Completed(130 if interrupted else process.returncode, stdout, stderr, timed_out=timed_out)
+if interrupted:
+    raise runner.Interrupted(result)
+return result"""
+PRIOR_CAPTURE_TAIL = """return runner.Completed(process.returncode,
+    output.decode("utf-8", errors="replace"), errors.decode("utf-8", errors="replace"), timed_out=timed_out)"""
+INTERRUPTED_SESSION = """try:
+    done = self.execute(self.adapter.command(spec), cwd, self.adapter.env(Path(home), self.environ), self.config.timeout)
+except Interrupted as exc:
+    meta.seconds = round(time.monotonic() - started, 3)
+    save_interrupted(transcripts, name, meta, exc.completed)
+    raise"""
+PRIOR_SESSION_CALL = """done = self.execute(self.adapter.command(spec), cwd,
+    self.adapter.env(Path(home), self.environ), self.config.timeout)"""
+
+
+class ExactObservability(ast.NodeTransformer):
+    def __init__(self, replacements: list) -> None:
+        self.replacements = replacements
+        self.counts = [0] * len(replacements)
+
+    def visit(self, node: ast.AST) -> ast.AST | None:
+        import copy
+
+        for index, (pattern, replacement) in enumerate(self.replacements):
+            if ast.dump(node) == ast.dump(pattern):
+                self.counts[index] += 1
+                return copy.deepcopy(replacement)
+        return super().visit(node)
+
+    def checked(self, node: ast.AST) -> ast.AST:
+        result = self.visit(node)
+        if result is None or self.counts != [1] * len(self.replacements):
+            raise ContinuationError("unknown observability-only source transition")
+        return result
+
+
+def observability_symbol(source: str, name: str) -> ast.AST:
+    node = symbol_node(ast.parse(source), name)
+    if name == "Backend":
+        pattern = ast.parse('if stage == "policy":\n    diagnostic = policy_diagnostic(payload, exc)').body[0]
+        return ExactObservability([(pattern, None)]).checked(node)
+    if name == "Runner.session":
+        return ExactObservability(
+            [(ast.parse(INTERRUPTED_SESSION).body[0], ast.parse(PRIOR_SESSION_CALL).body[0])]
+        ).checked(node)
+    if name != "isolated_process":
+        raise ContinuationError("unreviewed observability source exception")
+    tail = ast.parse(CAPTURE_TAIL).body
+    if [ast.dump(item) for item in node.body[-len(tail) :]] != [ast.dump(item) for item in tail]:
+        raise ContinuationError("unknown interrupted capture tail")
+    node.body[-len(tail) :] = ast.parse(PRIOR_CAPTURE_TAIL).body
+    deadline = ast.parse("deadline, timed_out, interrupted = time.monotonic() + timeout, False, False").body[0]
+    previous = ast.parse("deadline, timed_out = time.monotonic() + timeout, False").body[0]
+    handler = ast.parse("try:\n    pass\nexcept KeyboardInterrupt:\n    interrupted = True").body[0].handlers[0]
+    return ExactObservability([(deadline, previous), (handler, None)]).checked(node)
+
+
+def extension_check_sources(previous: dict[str, str], current: dict[str, str]) -> dict:
+    output = {}
+    for filename, symbols in SYMBOLS.items():
+        for name in symbols:
+            if name not in ("Backend", "isolated_process"):
+                compare_ast(
+                    output,
+                    f"{filename}:{name}",
+                    symbol_node(ast.parse(previous[filename]), name),
+                    symbol_node(ast.parse(current[filename]), name),
+                )
+    for filename, name, label in (
+        ("gateway_transport.py", "Backend", "observability-only"),
+        ("gateway_transport.py", "isolated_process", "observability-only"),
+        ("runner.py", "Runner.session", "interruption-only"),
+    ):
+        compare_ast(
+            output,
+            f"{filename}:{name}:{label}",
+            symbol_node(ast.parse(previous[filename]), name),
+            observability_symbol(current[filename], name),
+        )
+    for filename, names in {
+        "gateway.py": ("rates", "Ledger", "StreamUsage"),
+        "gateway_transport.py": (
+            "HardExecute.__call__",
+            "maximum_turn_failure",
+            "certify_cli_result",
+            "terminal_event",
+        ),
+        "runner.py": ("Runner.run_worker",),
+    }.items():
+        for name in names:
+            compare_ast(
+                output,
+                f"{filename}:{name}",
+                symbol_node(ast.parse(previous[filename]), name),
+                symbol_node(ast.parse(current[filename]), name),
+            )
+    compare_ast(output, "judge.py:module", ast.parse(previous["judge.py"]), ast.parse(current["judge.py"]))
+    return output
+
+
+def extension_proof(previous_ref: str, reviewed_ref: str) -> dict:
+    previous = {name: git_source(previous_ref, name) for name in (*SYMBOLS, "judge.py")}
+    current = {name: git_source(reviewed_ref, name) for name in (*SYMBOLS, "judge.py")}
+    return {
+        "version": 2,
+        "previous_ref": previous_ref,
+        "reviewed_ref": reviewed_ref,
+        "declared_differences": ["redacted-policy-diagnostics", "interrupted-evidence-preservation"],
+        "symbols": extension_check_sources(previous, current),
+    }

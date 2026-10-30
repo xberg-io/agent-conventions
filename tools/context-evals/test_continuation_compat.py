@@ -77,3 +77,89 @@ class CompatibilityProofTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PreviousObservability(ast.NodeTransformer):
+    def visit_FunctionDef(self, node):
+        if node.name == "isolated_process":
+            node.body[-5:] = ast.parse("""return runner.Completed(process.returncode,
+                output.decode("utf-8", errors="replace"), errors.decode("utf-8", errors="replace"), timed_out=timed_out)""").body
+        return self.generic_visit(node)
+
+    def visit_Assign(self, node):
+        if ast.unparse(node).startswith("deadline, timed_out, interrupted ="):
+            node.targets[0].elts.pop()
+            node.value.elts.pop()
+        return self.generic_visit(node)
+
+    def visit_ExceptHandler(self, node):
+        return None if ast.unparse(node.type) == "KeyboardInterrupt" else self.generic_visit(node)
+
+    def visit_If(self, node):
+        return None if ast.unparse(node.test) == "stage == 'policy'" else self.generic_visit(node)
+
+    def visit_Try(self, node):
+        if any(isinstance(item.type, ast.Name) and item.type.id == "Interrupted" for item in node.handlers):
+            return node.body
+        return self.generic_visit(node)
+
+
+class ExtensionCompatibilityTest(unittest.TestCase):
+    def fixtures(self):
+        current = {
+            name: (Path(__file__).parent / name).read_text()
+            for name in ("gateway.py", "gateway_transport.py", "runner.py", "judge.py")
+        }
+        previous = {
+            name: ast.unparse(PreviousObservability().visit(ast.parse(value))) for name, value in current.items()
+        }
+        return previous, current
+
+    def test_exact_reviewed_observability_exceptions_preserve_normal_model_execution(self) -> None:
+        previous, current = self.fixtures()
+        proof = continuation_compat.extension_check_sources(previous, current)
+        self.assertGreater(len(proof), 20)
+        self.assertIn("gateway_transport.py:isolated_process:observability-only", proof)
+        self.assertIn("runner.py:Runner.session:interruption-only", proof)
+
+    def test_unreviewed_exception_provider_or_command_changes_are_rejected(self) -> None:
+        for filename, symbol in [
+            ("gateway_transport.py", "Backend.respond"),
+            ("gateway_transport.py", "isolated_process"),
+            ("runner.py", "Runner.session"),
+            ("runner.py", "ClaudeAdapter.command"),
+        ]:
+            previous, current = self.fixtures()
+            tree = ast.parse(current[filename])
+            continuation_compat.symbol_node(tree, symbol).body.insert(0, ast.parse("unreviewed_change()").body[0])
+            current[filename] = ast.unparse(tree)
+            with self.subTest(symbol=symbol), self.assertRaises(continuation.ContinuationError):
+                continuation_compat.extension_check_sources(previous, current)
+
+    def test_declared_observability_handlers_cannot_hide_extra_behavior(self) -> None:
+        for filename, symbol in (
+            ("gateway_transport.py", "Backend.respond"),
+            ("gateway_transport.py", "isolated_process"),
+            ("runner.py", "Runner.session"),
+        ):
+            previous, current = self.fixtures()
+            tree = ast.parse(current[filename])
+            function = continuation_compat.symbol_node(tree, symbol)
+            if symbol == "Backend.respond":
+                target = next(
+                    node
+                    for node in ast.walk(function)
+                    if isinstance(node, ast.If) and ast.unparse(node.test) == "stage == 'policy'"
+                )
+            else:
+                target = next(
+                    node
+                    for node in ast.walk(function)
+                    if isinstance(node, ast.ExceptHandler)
+                    and isinstance(node.type, ast.Name)
+                    and node.type.id in ("KeyboardInterrupt", "Interrupted")
+                )
+            target.body.insert(0, ast.parse("unreviewed_exception_side_effect()").body[0])
+            current[filename] = ast.unparse(tree)
+            with self.subTest(symbol=symbol), self.assertRaises(continuation.ContinuationError):
+                continuation_compat.extension_check_sources(previous, current)

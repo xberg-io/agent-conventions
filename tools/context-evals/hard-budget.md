@@ -187,3 +187,29 @@ If interrupted, an isolated subprocess is terminated and its bounded captured ou
 propagates. These files are separate from completed trial records and do not establish completion, valid tool
 usage, a final answer or financial attribution for an interrupted request. Already lost output cannot be
 recovered retrospectively; unassigned historical request rows remain charged and unchanged.
+
+
+A version-2 continuation is limited to one reviewed extension of the version-1 plan. It imports the two source
+runs by immutable header, transcript and metadata hashes, retaining each session's original epoch, policy,
+request slice, source run and adjudication. Historical validation is read-only and historical plans cannot wrap
+an executor. Compatibility checks permit only the exact reviewed policy-diagnostic and interrupted-capture
+changes; normal model calls, prompts, tools, sandbox, provider and classifier remain unchanged.
+
+The plan retains the five trailing settled requests of the unknown interrupted attempt as a separate financial
+bucket. It asserts no answer, profile or outcome for that attempt and never turns it into a bounded zero. Before
+execution, the plan declares exactly one replacement of that same slot and seals both output paths. Every other
+completed source slot is inherited; every untouched slot is scheduled once. There is no selection between old
+and replacement outcomes. Any uncertified replacement failure stops admission; a fully certified ordinary
+max-turn nonanswer remains a recorded zero under the existing classifier.
+
+For the approved study this means 115 inherited records and 71 planned executions: 22 untouched Xberg slots,
+one declared Xberg technical replacement and 48 Sceptre slots. If all finish, reports disclose 186 verified
+baseline records and 187 cohort agent execution attempts, including the unknown technical attempt. Earlier
+invalid protocol attempts remain outside that cohort and visible in the complete financial request history. Primary baseline
+metrics cover the recorded slots; technical-failure counts and unknown attempt provenance remain separately
+visible, without an invented criterion grade. Judge validity and financial completion remain additional gates.
+All agent calls, replacement calls and judges share the original ledger, UUID, $25 ceiling and permanently
+retained uncertainty. Producing or validating this plan never authorizes a recovery or a paid request.
+
+The lost refusal might have reflected model behavior. Its unknown outcome is a limitation of the replacement
+method, even though the replacement is declared without seeing or selecting an earlier answer.

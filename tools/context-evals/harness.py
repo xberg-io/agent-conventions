@@ -225,6 +225,8 @@ def cmd_continue(args: argparse.Namespace, execute: runner.Execute, environ: Map
     if name not in plan.selected:
         raise HarnessError("consumer is outside the reviewed continuation")
     config = plan.identities[name]["config"]
+    if plan.data["version"] == 2 and str(args.out.resolve()) != plan.data["outputs"][name]:
+        raise HarnessError("continuation output differs from its sealed plan")
     sealed = argparse.Namespace(
         **(
             vars(args)
@@ -467,16 +469,18 @@ def _cell(m: dict | None, digits: int = 3) -> str:
     return f"{m['mean']:.{digits}f} [{m['lo']:.{digits}f}, {m['hi']:.{digits}f}] ({m['cases']})"
 
 
-def completion_markdown(blocks: dict) -> list[str]:
+def completion_markdown(blocks: dict, *, recorded_baseline: bool = False) -> list[str]:
     columns = list(blocks)
     output = [
-        "All executed trials (invalid trials prevent baseline acceptance):",
+        "Recorded baseline trials (technical attempts reported separately):"
+        if recorded_baseline
+        else "All executed trials (invalid trials prevent baseline acceptance):",
         "",
         "| Measure | " + " | ".join(columns) + " |",
         "|---|" + "---|" * len(columns),
     ]
     for name, key in (
-        ("executed trials", "executed_trials"),
+        ("recorded baseline trials" if recorded_baseline else "executed trials", "executed_trials"),
         ("invalid trials", "invalid_trials"),
         ("execution valid", "execution_valid"),
     ):
@@ -508,7 +512,17 @@ def report_markdown(meta: dict, summary: dict) -> str:
     ]
     columns = ["overall", *summary["domains"]]
     blocks = {"overall": summary["overall"], **summary["domains"]}
-    out.extend(completion_markdown(blocks))
+    technical = meta.get("technical_attempts")
+    if technical:
+        out.extend(
+            [
+                f"Cohort agent execution attempts: {technical['cohort_agent_execution_attempts']}; recorded baseline trials: "
+                f"{technical['verified_baseline_records']}; unknown technical attempt(s): {technical['unknown_technical_attempts']}. "
+                "One replacement was declared before execution; no unknown answer or profile is inferred.",
+                "",
+            ]
+        )
+    out.extend(completion_markdown(blocks, recorded_baseline=technical is not None))
     out.append("| Metric | " + " | ".join(columns) + " |")
     out.append("|---|" + "---|" * len(columns))
     for metric in scoring.METRICS:
@@ -532,6 +546,13 @@ def cmd_report(args: argparse.Namespace) -> int:
         args.run_dir / "report.json",
         {"run": meta, "judge_validity": read_json(validity) if validity.exists() else None, "summary": summary},
     )
+    if plan is not None and plan.data["version"] == 2:
+        from continuation_runtime import technical_attempt_summary
+
+        technical = technical_attempt_summary(plan, sessions, repo=meta["repo"])
+        report = read_json(args.run_dir / "report.json")
+        write_json(args.run_dir / "report.json", report | {"methodology": technical})
+        meta = meta | {"technical_attempts": technical}
     text = report_markdown(meta, summary)
     (args.run_dir / "report.md").write_text(text)
     print(text)
