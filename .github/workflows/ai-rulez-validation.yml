@@ -67,8 +67,8 @@ jobs:
         with:
           repo-name: agent-conventions
           budgets: |
-            claude=5300
-            codex=5750
+            claude=5350
+            codex=5800
   context-harness:
     runs-on: ubuntu-latest
     env:
