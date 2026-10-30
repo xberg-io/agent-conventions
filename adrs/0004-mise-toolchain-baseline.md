@@ -14,13 +14,14 @@ could pass in one place and fail in another.
 
 ## Considered Options
 
-* mise with a committed lock in every repository, following one org baseline in xberg-io/toolchains
+* mise with a committed lock in every repository that installs tools, following one org baseline in
+  xberg-io/toolchains
 * Per-language setup actions and local installs, versioned per repository
 
 ## Decision Outcome
 
-Chosen option: "mise with a committed lock in every repository, following one org baseline in xberg-io/toolchains",
-because one version set, installed the same way locally and in CI, removes the version drift.
+Chosen option: "mise with a committed lock in every repository that installs tools, following one org baseline in
+xberg-io/toolchains", because one version set, installed the same way locally and in CI, removes the version drift.
 
 `baseline.toml` in xberg-io/toolchains holds the canonical versions. A repository's `mise.toml` uses them exactly,
 except for an override with a reason in its `toolchains.toml`, which also names the baseline tag it follows.

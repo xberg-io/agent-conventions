@@ -38,4 +38,5 @@ its governance. Every registered directory is an independent git repository. Git
 
 `modules/core/context/polyrepo-structure.md` states the layout in every consumer's start context. The root's
 `repos.txt` lists the managed repositories and its `.gitignore` ignores `/.worktrees/`. The layout dates from
-`xberg-io/polyrepo@b294003d` ("align root repo with polyrepo layout").
+`xberg-io/polyrepo@b294003d` ("align root repo with polyrepo layout"); the `.worktrees/<repo>/<name>` namespace came
+in `xberg-io/polyrepo@3c86e2c9` and `@cb04b040`, and the `repos.txt` registry in `@486cfd23`.

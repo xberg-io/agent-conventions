@@ -22,8 +22,9 @@ Chosen option: "Astro Starlight sites that consume the shared `@xberg-io/docs-th
 `docs.<product>.xberg.io`", because the theme carries the brand, assets and analytics once for every site.
 
 Each docs site is an Astro Starlight project under `docs-site/` that wraps `xbergStarlightConfig()` from
-`@xberg-io/docs-theme`. Sites do not add their own brand CSS or analytics. A product's site is served at
-`docs.<repo>.xberg.io`; the core extraction library uses `docs.xberg.io`.
+`@xberg-io/docs-theme`. Sites do not add their own brand CSS or analytics. Each open-source product's site is served
+at `docs.<repo>.xberg.io`; the core extraction library uses `docs.xberg.io`. xberg-enterprise is served at
+`enterprise.xberg.io`.
 
 ### Consequences
 

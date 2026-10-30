@@ -22,12 +22,16 @@ Chosen option: "One shared home and channel per kind of artifact", because each 
 way to reach users.
 
 * Brand assets live in xberg-io/assets and are served through jsDelivr by tag; docs sites and READMEs reference them
-  instead of local copies.
-* Model weights the libraries download are published under the `xberg-io` Hugging Face organization.
+  instead of local copies. The one exception: every docs site commits `docs-site/src/assets/hero-logo.svg` and
+  `hero-logo-light.svg`, byte-identical to the assets repository, because the Starlight hero frontmatter imports a
+  local file.
+* Model weights the org converts or hosts itself (layout, PaddleOCR ONNX) are published under the `xberg-io` Hugging
+  Face organization. Models used as published upstream are pulled from their own organizations.
 * Test documents live in xberg-io/test_documents; binaries are content-addressed by sha256 in a public bucket and
   pinned by `corpus.lock.json`, not committed or kept in Git LFS.
-* Each CLI ships an npm and PyPI proxy package, `@xberg-io/<tool>-cli` (`cli-proxy/`), that downloads the
-  checksummed release binary, so `npx` and `uvx` work.
+* The CLIs of xberg, crawlberg, liter-llm, html-to-markdown and tree-sitter-language-pack each ship an npm and PyPI
+  proxy package, `@xberg-io/<tool>-cli` (`cli-proxy/`), that downloads the checksummed release binary, so `npx` and
+  `uvx` work.
 * Each product's coding-agent plugin lives in its repository under `plugin/`.
 
 These were settled between June 20 and August 7, 2026; this record is dated to the last, the corpus move.
