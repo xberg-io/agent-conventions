@@ -110,3 +110,111 @@ class ProtocolProvenanceTest(unittest.TestCase):
             with self.assertRaises(harness.HarnessError) as raised:
                 harness.cmd_judge(args, lambda _model: self.fail("must not grade mismatched protocol"))
             self.assertIn("execution policy", str(raised.exception))
+
+
+class RoundBindingTest(unittest.TestCase):
+    def arguments(self, root: Path, ledger: Path):
+        return harness.parser().parse_args(
+            ["--hard-budget", "--budget-ledger", str(ledger), "judge", str(root), "--model", gateway.MODELS[0]]
+        )
+
+    def test_same_round_can_be_shared_but_judging_cannot_switch_to_a_fresh_ledger(self) -> None:
+        import json
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = self.arguments(root, root / "round-a.sqlite3")
+            second = self.arguments(root, root / "round-b.sqlite3")
+            gateway.Ledger(first.budget_ledger, 25)
+            gateway.Ledger(second.budget_ledger, 25)
+            (root / "run.json").write_text(
+                json.dumps(
+                    {"execution_policy": harness.execution_policy(first), "budget_round": harness.budget_round(first)}
+                )
+            )
+            harness.require_execution_policy(first)
+            shared = self.arguments(root, first.budget_ledger)
+            self.assertEqual(harness.budget_round(first), harness.budget_round(shared))
+            with self.assertRaises(harness.HarnessError) as raised:
+                harness.require_execution_policy(second)
+            self.assertIn("budget round", str(raised.exception))
+
+    def test_round_identity_is_persistent_and_independent_of_comparison_protocol(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = self.arguments(root, root / "round-a.sqlite3")
+            second = self.arguments(root, root / "round-b.sqlite3")
+            identity = harness.budget_round(first)
+            self.assertEqual(identity, harness.budget_round(first))
+            self.assertEqual(identity["total_nanos"], 25_000_000_000)
+            self.assertEqual(identity["ledger_path"], str(first.budget_ledger.resolve()))
+            self.assertNotEqual(identity["uuid"], harness.budget_round(second)["uuid"])
+            self.assertEqual(harness.execution_policy(first), harness.execution_policy(second))
+            same = dict.fromkeys(harness.VERSION_KEYS, "same")
+            self.assertEqual(
+                harness.comparable(
+                    same | {"budget_round": identity}, same | {"budget_round": harness.budget_round(second)}
+                ),
+                [],
+            )
+
+
+class RoundResumeTest(unittest.TestCase):
+    def test_resume_cannot_move_a_recorded_run_to_another_ledger(self) -> None:
+        import test_harness
+
+        fixture = test_harness.HarnessTest()
+        fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        first, second = fixture.base / "first.sqlite3", fixture.base / "second.sqlite3"
+        output = fixture.base / "run"
+        command = [
+            "run",
+            "--repo",
+            str(fixture.repo),
+            "--ref",
+            "main",
+            "--model",
+            gateway.MODELS[0],
+            "--repeats",
+            "2",
+            "--skip-generate",
+            "--out",
+            str(output),
+        ]
+        with patch("harness.gateway_transport.HardExecute", return_value=test_harness.agent(test_harness.BASE)):
+            code, _, error = fixture.main("--hard-budget", "--budget-ledger", str(first), *command)
+        self.assertEqual((code, error), (0, ""))
+
+        def forbidden(*_arguments):
+            self.fail("resume mismatch must be rejected before executing an agent")
+
+        with patch("harness.gateway_transport.HardExecute", return_value=forbidden):
+            code, _, error = fixture.main("--hard-budget", "--budget-ledger", str(second), *command, "--resume")
+        self.assertEqual(code, 2)
+        self.assertIn("resume parameters differ", error)
+
+    def test_verdicts_and_validity_from_another_round_cannot_validate_answers(self) -> None:
+        import json
+
+        import records
+        import test_harness
+
+        fixture = test_harness.HarnessTest()
+        fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        output = fixture.run_harness("round-validity")
+        self.assertEqual(fixture.main("judge", str(output), "--model", "judge-m")[0], 0)
+        self.assertEqual(
+            fixture.main(
+                "judge-validate", str(output), "--model", "judge-m", "--second-model", "judge-n", "--per-domain", "2"
+            )[0],
+            0,
+        )
+        sessions = records.read_sessions(output / "sessions.jsonl")
+        self.assertTrue(any(value is not None for session in sessions for value in session.criteria.values()))
+        metadata = output / "run.json"
+        metadata.write_text(json.dumps(json.loads(metadata.read_text()) | {"budget_round": {"uuid": "another-round"}}))
+        with contextlib.redirect_stderr(io.StringIO()):
+            harness.apply_judge(output, sessions)
+        self.assertTrue(all(value is None for session in sessions for value in session.criteria.values()))

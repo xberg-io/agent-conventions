@@ -62,11 +62,13 @@ def rates(model: str) -> dict[str, int]:
 
 
 def manifest() -> dict:
-    source = b"".join((Path(__file__).parent / name).read_bytes() for name in ("gateway.py", "gateway_transport.py"))
+    files = ("gateway.py", "gateway_transport.py", "harness.py", "runner.py", "judge.py")
+    source = b"".join((Path(__file__).parent / name).read_bytes() for name in files)
     return {
         "version": POLICY_VERSION,
-        "protocol": "hard-gateway-1",
+        "protocol": "hard-gateway-2",
         "source_sha256": hashlib.sha256(source).hexdigest(),
+        "source_files": list(files),
         "context_tokens": CONTEXT_TOKENS,
         "max_output_tokens": OUTPUT_TOKENS,
         "rates_nanos_per_token": {model: rates(model) for model in MODELS},
@@ -279,29 +281,50 @@ def process_identity(pid: int) -> str:
 
 class Ledger:
     def __init__(self, path: Path, total: object) -> None:
-        self.path, self.total = path, usd_nanos(total)
+        self.total = usd_nanos(total)
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.is_symlink():
             raise GatewayError("budget ledger must not be a symlink")
-        descriptor = os.open(path, os.O_CREAT | os.O_RDWR, 0o600)
+        self.path = path.resolve()
+        descriptor = os.open(self.path, os.O_CREAT | os.O_RDWR, 0o600)
         os.close(descriptor)
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
             legacy = db.execute("SELECT name FROM sqlite_master WHERE name = 'calls'").fetchone()
             if legacy and db.execute("SELECT COUNT(*) FROM calls").fetchone()[0]:
                 raise GatewayError("hard rounds cannot reuse a historical soft-budget ledger")
-            db.execute(
-                "CREATE TABLE IF NOT EXISTS hard_round (id INTEGER PRIMARY KEY CHECK(id=1), total INTEGER, policy TEXT, stopped TEXT)"
-            )
-            db.execute("INSERT OR IGNORE INTO hard_round VALUES (1, ?, ?, '')", (self.total, policy_hash()))
-            if db.execute("SELECT total, policy FROM hard_round WHERE id=1").fetchone() != (self.total, policy_hash()):
-                raise GatewayError("round budget or pricing identity changed")
+            self.initialize_round(db)
             db.execute(
                 "CREATE TABLE IF NOT EXISTS hard_requests (id INTEGER PRIMARY KEY, model TEXT, max_tokens INTEGER, charge INTEGER, state TEXT, owner INTEGER, birth TEXT)"
             )
             owners = db.execute("SELECT DISTINCT owner, birth FROM hard_requests WHERE state='pending'").fetchall()
             if any(process_identity(pid) != birth for pid, birth in owners):
                 db.execute("UPDATE hard_round SET stopped='orphaned in-flight request' WHERE id=1")
+
+    def initialize_round(self, db: sqlite3.Connection) -> None:
+        import uuid
+
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS hard_round (id INTEGER PRIMARY KEY CHECK(id=1), total INTEGER, "
+            "policy TEXT, stopped TEXT, round_uuid TEXT NOT NULL, canonical_path TEXT NOT NULL)"
+        )
+        columns = {row[1] for row in db.execute("PRAGMA table_info(hard_round)")}
+        if not {"round_uuid", "canonical_path"} <= columns:
+            raise GatewayError("legacy hard round lacks immutable identity; use a fresh approved round")
+        db.execute(
+            "INSERT OR IGNORE INTO hard_round VALUES (1, ?, ?, '', ?, ?)",
+            (self.total, policy_hash(), str(uuid.uuid4()), str(self.path)),
+        )
+        actual = db.execute("SELECT total, policy, canonical_path FROM hard_round WHERE id=1").fetchone()
+        if actual != (self.total, policy_hash(), str(self.path)):
+            raise GatewayError("round budget, pricing or canonical ledger identity changed")
+
+    def identity(self) -> dict:
+        with self.connection() as db:
+            value, total, path = db.execute(
+                "SELECT round_uuid, total, canonical_path FROM hard_round WHERE id=1"
+            ).fetchone()
+        return {"uuid": value, "total_nanos": total, "ledger_path": path}
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
@@ -359,6 +382,7 @@ class Ledger:
             "policy": manifest(),
             "policy_sha256": policy_hash(),
             "total_nanos": self.total,
+            "round": self.identity(),
             "reserved_or_spent_nanos": sum(row[3] for row in rows),
             "stop_reason": stop,
             "requests": [

@@ -150,6 +150,7 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         "judge_tool_profile_version": judge.TOOL_PROFILE_VERSION,
         "harness_version": HARNESS_VERSION,
         "execution_policy": execution_policy(args),
+        "budget_round": budget_round(args),
         "calibration_version": exposure.CALIBRATION["calibration_version"],
         "taxonomy_version": hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest(),
         "record_version": records.RECORD_VERSION,
@@ -175,6 +176,7 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
             "tool_profile_version",
             "judge_tool_profile_version",
             "execution_policy",
+            "budget_round",
         )
         if any(previous.get(key) != meta[key] for key in stable):
             raise HarnessError("resume parameters differ from the recorded run")
@@ -241,9 +243,13 @@ def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
     if validity_path.exists():
         validity = read_json(validity_path)
         models = {row["judge_model"] for row in rows}
-        recorded_policy = read_json(run_dir / "run.json").get("execution_policy")
+        recorded_meta = read_json(run_dir / "run.json")
+        recorded_policy = recorded_meta.get("execution_policy")
+        recorded_round = recorded_meta.get("budget_round")
         same = (
             validity.get("execution_policy") == recorded_policy
+            and validity.get("budget_round") == recorded_round
+            and all(row.get("budget_round") == recorded_round for row in rows)
             and all(row.get("execution_policy") == recorded_policy for row in rows)
             and validity["judge_prompt_version"] == judge.JUDGE_PROMPT_VERSION
             and validity["rubric_version"] == judge.RUBRIC_VERSION
@@ -290,8 +296,10 @@ def cmd_judge(args: argparse.Namespace, factory: GraderFactory) -> int:
     require_execution_policy(args)
     sessions = _sessions(args.run_dir, current_rubric=True)
     rows = judge.judge_sessions(sessions, run_cases(args.run_dir), factory(args.model), args.model)
+    identity = budget_round(args)
     for row in rows:
         row["execution_policy"] = execution_policy(args)
+        row["budget_round"] = identity
     path = args.run_dir / "judge" / "verdicts.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows))
@@ -318,6 +326,7 @@ def cmd_judge_validate(args: argparse.Namespace, factory: GraderFactory) -> int:
     )
     report["models"] = {"primary": args.model, "secondary": args.second_model}
     report["execution_policy"] = execution_policy(args)
+    report["budget_round"] = budget_round(args)
     write_json(args.run_dir / "judge" / "validity.json", report)
     (args.run_dir / "judge" / "validity.md").write_text(judge.validity_markdown(report))
     apply_judge(args.run_dir, sessions)
@@ -455,6 +464,16 @@ def require_execution_policy(args: argparse.Namespace) -> None:
     recorded = read_json(args.run_dir / "run.json").get("execution_policy")
     if recorded != execution_policy(args):
         raise HarnessError("run uses a different execution policy; fresh sessions and judging are required")
+    if read_json(args.run_dir / "run.json").get("budget_round") != budget_round(args):
+        raise HarnessError("run belongs to a different budget round; reuse its original shared ledger")
+
+
+def budget_round(args: argparse.Namespace) -> dict | None:
+    if not args.hard_budget:
+        return None
+    if not args.budget_ledger:
+        raise HarnessError("hard execution requires its original shared budget ledger")
+    return gateway.Ledger(args.budget_ledger, args.budget_usd).identity()
 
 
 def execution_policy(args: argparse.Namespace) -> dict:
@@ -469,7 +488,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--cases-dir", type=Path, default=HERE / "cases")
     p.add_argument("--budget-ledger", type=Path, help="shared SQLite spending ledger for this round")
     p.add_argument("--budget-usd", type=float, default=25.0)
-    p.add_argument("--per-call-usd", type=float, default=0.2)
+    p.add_argument("--per-call-usd", type=float, default=0.2, help="prospective reservation for soft-budget mode only")
     modes = p.add_mutually_exclusive_group()
     modes.add_argument("--hard-budget", action="store_true", help="require reserved, network-confined egress")
     modes.add_argument(

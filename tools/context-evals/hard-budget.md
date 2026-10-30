@@ -46,7 +46,13 @@ positive connection and three denied connections establish the boundary: another
 IPv6 loopback on the same port, and an external address. A denial must be EPERM/EACCES, not a timeout or
 connection refusal. Other platforms currently refuse hard execution.
 
-The same sandbox denies reads from the original home directory, with narrow exceptions for the session
+The same sandbox denies writes globally, allowing only the isolated session home (including its private
+TMPDIR/config/cache) and `/dev/null`. The case worktree, controller source and budget ledger remain read-only.
+Direct and symlink writes are denied; new hardlinks are denied and preexisting writable-home hardlinks are
+refused before launch. Generic Mach/AppleEvent brokers and privileged task-port access are also denied so
+project hooks cannot delegate protected-file access to another process.
+
+The sandbox denies reads from the original home directory, with narrow exceptions for the session
 worktree, its temporary home and exact CLI/Python runtime directories. Environment files and common private-key
 extensions remain denied inside the worktree. Offline fixture tests prove credential-file reads, secret-path
 glob lookup and symlink traversal fail while AGENTS.md remains readable. Directory entry names are not secret
@@ -65,15 +71,21 @@ Use a fresh ledger and fresh output directories for the approved round. For exam
 ```sh
 mise run context:eval -- --hard-budget --budget-ledger ../reports/fresh-round/round.sqlite3 \
   --budget-usd 25 run --repo ../xberg --ref main --model claude-sonnet-5-5 \
-  --split tune --repeats 3 --jobs 2 --out ../reports/fresh-round/xberg
+  --split tune --repeats 3 --jobs 1 --out ../reports/fresh-round/xberg
 ```
 
 Use the **same** ledger for Sceptre, primary judging and independent judge validation. `--hard-budget` and
 `--allow-soft-budget` are mutually exclusive. The legacy `probe.py` interface is outside this hard-budget
 execution path; do not charge probes to this round through its soft-budget interface.
 
-`run.json` records harness 5, the price/output policy, and a digest of the gateway implementation. Resume,
-comparison and paid judging reject a different execution policy. Verdicts and validity reports carry that same
-policy, so an old report cannot validate a new round. Record the committed source SHA, CLI version, models,
+`run.json` records harness 5, the price/output policy, and a digest of the gateway implementation. A separate
+`budget_round` records the ledger's immutable UUID, total ceiling and canonical path. Both repositories share
+that identity; resume and paid judging reject any attempt to switch to a new ledger. Verdicts and validity
+reports must match the same round. Different independently approved rounds can still be compared when their
+execution protocols match. Use one paid worker for this round: overlapping conservative reservations can
+otherwise stop admission before earlier calls settle.
+
+Resume,
+comparison and paid judging reject a different execution policy. An old report cannot validate a new round. Record the committed source SHA, CLI version, models,
 rubric/taxonomy versions and final ledger snapshot alongside the round. Recheck the official pricing before
 using this dated policy; it assumes those documented prices, not undisclosed or future account-specific charges.
