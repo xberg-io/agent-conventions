@@ -23,7 +23,7 @@ cannot load through a different configuration.
 | Skill with `disable-model-invocation: true` | Absent from the start listing. |
 | Skill body | Absent at start; visible after explicit invocation. |
 | Agent description | Visible at start. |
-| MCP schemas | Deliberately excluded from these hermetic runs through a strict empty MCP config. Production tool-search deferral is outside this measurement. |
+| MCP schemas | Excluded from the instruction probes through a strict empty MCP config; real-server startup deferral was measured separately below. |
 
 The initial input of the root-start probes ranged from 25,536 to 25,537 tokens, including Claude Code's own
 instructions and tool definitions. This is not the same quantity as repository instruction-text tokens.
@@ -64,10 +64,58 @@ calibrated units by default.
 ## MCP scope
 
 Playwright is deliberately excluded: these cases measure read-only repository guidance, not browser operation,
-and enabling a browser would introduce network and external-state effects outside the case fixtures. The ai-rulez
-server's static schema cost can still be measured with `exposure.py --measure-mcp ai-rulez`; it is an upper bound
-until production Claude tool-search deferral is measured. No MCP upper bound is presented as measured runtime
-input cost. That remaining limitation keeps issue 5 open.
+and enabling a browser would introduce network and external-state effects outside the case fixtures. Basemind was
+also absent from the MCP probe; no indexing or source tool invocation was performed.
+
+An additional 2026-10-30 probe connected the actual published **ai-rulez 5.9.3** stdio server to Claude Code
+**2.1.314**, requesting `claude-sonnet-5-5`. `exposure.py --measure-mcp ai-rulez` measured the repository's configured
+two-tool server; separate controlled configurations measured the full and read-only catalogs. Initialize replies
+identified version 5.9.3, and nonempty `tools/list` responses were retained.
+
+| Actual server configuration | Tools | Compact catalog + instructions bytes | Calibrated static estimate |
+|---|---:|---:|---:|
+| This repository: `find_skill`, `load_skill` | 2 | 4,465 | 1,678 tokens |
+| Full read-only catalog control | 38 | 78,427 | 29,478 tokens |
+| Full catalog control | 71 | 157,974 | 59,377 tokens |
+
+These estimates reuse the instruction-text byte calibration; they are not native MCP token counts. The catalog
+includes output schemas, annotations and titles, not just model-facing input schemas. The eager CLI control
+contained MCP tool-definition objects totaling 73,954 compact JSON bytes, rather than the full 157,974-byte catalog.
+
+The real CLI used isolated settings, no `--tools` restriction and a strict MCP config containing only ai-rulez.
+An SSE loopback fixture supplied responses, with a dummy API key and remote network access denied by
+`sandbox-exec`; an explicit connection to `1.1.1.1:443` failed with `EPERM`. No hosted completion or token-count
+endpoint was called. The fixture's usage and cost fields are synthetic and are excluded from measurements.
+
+| CLI tool-search setting | Connected MCP tools advertised at init | MCP schemas in first Messages request | First request bytes |
+|---|---:|---:|---:|
+| Default/unset, configured server | 2 | 0 | 47,946 |
+| Default/unset, full catalog | 71 | 0 | 49,905 |
+| `ENABLE_TOOL_SEARCH=false`, full catalog | 71 | 71 | 151,320 |
+
+With the default setting, both real catalogs appeared by tool name in the startup reminder, while `ToolSearch`
+and a `DeferredToolPlaceholder` carrying `defer_loading: true` replaced the MCP parameter schemas. Explicitly
+enabling search gave the same schema-deferral shape; disabling it supplied all 71 actual MCP schemas. This
+negative control rules out an empty or failed MCP connection masquerading as deferral.
+
+A further fixture response requested the real CLI's built-in `ToolSearch` for
+`select:mcp__ai-rulez__find_skill`. The following Messages request contained exactly that MCP schema and a
+`tool_reference` for it; the initial request contained none. The actual ai-rulez protocol log still contained
+zero `tools/call` requests. This observes client-side on-demand schema loading without executing an MCP source
+tool or asking a hosted model to select one.
+
+This resolves the startup transport question for the measured CLI/server configurations. It does **not** measure
+native model input tokens, provider billing, natural model tool choices, account-specific production settings or
+Codex MCP deferral. Request byte totals also include built-ins, instructions and message wrappers; their difference
+must not be reported as an MCP token saving. Static exposure remains an upper-bound inventory, not runtime input
+cost, and the historical instruction-probe usage measurements above remain unchanged.
+
+Controlled raw MCP exchanges, CLI initialization records, API request bodies, capture scripts and SHA256 evidence
+index are retained under the ignored polyrepo `reports/mcp-ai-rulez-5.9.3-2026-10-30/`. Replay their consistency with
+`tools/context-evals/mcp_probe.py --catalog CATALOG.jsonl --rpc RPC.jsonl --startup STARTUP.jsonl
+--requests REQUESTS.json --out SUMMARY.json`. The analyzer requires matching nonempty catalogs, an actually
+connected server, matching advertised names and a captured startup request; its tests reject missing tools,
+missing search support, changed catalogs and metadata-only probes that invoked `tools/call`.
 
 ## Re-probing
 
