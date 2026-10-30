@@ -32,6 +32,8 @@ from pathlib import Path
 import budget
 import cases as cases_mod
 import exposure
+import gateway
+import gateway_transport
 import judge
 import records
 import runner
@@ -41,7 +43,7 @@ import transcript
 from cases import Case, Criterion, Reference
 
 HERE = Path(__file__).parent
-HARNESS_VERSION = "4"
+HARNESS_VERSION = "5"
 VERSION_KEYS = (
     "judge_prompt_version",
     "rubric_version",
@@ -51,6 +53,7 @@ VERSION_KEYS = (
     "harness_version",
     "tool_profile_version",
     "judge_tool_profile_version",
+    "execution_policy",
 )
 
 GraderFactory = Callable[[str], judge.Grader]
@@ -146,6 +149,7 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         "tool_profile_version": runner.TOOL_PROFILE_VERSION,
         "judge_tool_profile_version": judge.TOOL_PROFILE_VERSION,
         "harness_version": HARNESS_VERSION,
+        "execution_policy": execution_policy(args),
         "calibration_version": exposure.CALIBRATION["calibration_version"],
         "taxonomy_version": hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest(),
         "record_version": records.RECORD_VERSION,
@@ -170,6 +174,7 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
             "allowed_tools",
             "tool_profile_version",
             "judge_tool_profile_version",
+            "execution_policy",
         )
         if any(previous.get(key) != meta[key] for key in stable):
             raise HarnessError("resume parameters differ from the recorded run")
@@ -236,8 +241,11 @@ def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
     if validity_path.exists():
         validity = read_json(validity_path)
         models = {row["judge_model"] for row in rows}
+        recorded_policy = read_json(run_dir / "run.json").get("execution_policy")
         same = (
-            validity["judge_prompt_version"] == judge.JUDGE_PROMPT_VERSION
+            validity.get("execution_policy") == recorded_policy
+            and all(row.get("execution_policy") == recorded_policy for row in rows)
+            and validity["judge_prompt_version"] == judge.JUDGE_PROMPT_VERSION
             and validity["rubric_version"] == judge.RUBRIC_VERSION
             and validity.get("judge_tool_profile_version") == judge.TOOL_PROFILE_VERSION
             and models <= {validity.get("models", {}).get("primary")}
@@ -279,8 +287,11 @@ def _sessions(run_dir: Path, *, current_rubric: bool = False) -> list[records.Se
 
 
 def cmd_judge(args: argparse.Namespace, factory: GraderFactory) -> int:
+    require_execution_policy(args)
     sessions = _sessions(args.run_dir, current_rubric=True)
     rows = judge.judge_sessions(sessions, run_cases(args.run_dir), factory(args.model), args.model)
+    for row in rows:
+        row["execution_policy"] = execution_policy(args)
     path = args.run_dir / "judge" / "verdicts.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows))
@@ -295,6 +306,7 @@ def cmd_judge(args: argparse.Namespace, factory: GraderFactory) -> int:
 
 
 def cmd_judge_validate(args: argparse.Namespace, factory: GraderFactory) -> int:
+    require_execution_policy(args)
     sessions = _sessions(args.run_dir, current_rubric=True)
     report = judge.validate(
         sessions,
@@ -305,6 +317,7 @@ def cmd_judge_validate(args: argparse.Namespace, factory: GraderFactory) -> int:
         per_domain=args.per_domain,
     )
     report["models"] = {"primary": args.model, "secondary": args.second_model}
+    report["execution_policy"] = execution_policy(args)
     write_json(args.run_dir / "judge" / "validity.json", report)
     (args.run_dir / "judge" / "validity.md").write_text(judge.validity_markdown(report))
     apply_judge(args.run_dir, sessions)
@@ -438,6 +451,18 @@ def cmd_compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def require_execution_policy(args: argparse.Namespace) -> None:
+    recorded = read_json(args.run_dir / "run.json").get("execution_policy")
+    if recorded != execution_policy(args):
+        raise HarnessError("run uses a different execution policy; fresh sessions and judging are required")
+
+
+def execution_policy(args: argparse.Namespace) -> dict:
+    if args.hard_budget:
+        return {"mode": "hard-gateway", "policy": gateway.manifest(), "policy_sha256": gateway.policy_hash()}
+    return {"mode": "soft" if args.allow_soft_budget else "unmetered-injected-test"}
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--domains", type=Path, default=HERE / "domains.toml")
@@ -445,7 +470,9 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--budget-ledger", type=Path, help="shared SQLite spending ledger for this round")
     p.add_argument("--budget-usd", type=float, default=25.0)
     p.add_argument("--per-call-usd", type=float, default=0.2)
-    p.add_argument(
+    modes = p.add_mutually_exclusive_group()
+    modes.add_argument("--hard-budget", action="store_true", help="require reserved, network-confined egress")
+    modes.add_argument(
         "--allow-soft-budget",
         action="store_true",
         help="explicitly accept prospective accounting, not a hard spending ceiling",
@@ -497,21 +524,29 @@ def main(
 ) -> int:
     args = parser().parse_args(argv)
     paid = args.command == "run" or (args.command in ("judge", "judge-validate") and grader_factory is None)
-    if paid and execute is runner.subprocess_execute and not args.allow_soft_budget:
+    if paid and execute is runner.subprocess_execute and not (args.allow_soft_budget or args.hard_budget):
         print(
-            "error: Claude CLI cannot enforce a hard dollar ceiling; paid execution requires explicit --allow-soft-budget consent",
+            "error: a hard dollar ceiling requires --hard-budget; otherwise explicit --allow-soft-budget consent is required",
             file=sys.stderr,
         )
         return 2
-    if paid and execute is runner.subprocess_execute and not args.budget_ledger:
+    if paid and (execute is runner.subprocess_execute or args.hard_budget) and not args.budget_ledger:
         print("error: paid execution requires a shared --budget-ledger", file=sys.stderr)
         return 2
-    if args.budget_ledger:
-        execute = budget.BudgetedExecute(
-            args.budget_ledger, args.budget_usd, args.per_call_usd, execute, allow_soft_limits=args.allow_soft_budget
-        )
-    factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ, execute=execute))
     try:
+        if args.hard_budget and paid:
+            execute = gateway_transport.HardExecute(
+                gateway.Ledger(args.budget_ledger, args.budget_usd), environ.get("ANTHROPIC_API_KEY", "")
+            )
+        elif args.budget_ledger:
+            execute = budget.BudgetedExecute(
+                args.budget_ledger,
+                args.budget_usd,
+                args.per_call_usd,
+                execute,
+                allow_soft_limits=args.allow_soft_budget,
+            )
+        factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ, execute=execute))
         if args.command == "validate-cases":
             return cmd_validate_cases(args)
         if args.command == "run":

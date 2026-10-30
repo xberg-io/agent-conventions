@@ -1,0 +1,504 @@
+"""Restricted Anthropic egress and isolated Claude subprocesses for hard-budget runs."""
+
+from __future__ import annotations
+
+import json
+import threading
+from collections.abc import Callable, Mapping
+from pathlib import Path
+from typing import BinaryIO, Self
+
+import gateway
+import runner
+
+RESPONSE_BYTES = 16 * 1024 * 1024
+Provider = Callable[[dict], tuple[str, bytes]]
+
+
+def decode_json(data: bytes) -> dict:
+    def reject_constant(_value: str) -> None:
+        raise gateway.GatewayError("nonfinite provider JSON")
+
+    value = json.loads(data, parse_constant=reject_constant)
+    if not isinstance(value, dict):
+        raise gateway.GatewayError("provider response must be an object")
+    return value
+
+
+def response_cost(content_type: str, data: bytes, model: str, maximum: int, streamed: bool) -> int:
+    if len(data) > RESPONSE_BYTES:
+        raise gateway.GatewayError("provider response exceeds bounded buffer")
+    kind = content_type.split(";", 1)[0].strip()
+    if not streamed and kind == "application/json":
+        message = decode_json(data)
+        if message.get("type") != "message" or message.get("model") != model or not message.get("stop_reason"):
+            raise gateway.GatewayError("nonterminal response or model drift")
+        return gateway.Policy().cost(message.get("usage"), model, maximum)
+    if not streamed or kind != "text/event-stream":
+        raise gateway.GatewayError("unexpected response encoding")
+    stream = gateway.StreamUsage(model, maximum)
+    text = data.decode("utf-8").replace("\r\n", "\n")
+    for frame in text.split("\n\n"):
+        if not frame.strip():
+            continue
+        fields = [line for line in frame.splitlines() if not line.startswith(":")]
+        names = [line.removeprefix("event:").strip() for line in fields if line.startswith("event:")]
+        values = [line.removeprefix("data:").lstrip() for line in fields if line.startswith("data:")]
+        if len(names) != 1 or not values or len(fields) != len(names) + len(values):
+            raise gateway.GatewayError("malformed provider stream")
+        event = decode_json("\n".join(values).encode())
+        if event.get("type") != names[0]:
+            raise gateway.GatewayError("stream event identity mismatch")
+        stream.feed(event)
+    return stream.cost()
+
+
+class Backend:
+    def __init__(self, ledger: gateway.Ledger, provider: Provider) -> None:
+        self.ledger, self.provider = ledger, provider
+
+    def respond(self, payload: dict, model: str, tools: tuple[str, ...]) -> tuple[str, bytes]:
+        reservation = None
+        try:
+            request = gateway.Policy().prepare(payload, tools)
+            if request["model"] != model:
+                raise gateway.GatewayError("CLI/request model mismatch")
+            reservation = self.ledger.reserve(model, request["max_tokens"])
+            content_type, data = self.provider(request)
+            cost = response_cost(content_type, data, model, request["max_tokens"], request.get("stream", False))
+            self.ledger.settle(reservation, cost)
+            return content_type, data
+        except Exception as exc:
+            if reservation is None:
+                self.ledger.stop("request policy or reservation refused")
+            else:
+                self.ledger.uncertain(reservation, "provider request could not be safely settled")
+            raise gateway.GatewayError("provider request refused or billing uncertain; round stopped") from exc
+
+
+class LocalGateway:
+    def __init__(self, backend: Backend, model: str, tools: tuple[str, ...]) -> None:
+        import secrets
+        from http.server import ThreadingHTTPServer
+
+        self.backend, self.model, self.tools = backend, model, tools
+        self.token = secrets.token_urlsafe(32)
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), self.handler())
+        self.server.daemon_threads = False
+        self.address = self.server.server_address
+
+    def handler(self) -> type:
+        import hmac
+        from http.server import BaseHTTPRequestHandler
+
+        owner = self
+
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, _format: str, *_arguments: object) -> None:
+                return
+
+            def do_POST(self) -> None:
+                self.connection.settimeout(10)
+                try:
+                    if self.path not in ("/v1/messages", "/v1/messages?beta=true"):
+                        raise gateway.GatewayError("unsupported API route")
+                    if not hmac.compare_digest(self.headers.get("x-api-key", ""), owner.token):
+                        raise gateway.GatewayError("unauthorized local request")
+                    lengths = self.headers.get_all("Content-Length", [])
+                    if len(lengths) != 1 or self.headers.get("Transfer-Encoding"):
+                        raise gateway.GatewayError("request framing refused")
+                    size = int(lengths[0])
+                    if not 0 < size <= gateway.BODY_BYTES:
+                        raise gateway.GatewayError("request body exceeds bound")
+                    data = self.rfile.read(size)
+                    if len(data) != size:
+                        raise gateway.GatewayError("incomplete request body")
+                    kind, body = owner.backend.respond(decode_json(data), owner.model, owner.tools)
+                    self.send_response(200)
+                except Exception:
+                    kind, body = (
+                        "application/json",
+                        b'{"error":{"type":"gateway_refused","message":"round stopped or request refused"}}',
+                    )
+                    self.send_response(400)
+                self.send_header("Content-Type", kind)
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Connection", "close")
+                self.end_headers()
+                self.wfile.write(body)
+
+        return Handler
+
+    def __enter__(self) -> Self:
+        import threading
+
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        return self
+
+    def __exit__(self, *_error: object) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join()
+
+
+def sandbox_command(
+    port: int,
+    command: list[str],
+    *,
+    workspace: Path | None = None,
+    home: Path | str | None = None,
+    original_home: Path | None = None,
+) -> list[str]:
+    import sys
+
+    if sys.platform != "darwin" or not 0 < port < 65536:
+        raise gateway.GatewayError("hard-budget OS network confinement is unavailable")
+    profile = f'(version 1)(allow default)(deny network*)(allow network-outbound (remote tcp4 "localhost:{port}"))'
+    if workspace is not None:
+        profile += file_profile(workspace, home, original_home)
+    return ["/usr/bin/sandbox-exec", "-p", profile, *command]
+
+
+def child_environment(home: Path, token: str, port: int, model: str) -> dict[str, str]:
+    import os
+
+    if model not in gateway.MODELS:
+        raise gateway.GatewayError("unknown child model")
+    return {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "HOME": str(home),
+        "CLAUDE_CONFIG_DIR": str(home / "claude"),
+        "ANTHROPIC_API_KEY": token,
+        "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{port}",
+        "NO_PROXY": "127.0.0.1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_ERROR_REPORTING": "1",
+        "DISABLE_AUTOUPDATER": "1",
+        "ENABLE_TOOL_SEARCH": "false",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": model,
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": model,
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": model,
+        "CLAUDE_CODE_SUBAGENT_MODEL": model,
+    }
+
+
+def verify_sandbox() -> dict[str, bool]:
+    import socket
+    import subprocess
+    import sys
+    from contextlib import ExitStack
+
+    with ExitStack() as stack:
+        listeners = []
+        for family, host in [(socket.AF_INET, "127.0.0.1"), (socket.AF_INET, "127.0.0.1"), (socket.AF_INET6, "::1")]:
+            listener = stack.enter_context(socket.socket(family))
+            if family == socket.AF_INET6:
+                listener.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+            listener.bind((host, listeners[0] if family == socket.AF_INET6 else 0))
+            listener.listen()
+            listeners.append(listener.getsockname()[1])
+        probe = """import errno,json,socket,sys
+rows={}
+for name,family,host,port,allowed in json.loads(sys.argv[1]):
+    sock=socket.socket(family);sock.settimeout(1)
+    try:
+        sock.connect((host,port));rows[name]=allowed
+    except OSError as error:
+        rows[name]=not allowed and error.errno in (errno.EPERM,errno.EACCES)
+    finally:
+        sock.close()
+print(json.dumps(rows))
+"""
+        cases = [
+            ("allowed_ipv4", socket.AF_INET, "127.0.0.1", listeners[0], True),
+            ("denied_other_port", socket.AF_INET, "127.0.0.1", listeners[1], False),
+            ("denied_ipv6", socket.AF_INET6, "::1", listeners[2], False),
+            ("denied_external", socket.AF_INET, "1.1.1.1", 443, False),
+        ]
+        command = sandbox_command(listeners[0], [sys.executable, "-I", "-c", probe, json.dumps(cases)])
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            env={"PATH": "/usr/bin:/bin", "HOME": "/nonexistent"},
+            check=True,
+        )
+        proof = json.loads(result.stdout)
+        if len(proof) != 4 or not all(value is True for value in proof.values()):
+            raise gateway.GatewayError("OS network confinement negative control failed")
+        return proof
+
+
+def shutdown_socket(sock) -> None:
+    import socket
+
+    try:
+        sock.shutdown(socket.SHUT_RDWR)
+    except OSError:
+        pass
+
+
+def provider_headers(payload: dict, api_key: str) -> dict[str, str]:
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        "accept-encoding": "identity",
+    }
+    betas = []
+    if "context_management" in payload:
+        betas.append("context-management-2025-06-27")
+    if any(message["role"] == "system" for message in payload["messages"]):
+        betas.append("mid-conversation-system-2026-04-07")
+    if any("output_config" in message for message in payload["messages"]):
+        betas.append("per-turn-control-2026-07-01")
+    if betas:
+        headers["anthropic-beta"] = ",".join(betas)
+    return headers
+
+
+class AnthropicProvider:
+    def __init__(self, api_key: str, timeout: float = 120) -> None:
+        if not api_key or not 0 < timeout <= 180:
+            raise gateway.GatewayError("provider credential and bounded timeout are required")
+        self._key, self.timeout = api_key, timeout
+
+    def __call__(self, payload: dict) -> tuple[str, bytes]:
+        import http.client
+        import ssl
+        import time
+
+        connection = http.client.HTTPSConnection(
+            "api.anthropic.com", 443, context=ssl.create_default_context(), timeout=self.timeout
+        )
+        deadline = time.monotonic() + self.timeout
+        timer = None
+        try:
+            connection.connect()
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise gateway.GatewayError("provider connection exceeded deadline")
+            timer = threading.Timer(remaining, shutdown_socket, args=(connection.sock,))
+            timer.daemon = True
+            timer.start()
+            headers = provider_headers(payload, self._key)
+            connection.request("POST", "/v1/messages", json.dumps(payload, allow_nan=False), headers=headers)
+            response = connection.getresponse()
+            if response.status != 200 or response.getheader("Content-Encoding") not in (None, "identity"):
+                raise gateway.GatewayError("upstream status or encoding refused")
+            chunks, size = [], 0
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise gateway.GatewayError("provider deadline exhausted")
+                if connection.sock is not None:
+                    connection.sock.settimeout(remaining)
+                chunk = response.read1(min(65536, RESPONSE_BYTES + 1 - size))
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > RESPONSE_BYTES:
+                    raise gateway.GatewayError("provider body exceeds bound")
+                chunks.append(chunk)
+            return response.getheader("Content-Type", ""), b"".join(chunks)
+        finally:
+            if timer is not None:
+                timer.cancel()
+            connection.close()
+
+
+def file_profile(workspace: Path, home: Path | str, original_home: Path | None = None) -> str:
+    import pathlib
+    import shutil
+    import sys
+
+    original = pathlib.Path(original_home or pathlib.Path.home()).resolve()
+    if home is None or not pathlib.Path(home).is_dir() or not pathlib.Path(workspace).is_dir():
+        raise gateway.GatewayError("isolated session paths are required")
+
+    def quoted(value: Path | str) -> str:
+        return json.dumps(str(pathlib.Path(value).resolve()))
+
+    profile = f"(deny file-read* (subpath {quoted(original)}))"
+    runtime = {pathlib.Path(sys.base_prefix)}
+    if binary := shutil.which("claude"):
+        runtime.add(pathlib.Path(binary).resolve().parent)
+    allowed = {pathlib.Path(workspace), pathlib.Path(home), *runtime}
+    for path in allowed:
+        if path.resolve() == original or path.resolve() in original.parents:
+            raise gateway.GatewayError("read exception would expose original home")
+        profile += f"(allow file-read* (subpath {quoted(path)}))"
+    pattern = (
+        r"(^|/)([.][eE][nN][vV]($|[.])|[.]netrc$|[.]npmrc$|[^/]*[.]([pP][eE][mM]|[kK][eE][yY]|p12|pfx|keychain-db)$)"
+    )
+    profile += f"(deny file-read* (regex #{json.dumps(pattern)}))"
+    return profile
+
+
+class InitGate:
+    def __init__(self, model: str, tools: tuple[str, ...]) -> None:
+        import threading
+
+        self.model, self.tools = model, tools
+        self.event, self.valid = threading.Event(), False
+
+    def observe(self, line: str) -> None:
+        try:
+            value = json.loads(line)
+        except ValueError:
+            return
+        if value.get("type") == "system" and value.get("subtype") == "init":
+            actual = value.get("tools")
+            self.valid = (
+                isinstance(actual, list)
+                and all(isinstance(name, str) for name in actual)
+                and len(actual) == len(self.tools)
+                and set(actual) == set(self.tools)
+                and value.get("model") == self.model
+                and value.get("mcp_servers") == []
+            )
+            self.event.set()
+
+    def require(self) -> None:
+        if not self.event.wait(10) or not self.valid:
+            raise gateway.GatewayError("CLI initialization did not prove the restricted profile")
+
+
+def capture_pipe(pipe: BinaryIO, output: bytearray, observe: Callable[[str], None], failed: threading.Event) -> None:
+    try:
+        while line := pipe.readline(RESPONSE_BYTES + 1):
+            if len(output) + len(line) > RESPONSE_BYTES:
+                failed.set()
+                return
+            output.extend(line)
+            observe(line.decode("utf-8", errors="strict"))
+    except Exception:
+        failed.set()
+    finally:
+        pipe.close()
+
+
+def isolated_process(
+    argv: list[str], cwd: Path, environment: dict[str, str], timeout: float, gate: InitGate
+) -> runner.Completed:
+    import os
+    import signal
+    import subprocess
+    import threading
+    import time
+
+    import runner
+
+    workspace = next((path for path in (cwd, *cwd.parents) if (path / ".git").exists()), cwd)
+    command = sandbox_command(
+        int(environment["ANTHROPIC_BASE_URL"].rsplit(":", 1)[1]), argv, workspace=workspace, home=environment["HOME"]
+    )
+    process = subprocess.Popen(
+        command, cwd=cwd, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True
+    )
+    output, errors, failed = bytearray(), bytearray(), threading.Event()
+    readers = [
+        threading.Thread(target=capture_pipe, args=(process.stdout, output, gate.observe, failed)),
+        threading.Thread(target=capture_pipe, args=(process.stderr, errors, lambda _line: None, failed)),
+    ]
+    for reader in readers:
+        reader.start()
+    deadline, timed_out = time.monotonic() + timeout, False
+    try:
+        while process.poll() is None:
+            if failed.is_set() or time.monotonic() >= deadline:
+                timed_out = not failed.is_set()
+                break
+            time.sleep(0.02)
+    finally:
+        if process.poll() is None:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        process.wait()
+    for reader in readers:
+        reader.join(timeout=2)
+    if any(reader.is_alive() for reader in readers) or failed.is_set():
+        raise gateway.GatewayError("CLI output failed its bounded capture contract")
+    return runner.Completed(
+        process.returncode,
+        output.decode("utf-8", errors="replace"),
+        errors.decode("utf-8", errors="replace"),
+        timed_out=timed_out,
+    )
+
+
+class HardExecute:
+    def __init__(self, ledger: gateway.Ledger, api_key: str, provider: Provider | None = None) -> None:
+        self.ledger = ledger
+        self.proof = verify_sandbox()
+        self.provider = provider or AnthropicProvider(api_key)
+
+    def __call__(self, argv: list[str], cwd: Path, env: Mapping[str, str], timeout: float) -> runner.Completed:
+        import pathlib
+        import shutil
+        import tempfile
+
+        import runner
+
+        if pathlib.Path(argv[0]).name != "claude":
+            clean = {
+                key: value
+                for key, value in env.items()
+                if not any(word in key.upper() for word in ("KEY", "TOKEN", "SECRET", "PASSWORD"))
+            }
+            return runner.subprocess_execute(argv, cwd, clean, timeout)
+        model, tools = self.profile(argv)
+        gate = InitGate(model, tools)
+        backend = Backend(self.ledger, self.provider)
+        original = backend.respond
+
+        def checked(payload: dict, expected_model: str, expected_tools: tuple[str, ...]) -> tuple[str, bytes]:
+            try:
+                gate.require()
+            except gateway.GatewayError:
+                self.ledger.stop("CLI initialization profile was not validated")
+                raise
+            return original(payload, expected_model, expected_tools)
+
+        backend.respond = checked
+        with tempfile.TemporaryDirectory(prefix="context-hard-budget-") as directory:
+            home = pathlib.Path(directory)
+            with LocalGateway(backend, model, tools) as server:
+                environment = child_environment(home, server.token, server.address[1], model)
+                binary = shutil.which(argv[0], path=env.get("PATH"))
+                if binary is None:
+                    raise gateway.GatewayError("Claude executable not found")
+                try:
+                    result = isolated_process(
+                        [str(pathlib.Path(binary).resolve()), *argv[1:]], cwd, environment, timeout, gate
+                    )
+                except BaseException:
+                    self.ledger.stop("isolated CLI interrupted or failed")
+                    raise
+            if (
+                result.timed_out
+                or result.returncode
+                or not gate.valid
+                or runner.tool_profile_error(result.stdout, tools)
+            ):
+                self.ledger.stop("CLI execution did not complete with the verified tool profile")
+            return result
+
+    @staticmethod
+    def profile(argv: list[str]) -> tuple[str, tuple[str, ...]]:
+        import runner
+
+        if argv.count("--model") != 1 or argv.count("--tools") != 1:
+            raise gateway.GatewayError("explicit CLI model and tool profile are required")
+        model = argv[argv.index("--model") + 1]
+        tools = tuple(filter(None, argv[argv.index("--tools") + 1].split(",")))
+        if model not in gateway.MODELS or tools not in ((), runner.DEFAULT_TOOLS):
+            raise gateway.GatewayError("unsupported CLI model or tool profile")
+        if "--strict-mcp-config" not in argv or "--mcp-config" not in argv:
+            raise gateway.GatewayError("strict empty MCP configuration is required")
+        return model, tools

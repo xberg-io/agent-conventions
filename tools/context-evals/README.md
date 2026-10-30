@@ -65,20 +65,19 @@ another agent session. `--model` has no default: pick one per study and keep it 
   throwaway worktree at REF, `ai-rulez generate`, then one `claude -p` per case and repeat with a fresh config
   directory, project settings only, a strict empty MCP config and `--tools Read,Glob,Grep,Skill` plus the same
   permission allowlist. The advertised tool set and tool calls must match that profile; mismatches fail the
-  session. This limits available tools; it is not an operating-system filesystem sandbox. The tree is reset between
+  session. Hard-budget mode adds the operating-system boundary described below. The tree is reset between
   sessions. `--jobs N` gives each worker its own worktree; `--resume` reuses only saved sessions with identical
   run parameters. Immutable context/configuration fingerprints and agent/generator binary hashes must match
   before reuse; existing snapshots are never overwritten. Legacy runs without identity are refused. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
-Every paid command accepts `--budget-ledger PATH --budget-usd 25 --per-call-usd 0.2` before the subcommand.
-Use the same ledger across agents, judges and Claude probes. Claude CLI dollar flags are soft limits, so
-hard-ceiling paid execution is refused by default. `--allow-soft-budget` explicitly opts into prospective
-accounting; it cannot guarantee a provider spending ceiling. Use a provider-enforced limit when a hard ceiling
-is required. Unreported cost retains its reservation and any overrun or uncertain billing stops the shared
-round, including queued callers. `study.toml` records the historical attempt's choices.
+Paid execution requires an explicit policy. `--hard-budget --budget-ledger PATH --budget-usd 25` routes
+agents and judges through the reserved egress gateway, caps output at 4,096 tokens and confines CLI network and
+credential-file access. See [the price bound, offline proofs and limitations](hard-budget.md) before use.
+`--allow-soft-budget` remains a separate prospective-accounting opt-in and cannot guarantee a dollar ceiling.
+Never mix policies or reuse the historical invalid attempt's ledger; `study.toml` records that attempt's choices.
 
 - `harness.py judge RUN_DIR --model M` grades criteria; `judge-validate RUN_DIR --model M --second-model M2` computes
   Cohen's kappa per criterion and the mutation-test TPR/TNR. Judges use `--tools ""` and must advertise an empty
-  tool set. Only validated criteria count. Harness 4 rejects older tool profiles for resume and paid judging;
+  tool set. Only validated criteria count. Harness 5 rejects older tool and execution profiles for resume and paid judging;
   comparisons, verdicts and validity reports retain protocol provenance. Both judge prompts include their
   no-tools protocol versions so prompt-digest caches cannot reuse replies from the earlier tool-enabled profile.
 - `harness.py report RUN_DIR`, `harness.py compare BASE_RUN ARM_RUN`: per-domain recall, precision, leak and
