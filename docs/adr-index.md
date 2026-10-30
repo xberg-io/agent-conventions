@@ -21,3 +21,4 @@ convention. Repository logs cite these records as `org ADR-NNNN` instead of rest
 | [0012](../adrs/0012-language-tooling-policy.md) | Language tooling policy | accepted | 2026-10-27 |
 | [0013](../adrs/0013-renovate-extends-the-toolchains-preset.md) | Renovate extends the toolchains preset | accepted | 2026-10-27 |
 | [0014](../adrs/0014-shared-assets-and-distribution-channels.md) | Shared assets and distribution channels | accepted | 2026-08-07 |
+| [0015](../adrs/0015-ai-rulez-runs-at-latest-through-npx.md) | ai-rulez runs at latest through npx | accepted | 2026-10-30 |
