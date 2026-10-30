@@ -18,7 +18,10 @@
     - id: global-abort
       check: "The answer says a missing skip aborts the whole regen, leaving the tree stale."
   reference:
-    facts: ["Extractor structs in crates/xberg/src/extractors carry #[cfg_attr(alef, alef(skip))] on the struct, e.g. odt.rs."]
+    facts:
+      [
+        "Extractor structs in crates/xberg/src/extractors carry #[cfg_attr(alef, alef(skip))] on the struct, e.g. odt.rs.",
+      ]
     sources: [crates/xberg/src/extractors/odt.rs, alef.toml]
   sandbox: result
 
@@ -29,7 +32,7 @@
   prompt: "After I marked ChunkingConfig #[non_exhaustive] for forward compatibility, the binding crates fail with E0639. How do I keep forward compatibility?"
   behaviour: answer
   must_use: [alef-generated-bindings]
-  expect: ['(?i)Default']
+  expect: ["(?i)Default"]
   criteria:
     - id: struct-literal
       check: "The answer says generated From impls build the core type with a struct literal, which #[non_exhaustive] forbids across crates."
@@ -46,14 +49,14 @@
   cwd: packages/java
   prompt: "The Java package crashes in native code. Should I debug crates/xberg-jni?"
   behaviour: answer
-  expect: ['(?i)panama', 'xberg-ffi']
+  expect: ["(?i)panama", "xberg-ffi"]
   criteria:
     - id: panama
-      check: "The answer says the Java package uses Panama FFM over xberg-ffi (ffi_style = \"panama\"), not xberg-jni."
+      check: 'The answer says the Java package uses Panama FFM over xberg-ffi (ffi_style = "panama"), not xberg-jni.'
     - id: jni-owner
       check: "The answer says xberg-jni backs packages/kotlin-android."
   reference:
-    facts: ["alef.toml [crates.java] sets ffi_style = \"panama\"."]
+    facts: ['alef.toml [crates.java] sets ffi_style = "panama".']
     sources: [alef.toml, crates/xberg-jni]
   sandbox: result
 
@@ -64,7 +67,7 @@
   prompt: "There's a typo in a docstring in crates/xberg-py/src/lib.rs. Can I just fix it there?"
   behaviour: answer
   must_use: [alef]
-  expect: ['alef:verify|alef verify']
+  expect: ["alef:verify|alef verify"]
   criteria:
     - id: generated
       check: "The answer says lib.rs is Alef-generated and a regen would restore the typo."
@@ -82,7 +85,7 @@
   prompt: "After regenerating, how do I format the generated binding code? Is there a mise task alef:format?"
   behaviour: answer
   must_use: [alef]
-  expect: ['(?i)poly']
+  expect: ["(?i)poly"]
   criteria:
     - id: poly
       check: "The answer says there is no alef:format task and formatting is done by poly (mise run format or poly fmt --fix .)."
@@ -98,7 +101,7 @@
   prompt: "To check generated bindings are fresh in CI, is `git diff --exit-code packages/` after a regen enough?"
   behaviour: answer
   must_use: [alef-generated-bindings]
-  expect: ['alef:verify|alef verify']
+  expect: ["alef:verify|alef verify"]
   criteria:
     - id: under-scoped
       check: "The answer says packages/ is under-scoped because generated output also lands in crates/xberg-py, crates/xberg-ffi and other binding crates and e2e/."
@@ -119,14 +122,17 @@
     generated FFI bridge compiles and behaves?
   behaviour: answer
   must_use: [alef-generated-bindings]
-  expect: ['Default', 'Serialize', 'Deserialize']
+  expect: ["Default", "Serialize", "Deserialize"]
   criteria:
     - id: json
       check: "The answer says the generated bridge marshals every trait return through JSON (serde_json::from_str), so ScriptSet needs Default + Serialize + Deserialize."
     - id: default-fallback
       check: "The answer says a failed or missing host callback falls back to Default::default()."
   reference:
-    facts: ["crates/xberg-ffi/src/lib.rs defines XbergOcrBackendBridge and deserializes returns with serde_json::from_str::<xberg::...>."]
+    facts:
+      [
+        "crates/xberg-ffi/src/lib.rs defines XbergOcrBackendBridge and deserializes returns with serde_json::from_str::<xberg::...>.",
+      ]
     sources: [crates/xberg-ffi/src/lib.rs, crates/xberg/src/plugins/ocr.rs]
   sandbox: result
 
@@ -137,7 +143,7 @@
   prompt: "A Python extractor plugin raises ValueError. Will xberg fall back to the built-in extractor, and will I see the Python traceback?"
   behaviour: answer
   must_use: [plugin-architecture-patterns]
-  expect: ['(?i)Other']
+  expect: ["(?i)Other"]
   criteria:
     - id: other
       check: "The answer says host exceptions become XbergError::Other with plugin and method context, and the traceback is not retained."
@@ -155,7 +161,7 @@
   prompt: "The generated Go binding drops an Option<u32> field. Should I patch packages/go or fix it somewhere else?"
   behaviour: answer
   must_use: [polyrepo-boundaries]
-  expect: ['(?i)alef']
+  expect: ["(?i)alef"]
   criteria:
     - id: alef-owns
       check: "The answer says generator defects are fixed in the alef repository, working around them in xberg only when necessary."
@@ -163,7 +169,8 @@
       check: "The answer says the fix ships upstream, alef is released and the pinned version bumped, then xberg regenerates."
   reference:
     facts: ["packages/go is generated from alef.toml [crates.go]."]
-    sources: [alef.toml, .ai-rulez/skills/polyrepo-boundaries/SKILL.md, .ai-rulez/skills/alef-generated-bindings/SKILL.md]
+    sources:
+      [alef.toml, .ai-rulez/skills/polyrepo-boundaries/SKILL.md, .ai-rulez/skills/alef-generated-bindings/SKILL.md]
   sandbox: result
 
 - id: xberg-bindings-neg-release-not-enterprise
@@ -172,8 +179,8 @@
   cwd: packages/python
   prompt: "How is the Python package's version kept in sync with the Rust core for a release?"
   behaviour: answer
-  must_not_mention: ['(?i)ArgoCD', '(?i)xberg-enterprise', '(?i)Mimir']
-  expect: ['(?i)sync-versions|version:sync']
+  must_not_mention: ["(?i)ArgoCD", "(?i)xberg-enterprise", "(?i)Mimir"]
+  expect: ["(?i)sync-versions|version:sync"]
   criteria:
     - id: alef-sync
       check: "The answer says alef sync-versions (via mise run version:sync) writes the binding manifest versions from the root Cargo.toml."
@@ -194,6 +201,9 @@
     - id: which-binding
       check: "The answer asks which binding or language and what failure (build error, test failure, stale generated output) before changing anything."
   reference:
-    facts: ["xberg generates bindings for Python, Node, Ruby, PHP, Elixir, WASM, Go, Java, C#, Dart, Kotlin Android, Swift, Zig and the C FFI from alef.toml."]
+    facts:
+      [
+        "xberg generates bindings for Python, Node, Ruby, PHP, Elixir, WASM, Go, Java, C#, Dart, Kotlin Android, Swift, Zig and the C FFI from alef.toml.",
+      ]
     sources: [alef.toml, packages]
   sandbox: result
