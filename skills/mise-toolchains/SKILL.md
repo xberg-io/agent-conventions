@@ -1,7 +1,7 @@
 ---
 name: mise-toolchains
 description: "mise procedures: locked install, adding a tool, moving to a new baseline, matrix version legs, lock and rate-limit failures. Use when installing or changing a tool version."
-# Content-Hash: blake3:5eec51755ae8c648404cce47f147371764d81ca4f99e7450e382bf64c6702a26
+# Content-Hash: blake3:a6974090b6363efab0d3e23148b5fae77c01178bb1738c1169fe006106cbc8f0
 ---
 
 # Mise toolchains
@@ -37,6 +37,19 @@ python3 /tmp/toolchains/scripts/toolchains.py check --baseline /tmp/toolchains/b
 
 `check` exits 1 on drift and 2 when it checked nothing (no `mise.toml`, or no tool the baseline covers). `sync`
 writes nothing when a pin cannot be rewritten (a `[tools.node]` subtable, differing table options); fix those by hand.
+
+## ai-rulez
+
+ai-rulez is in no baseline, `mise.toml` or `mise.lock`, and always runs the latest release by one of three paths:
+
+- Tasks: `npx -y` at the npm `latest` tag, the command the toolchain-management rule gives. It needs Node 22 or
+  later (in the baseline); the shim downloads the release binary and verifies its checksum.
+- CI: `xberg-io/actions/setup-ai-rulez@v1`, which installs latest whatever `ai-rulez-version` says.
+- Hooks: the poly hooks run `ai-rulez` from PATH (`npm install -g ai-rulez@latest`, rerun to update) until
+  Goldziher/ai-rulez#526 adds an npm channel.
+
+A release that changes output turns `generate --check`, `lock --check` and the context budgets red; regenerate,
+re-lock and re-measure in one sweep.
 
 ## Matrix version legs
 

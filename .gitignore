@@ -15,7 +15,7 @@ modules/**/.generated-manifest.local.json
 .ai-rulez/.config.local.*
 .opencode/agents/
 .opencode/commands/
-opencode.json
+/opencode.json
 # END ai-rulez
 
 /.agents/skills/

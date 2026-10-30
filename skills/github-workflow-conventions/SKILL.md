@@ -1,7 +1,7 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:bb5636d889a64c60cee73ba62e0636605f789447b9c642c7c986a0a17833f7cd
+# Content-Hash: blake3:a5b2c15c42c13fdd9c1e942e57c8a712b4ab308bbcf74c44edbf2aaaaa02dc39
 ---
 
 # GitHub workflow conventions
@@ -47,9 +47,12 @@ A release may call a deployment workflow after its publication and verification 
 - Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
   tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
   a workflow.
-- Governance CI installs ai-rulez `latest`; a publish path that byte-checks committed bundles may pin
-  it, with a `~keep` reason. Tasks rely on the exact pin in `mise.toml` and add no minimum-version
-  check. The ai-rulez hook `revision` in `poly.toml` stays pinned.
+<!-- ~keep org ADR-0015 runs ai-rulez at latest on purpose. -->
+<!-- ai-rulez-lint-ignore: AR021 ~keep -->
+- Tasks run `npx -y ai-rulez@latest`: ai-rulez is never pinned (org ADR-0015). Workflows use
+  `xberg-io/actions/setup-ai-rulez@v1`, which installs latest whatever `ai-rulez-version` says. The
+  ai-rulez hook source in `poly.toml` uses the floating `revision = "v5"`; its hooks run `ai-rulez`
+  from PATH (`npm install -g ai-rulez@latest`) until Goldziher/ai-rulez#526 adds an npm channel.
 
 ## Rename and release audit
 

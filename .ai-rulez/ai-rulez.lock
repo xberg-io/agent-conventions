@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.9.3'
+ai_rulez_version = '5.9.4'
 scope = 'all'
-tree = 'sha256:c3549051f2a9a75f032dfee02d36e39df8f39ab67feffaf7c0dfa3155af32c79'
+tree = 'sha256:9a312aeee9c9ee1d5021c66212548a77ff5b3cda854d8bf5302c5e5a81253e94'
 
 [[served]]
 name = 'adr-authoring'
@@ -94,7 +94,7 @@ digest = 'sha256:276aed60958b6479e146a688351a39e70364b48ba74fd0cf272af8b74c1b6cb
 name = 'github-workflow-conventions'
 source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:da5cc78cc74784665baff33403f831ce4e5afe6fb4c87eb8fa1409d034fcebc1'
+digest = 'sha256:3a13a940f3dc82330ef632bf2f9ee36fb561940566a43286b703e61d8a788530'
 
 [[served]]
 name = 'incremental-approach'
@@ -118,7 +118,7 @@ digest = 'sha256:31534b5c6a3277702ec20250ac3791d5a55c3d2e7ed288f81afe7100bd6ae68
 name = 'mise-toolchains'
 source = 'include:public-core/skills/mise-toolchains/SKILL.md'
 commit = ''
-digest = 'sha256:70ac84a345c190d8fcb4560f85535058c201d4fb9e80b7ae1226c91622472585'
+digest = 'sha256:5ff1c382dfbd0c7a9cf99e3880abfe2a8cb7546f6d25787d4b48645b09464641'
 
 [[served]]
 name = 'owasp-quick-reference'
@@ -178,7 +178,7 @@ digest = 'sha256:52ffa5fdd63293f4d0325b3f51a187d07eba9b69e2341da62c4603e2798dd94
 name = 'xberg-brand-and-docs'
 source = 'include:public-docs-sites/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:8cbcbbfc52e0443832bcaefec2c99ffb8755deb5a36b2bb720c6daf4c4078316'
+digest = 'sha256:b56a82559495f0589d4d2d827a83b3e5be236b15d5351eabca1162f9c56ef2b9'
 
 [[item]]
 kind = 'context'
@@ -196,19 +196,19 @@ digest = 'sha256:3fa45fe6fdc8ba694de701aa7e60eaee22c4ca98796d66203367fea374e7853
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:de0d7d8b2fbc13025c14fa7b62d0fd76a248161cbd8c6fb69d8ff3c80c87171f'
+digest = 'sha256:ef4f00d543dc51e5350fb45cb9ea35d73c0e62f727d5e495d70abea202b0075e'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:920955794447a05f82f6a9554c8ce59b96550cc82d35bd5af6cee4dc5627b030'
+digest = 'sha256:eb2d1fec51c5e08501e90df9f89cc2d4c24169808a033a1a6bfe89aa83815d35'
 
 [[item]]
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:08d5f7e4319744c23de5b86e3b56542f32b3602083d999644ceb1776f903fffc'
+digest = 'sha256:0434b61bd88b2cd86e6bfb78dd1be09dce327345dfbbff8272f7e6e453c12cac'
 
 [[item]]
 kind = 'local-include'
