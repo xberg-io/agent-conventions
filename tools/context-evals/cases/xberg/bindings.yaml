@@ -7,7 +7,7 @@
   cwd: crates/xberg/src/extractors
   persona: contributor
   prompt: >-
-    I added a DjvuExtractor struct and now `mise run alef:generate` dies and nothing in packages/ regenerates. The impl
+    I added a DjvuExtractor struct and now `alef generate` dies and nothing in packages/ regenerates. The impl
     block has #[cfg_attr(alef, alef(skip))] already. What's wrong?
   behaviour: answer
   must_use: [alef-generated-bindings]
@@ -72,9 +72,12 @@
     - id: generated
       check: "The answer says lib.rs is Alef-generated and a regen would restore the typo."
     - id: fix-source
-      check: "The answer says to fix the Rust doc comment (or alef.toml) and regenerate with mise run alef:generate."
+      check: "The answer says to fix the Rust doc comment (or alef.toml) and regenerate with alef generate (or alef all)."
   reference:
-    facts: ["mise run alef:verify runs alef verify --exit-code; mise run alef:generate runs alef all --clean."]
+    facts:
+      [
+        "mise run alef:verify runs alef verify --exit-code; there is no alef:generate task, so regeneration is alef generate or alef all.",
+      ]
     sources: [crates/xberg-py/src/lib.rs, mise.toml]
   sandbox: result
 
@@ -90,7 +93,7 @@
     - id: poly
       check: "The answer says there is no alef:format task and formatting is done by poly (mise run format or poly fmt --fix .)."
   reference:
-    facts: ["mise.toml alef namespace has generate, verify, build, sync, docs and verify:* tasks; no alef:format."]
+    facts: ["mise.toml alef namespace has build, verify and verify:* tasks; no alef:format."]
     sources: [mise.toml]
   sandbox: result
 

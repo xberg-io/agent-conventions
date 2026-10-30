@@ -9,12 +9,12 @@
   prompt: "I want a cross-language test that extracting an empty PDF byte buffer returns an error. Where does it go and how do I get it into every binding's suite?"
   behaviour: answer
   must_use: [e2e-generation]
-  expect: ["e2e:generate"]
+  expect: ["alef e2e generate"]
   criteria:
     - id: fixture-json
       check: "The answer says to add a JSON fixture with a unique snake_case id under fixtures/ in the matching category directory (for example fixtures/extract or fixtures/error)."
     - id: regen
-      check: "The answer says to run mise run e2e:generate and then mise run e2e:test, committing the fixture with the regenerated output."
+      check: "The answer says to run alef e2e generate and then the language suites (alef test --e2e --lang <lang> or mise run <lang>:e2e), committing the fixture with the regenerated output."
   reference:
     facts: ["fixtures/ has category directories such as extract, error, pdf, batch; fixtures carry an id and category."]
     sources: [fixtures/extract/extract_bytes_input.json, fixtures/error, mise-tasks/e2e.toml]
@@ -56,7 +56,7 @@
     facts:
       [
         "tools/ contains benchmark-harness, generate_test_fixtures, ocr-measure and perf only.",
-        "mise run e2e:generate runs alef e2e generate --strict.",
+        "mise run e2e:verify runs alef e2e generate --strict, then git diff --exit-code e2e/.",
       ]
     sources: [tools, mise-tasks/e2e.toml]
   sandbox: result
@@ -97,14 +97,11 @@
   cwd: .
   prompt: "I only changed the Ruby binding. How do I run just the Ruby e2e suite?"
   behaviour: answer
-  expect: ["e2e:lang ruby|E2E_LANG=ruby|ruby:e2e"]
+  expect: ["ruby:e2e|alef test --e2e --lang ruby"]
   criteria:
     - id: lang-task
-      check: "The answer gives mise run e2e:lang ruby (or mise run ruby:e2e)."
+      check: "The answer gives mise run ruby:e2e (or alef test --e2e --lang ruby)."
   reference:
-    facts:
-      [
-        "mise-tasks/e2e.toml defines e2e:lang dispatching to <lang>:e2e via its lang argument (or E2E_LANG), and ruby:e2e.",
-      ]
+    facts: ["mise-tasks/e2e.toml defines ruby:e2e, which runs alef test --e2e --lang ruby; there is no e2e:lang task."]
     sources: [mise-tasks/e2e.toml]
   sandbox: result

@@ -726,11 +726,13 @@
   must_use: [xberg-release]
   criteria:
     - id: task
-      check: "The answer uses mise run version:bump:major|minor|patch or mise run version:set <version>, or asks which bump level is wanted."
+      check: "The answer uses mise run version:bump:major|minor|patch, or asks which bump level is wanted."
   reference:
     facts:
-      ["mise.toml defines version:bump:major, version:bump:minor, version:bump:patch, each followed by version:sync."]
-    sources: [mise.toml]
+      [
+        "mise-tasks/shared.toml defines version:bump:major, version:bump:minor, version:bump:patch, each followed by version:sync.",
+      ]
+    sources: [mise-tasks/shared.toml]
   sandbox: procedure
 
 - id: xberg-nohint-long-extraction-route

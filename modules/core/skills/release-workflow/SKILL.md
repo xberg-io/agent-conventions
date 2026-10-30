@@ -39,13 +39,13 @@ changes, and re-create an empty `[Unreleased]`. Never tag an empty section.
 Never release a dirty or failing tree.
 
 ```bash
-poly lint .            # lint clean (mise run lint)
-poly fmt --check .     # formatting clean (mise run format:check)
-mise run test          # tests pass
+poly lint .            # lint clean
+poly fmt --check .     # formatting clean
 ```
 
-Apply formatting with `poly fmt --fix .` (or `mise run format`) and re-stage. Fix any
-lint or test failure at its source — do not release past a failure.
+The repo's test task must pass too (find it with `mise tasks | grep -i test`). Apply
+formatting with `poly fmt --fix .` and re-stage. Fix any lint or test failure at its
+source — do not release past a failure.
 
 If the repo carries a coding-agent plugin with its own version pin
 (`plugin/.ai-rulez/config.plugins.toml` `[plugin].version`, checked by its

@@ -1,7 +1,7 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:198c45b949a791d898be1ec139040cdc6ca859c094bdb5c9b42ca6595023c5a9
+# Content-Hash: blake3:8ceb124c4d48d978bbfbe7dcdf6b9032b1fd7a71cc6e17cbc9d70cf96c7baba9
 ---
 
 # Release Workflow (shared)
@@ -34,13 +34,13 @@ changes, and re-create an empty `[Unreleased]`. Never tag an empty section.
 Never release a dirty or failing tree.
 
 ```bash
-poly lint .            # lint clean (mise run lint)
-poly fmt --check .     # formatting clean (mise run format:check)
-mise run test          # tests pass
+poly lint .            # lint clean
+poly fmt --check .     # formatting clean
 ```
 
-Apply formatting with `poly fmt --fix .` (or `mise run format`) and re-stage. Fix any
-lint or test failure at its source — do not release past a failure.
+The repo's test task must pass too (find it with `mise tasks | grep -i test`). Apply
+formatting with `poly fmt --fix .` and re-stage. Fix any lint or test failure at its
+source — do not release past a failure.
 
 If the repo carries a coding-agent plugin with its own version pin
 (`plugin/.ai-rulez/config.plugins.toml` `[plugin].version`, checked by its

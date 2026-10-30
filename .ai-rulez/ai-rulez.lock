@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.2'
 scope = 'all'
-tree = 'sha256:fe5a6304f369288f7bd2668edf3ba6bafac688ab2dfe9f708c1c0c16ebcd1356'
+tree = 'sha256:12ace52936e5f66d12ae230502440966aa7238135d4def4ec3d1b6c763f0b1dd'
 
 [[served]]
 name = 'agent-coordination'
@@ -64,7 +64,7 @@ digest = 'sha256:149dfb82ad14e4ff8f6014556ba28734985a9439ed4f9576d16bbb4f764dac9
 name = 'e2e-generation'
 source = 'include:public-bindings/skills/e2e-generation/SKILL.md'
 commit = ''
-digest = 'sha256:919b04c3867571cd228867451a3e6f38a286d0fa242f2dba51c157b5cda1b511'
+digest = 'sha256:830bc502178f1dc565f4d17f025c83f91496215275138a1ac8d2e5576b2cd2d8'
 
 [[served]]
 name = 'error-handling'
@@ -136,7 +136,7 @@ digest = 'sha256:772854a122a129565f974e6c5ae84ef1169f7bc4f3a2068bfdc56b548c16169
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:6cdc7a09852f6f6088da418045b25c0a4e4d69dbd8ded27ea0d7303d2cad0568'
+digest = 'sha256:e8e9204217e11d47cc1fc8d941dfacd105c9e528d738c298868fd8d987966893'
 
 [[served]]
 name = 'scoop-distribution'
@@ -184,7 +184,7 @@ digest = 'sha256:bb47380b8076f98da183aa2c2179c27acf304423f8a63417947b705a349af9a
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:bccf6ef97aac748d6271e7c02026f9a308a16fcaa889fe3c8138accbb65d7fbb'
+digest = 'sha256:3fa45fe6fdc8ba694de701aa7e60eaee22c4ca98796d66203367fea374e78531'
 
 [[item]]
 kind = 'local-include'
@@ -196,7 +196,7 @@ digest = 'sha256:de0d7d8b2fbc13025c14fa7b62d0fd76a248161cbd8c6fb69d8ff3c80c87171
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:9857ddd4446397c43880bfaa567362adecde6dc43ffa921682eb25b1cf4c857a'
+digest = 'sha256:e229c0670b3666d84a8b40509aef6524d3a9c9d71538ac8909e58e4b66d2db52'
 
 [[item]]
 kind = 'local-include'
