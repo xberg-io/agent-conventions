@@ -75,3 +75,13 @@ blake3 = "d5c79cb2b3cb07b031e2a16f8f214699385a32b50a0224e24aab12904c7cb7b9"
 number = 14
 status = "accepted"
 blake3 = "8956e8b663dff4964dafd1575bfcdfdbe66424fef6dd7006c61d40eb09f1421b"
+
+[adrs."adrs/0015-ai-rulez-runs-at-latest-through-npx.md"]
+number = 15
+status = "accepted"
+blake3 = "3eb9b4a52335e676a3d63c7be6ceb37dc74f41b6ef9175987ff97f3d554f8760"
+
+[adrs."adrs/0016-agent-plugin-bundles-ship-local-brand-assets.md"]
+number = 16
+status = "accepted"
+blake3 = "2d1436abcaf68da741553f1d952ecdf7f970f6fd877ed75b264d3881db4b810f"
