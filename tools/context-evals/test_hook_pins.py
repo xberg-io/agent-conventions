@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import fnmatch
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -13,6 +17,28 @@ import hook_pins
 
 
 class HookPinsTest(unittest.TestCase):
+    def test_hook_pin_only_changes_trigger_both_workflow_events(self) -> None:
+        workflow = Path(__file__).resolve().parents[2] / ".github/workflows/ai-rulez-validation.yml"
+        config = yaml.safe_load(workflow.read_text())
+        events = config.get("on", config.get(True))
+        for event in ("push", "pull_request"):
+            patterns = events[event]["paths"]
+            for filename in ("poly.toml", "poly-hooks.lock"):
+                with self.subTest(event=event, filename=filename):
+                    self.assertTrue(any(fnmatch.fnmatchcase(filename, pattern) for pattern in patterns))
+            self.assertFalse(any(fnmatch.fnmatchcase("unrelated.txt", pattern) for pattern in patterns))
+
+    def test_ci_and_hook_source_follow_the_current_mise_version(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        version = tomllib.loads((root / "mise.toml").read_text())["tools"]["github:Goldziher/ai-rulez"]
+        config = yaml.safe_load((root / ".github/workflows/ai-rulez-validation.yml").read_text())
+        steps = config["jobs"]["validate"]["steps"]
+        setup = [step for step in steps if step.get("uses") == "xberg-io/actions/setup-ai-rulez@v1"]
+        self.assertEqual(len(setup), 1)
+        self.assertEqual(setup[0]["with"]["ai-rulez-version"], version)
+        commit = hook_pins.source(root / "poly-hooks.lock", "sources")["revision"]
+        self.assertEqual(hook_pins.check(root, version, commit), [])
+
     def test_rejects_old_pin_stale_lock_and_empty_hook_set(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)

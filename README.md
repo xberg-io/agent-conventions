@@ -155,7 +155,7 @@ it, no procedures) and only the rules that hold for every file. Everything else 
 gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
 your repository uses, by version range (`version = "^1"`; the lock records the exact tag and commit). Use the mise-pinned
-ai-rulez release (currently 5.9.2, matching CI) to validate and regenerate after editing sources:
+ai-rulez release (currently 5.9.3, matching CI) to validate and regenerate after editing sources:
 
 ```sh
 mise exec -- ai-rulez validate --no-local
