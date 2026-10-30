@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from collections.abc import Mapping
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -72,6 +73,32 @@ class HarnessTest(unittest.TestCase):
         self.assertEqual((code, err), (0, ""))
         return out
 
+    def test_paid_cli_requires_explicit_prospective_budget_consent(self) -> None:
+        def forbidden_execute(*_args):
+            raise AssertionError("paid executor must not run")
+
+        with patch.object(runner, "subprocess_execute", forbidden_execute):
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                code = harness.main(
+                    [
+                        "run",
+                        "--repo",
+                        str(self.repo),
+                        "--ref",
+                        "main",
+                        "--model",
+                        "m",
+                        "--skip-generate",
+                        "--out",
+                        str(self.base / "unbounded"),
+                    ],
+                    execute=forbidden_execute,
+                    environ=ENV,
+                )
+        self.assertEqual(code, 2)
+        self.assertIn("hard dollar ceiling", err.getvalue())
+
     def test_validate_cases(self) -> None:
         self.assertEqual(self.main("validate-cases")[:2], (0, "4 cases (3 tune, 1 holdout), 0 checkout errors\n"))
         self.assertEqual(self.main("validate-cases", "--repo-root", str(self.repo))[0], 0)
@@ -99,7 +126,7 @@ class HarnessTest(unittest.TestCase):
                 "split": "tune",
                 "repeats": 2,
                 "judge_prompt_version": "judge-prompt-1",
-                "rubric_version": "rubric-1",
+                "rubric_version": "rubric-2",
             },
         )
         self.assertEqual(meta["commit"], git(self.repo, "rev-parse", "HEAD"))
@@ -200,6 +227,23 @@ class HarnessTest(unittest.TestCase):
             records.read_sessions(out / "sessions.jsonl")[0].criteria, {"names-dpi-default": None, "names-engine": None}
         )
 
+    def test_paid_judging_refuses_legacy_rubric_without_migration(self) -> None:
+        out = self.run_harness("legacy-rubric")
+        path = out / "run.json"
+        meta = json.loads(path.read_text())
+        path.write_text(json.dumps({**meta, "rubric_version": "legacy"}))
+        for command in ("judge", "judge-validate"):
+            args = [command, str(out), "--model", "judge-m"]
+            if command == "judge-validate":
+                args += ["--second-model", "judge-n"]
+            code, _, err = self.main(*args)
+            self.assertEqual(code, 2)
+            self.assertIn("rubric", err)
+
+    def test_comparison_refuses_different_token_calibration(self) -> None:
+        reasons = harness.comparable({"calibration_version": "1"}, {"calibration_version": "2"})
+        self.assertEqual(reasons, ["calibration_version: '1' != '2'"])
+
     def test_compare_pairs_cases_and_refuses_other_judge_versions(self) -> None:
         base, arm = self.run_harness("base", BASE), self.run_harness("arm", ARM)
         result = self.base / "compare.json"
@@ -222,7 +266,7 @@ class HarnessTest(unittest.TestCase):
         code, _, err = self.main("compare", str(base), str(arm))
         self.assertEqual(code, 2)
         self.assertEqual(
-            err, "error: refusing to compare runs graded differently: rubric_version: 'rubric-1' != 'rubric-0'\n"
+            err, "error: refusing to compare runs graded differently: rubric_version: 'rubric-2' != 'rubric-0'\n"
         )
 
 

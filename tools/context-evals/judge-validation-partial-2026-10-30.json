@@ -1,0 +1,311 @@
+{
+  "status": "partial-reference-mutation-only",
+  "results": {
+    "sceptre": {
+      "judge_prompt_version": "judge-prompt-1",
+      "independent_prompt_version": "judge-prompt-independent-1",
+      "rubric_version": "rubric-1",
+      "kappa_min": 0.6,
+      "min_items": 4,
+      "criteria": {
+        "sceptre-adr-reverse-decision/new-adr": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-adr-reverse-decision/status": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-backend-seam-accelerator-fallback/reject": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-backend-seam-accelerator-fallback/table": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-backend-seam-candle-architecture/candle": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-backend-seam-candle-architecture/network-kind": {
+          "kappa": 0.0,
+          "items": 4,
+          "decided": 4,
+          "valid": false
+        },
+        "sceptre-backend-seam-direct-ort/pure-rust": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-backend-seam-direct-ort/seam": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-code-style-config-precedence/order": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 1,
+          "valid": false
+        },
+        "sceptre-code-style-config-precedence/typo": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 2,
+          "valid": false
+        },
+        "sceptre-code-style-stdout/denied": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-code-style-stdout/tracing": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-crate-layout-flag-mapping/overrides": {
+          "kappa": 0.0,
+          "items": 5,
+          "decided": 5,
+          "valid": false
+        },
+        "sceptre-mcp-add-parameter/optional": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-mcp-add-parameter/order": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-neg-ocr-accuracy/craft-knobs": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-neg-release/dry-run": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-neg-release/tag": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-neg-tests-no-e2e/golden": {
+          "kappa": 1.0,
+          "items": 5,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-nohint-mcp-subcommand/mcp": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-ocr-ctc-blank/blank": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-ocr-ctc-blank/height": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-ocr-detection-defaults/values": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "sceptre-ocr-model-cache/hf-cache": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "sceptre-ocr-model-cache/verified": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        }
+      },
+      "valid_criteria": [
+        "sceptre-backend-seam-accelerator-fallback/reject",
+        "sceptre-backend-seam-accelerator-fallback/table",
+        "sceptre-backend-seam-candle-architecture/candle",
+        "sceptre-backend-seam-direct-ort/pure-rust",
+        "sceptre-backend-seam-direct-ort/seam",
+        "sceptre-mcp-add-parameter/optional",
+        "sceptre-mcp-add-parameter/order",
+        "sceptre-neg-release/dry-run",
+        "sceptre-neg-release/tag",
+        "sceptre-neg-tests-no-e2e/golden",
+        "sceptre-ocr-ctc-blank/blank",
+        "sceptre-ocr-ctc-blank/height",
+        "sceptre-ocr-model-cache/hf-cache",
+        "sceptre-ocr-model-cache/verified"
+      ],
+      "mutation": {
+        "tpr": 0.4666666666666667,
+        "tnr": 0.9047619047619048,
+        "originals": 15,
+        "mutants": 42,
+        "by_kind": {
+          "drop-fact": {
+            "tnr": 0.8666666666666667,
+            "mutants": 15
+          },
+          "swap-domain": {
+            "tnr": 1.0,
+            "mutants": 3
+          },
+          "tool-deflection": {
+            "tnr": 1.0,
+            "mutants": 15
+          },
+          "wrong-path": {
+            "tnr": 0.7777777777777778,
+            "mutants": 9
+          }
+        }
+      },
+      "judge_valid": false,
+      "models": {
+        "primary": "claude-sonnet-5-5",
+        "secondary": "claude-sonnet-5"
+      },
+      "coverage": {
+        "planned_cases": 16,
+        "complete_reference_mutation_cases": 15,
+        "sampled_session_answers": 0,
+        "selection": "Only cases whose reference and every available mutation were cached for both models. This is incomplete, selected coverage; not full baseline judge validation."
+      }
+    },
+    "xberg": {
+      "judge_prompt_version": "judge-prompt-1",
+      "independent_prompt_version": "judge-prompt-independent-1",
+      "rubric_version": "rubric-1",
+      "kappa_min": 0.6,
+      "min_items": 4,
+      "criteria": {
+        "xberg-e2e-add-fixture/fixture-json": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "xberg-e2e-add-fixture/regen": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 3,
+          "valid": false
+        },
+        "xberg-e2e-verify-freshness/verify-task": {
+          "kappa": 0.5,
+          "items": 4,
+          "decided": 4,
+          "valid": false
+        },
+        "xberg-pipeline-fallback-parsing-error/eligible-errors": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "xberg-pipeline-fallback-parsing-error/names-predicate": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 4,
+          "valid": true
+        },
+        "xberg-pipeline-fallback-parsing-error/not-a-bug": {
+          "kappa": 1.0,
+          "items": 4,
+          "decided": 1,
+          "valid": false
+        },
+        "xberg-test-corpus-no-include-bytes/helper": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 2,
+          "valid": false
+        },
+        "xberg-test-corpus-no-include-bytes/no-include": {
+          "kappa": 1.0,
+          "items": 3,
+          "decided": 2,
+          "valid": false
+        }
+      },
+      "valid_criteria": [
+        "xberg-pipeline-fallback-parsing-error/eligible-errors",
+        "xberg-pipeline-fallback-parsing-error/names-predicate"
+      ],
+      "mutation": {
+        "tpr": 0.25,
+        "tnr": 0.7,
+        "originals": 4,
+        "mutants": 10,
+        "by_kind": {
+          "drop-fact": {
+            "tnr": 0.75,
+            "mutants": 4
+          },
+          "swap-domain": {
+            "tnr": 0.0,
+            "mutants": 1
+          },
+          "tool-deflection": {
+            "tnr": 1.0,
+            "mutants": 4
+          },
+          "wrong-path": {
+            "tnr": 0.0,
+            "mutants": 1
+          }
+        }
+      },
+      "judge_valid": false,
+      "models": {
+        "primary": "claude-sonnet-5-5",
+        "secondary": "claude-sonnet-5"
+      },
+      "coverage": {
+        "planned_cases": 46,
+        "complete_reference_mutation_cases": 4,
+        "sampled_session_answers": 0,
+        "selection": "Only cases whose reference and every available mutation were cached for both models. This is incomplete, selected coverage; not full baseline judge validation."
+      }
+    }
+  }
+}

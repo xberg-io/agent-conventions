@@ -26,7 +26,8 @@ import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-BYTES_PER_TOKEN = 3.9
+CALIBRATION = json.loads(Path(__file__).with_name("calibration.json").read_text())
+BYTES_PER_TOKEN = float(CALIBRATION["bytes_per_token"])
 DESCRIPTION_LIMIT = 250
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
@@ -72,6 +73,8 @@ class PresetReport:
             "repo": self.repo,
             "preset": self.preset,
             "start_bytes": self.start_bytes(),
+            "estimator_model": CALIBRATION["model"],
+            "calibration_version": CALIBRATION["calibration_version"],
             "start_tokens": round(self.start_bytes() / BYTES_PER_TOKEN),
             "instruction_bytes": sum(i.bytes for i in self.items if i.kind == "instructions"),
             "rules_always": sum(1 for i in self.items if i.kind == "rule" and not i.gated),
@@ -406,7 +409,14 @@ def parse_budgets(values: list[str]) -> dict[str, int]:
     return budgets
 
 
-def gate(reports: list[PresetReport], budgets: dict[str, int], fail_on_leak: bool, fail_on_long: bool) -> list[str]:
+def gate(
+    reports: list[PresetReport],
+    budgets: dict[str, int],
+    fail_on_leak: bool,
+    fail_on_long: bool,
+    *,
+    budget_estimator: str = "calibrated",
+) -> list[str]:
     """The reasons a CI run fails: leaks, start tokens over budget, listed descriptions over the limit."""
     failures = []
     for r in reports:
@@ -415,8 +425,9 @@ def gate(reports: list[PresetReport], budgets: dict[str, int], fail_on_leak: boo
             terms = sorted({f"{leak.term} ({leak.artifact})" for leak in r.leaks})
             failures.append(f"{r.repo}/{r.preset}: {len(r.leaks)} leaked term(s): {', '.join(terms)}")
         budget = budgets.get(r.preset)
-        if budget is not None and s["start_tokens"] > budget:
-            failures.append(f"{r.repo}/{r.preset}: {s['start_tokens']} start tokens, budget {budget}")
+        gate_tokens = round(r.start_bytes() / 3.9) if budget_estimator == "legacy" else s["start_tokens"]
+        if budget is not None and gate_tokens > budget:
+            failures.append(f"{r.repo}/{r.preset}: {gate_tokens} {budget_estimator} start tokens, budget {budget}")
         if fail_on_long:
             long = [
                 i.name
@@ -440,6 +451,7 @@ def main() -> int:
     parser.add_argument("--presets", default="claude,codex")
     parser.add_argument("--json", type=Path)
     parser.add_argument("--markdown", type=Path)
+    parser.add_argument("--budget-estimator", choices=("calibrated", "legacy"), default="calibrated")
     parser.add_argument("--fail-on-leak", action="store_true")
     parser.add_argument("--fail-on-long-descriptions", action="store_true")
     parser.add_argument(
@@ -490,7 +502,9 @@ def main() -> int:
     for r in reports:
         s = r.summary()
         print(f"{r.repo}/{r.preset}: {s['start_tokens']} start tokens, {len(r.items)} items, {len(r.leaks)} leaks")
-    failures = gate(reports, budgets, args.fail_on_leak, args.fail_on_long_descriptions)
+    failures = gate(
+        reports, budgets, args.fail_on_leak, args.fail_on_long_descriptions, budget_estimator=args.budget_estimator
+    )
     for failure in failures:
         print(f"::error::{failure}", file=sys.stderr)
     return 1 if failures else 0

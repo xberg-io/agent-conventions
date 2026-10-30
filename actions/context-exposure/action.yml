@@ -4,7 +4,7 @@ description: >-
   or lists a skill or agent description over 250 characters. Run it after ai-rulez has generated the outputs.
 inputs:
   budgets:
-    description: "Start-token budgets, one `preset=tokens` per line (claude, codex)."
+    description: "Legacy byte/3.9 budget units, one `preset=tokens` per line; calibrated totals are reported separately."
     required: true
   repo-name:
     description: Name the repository is listed under in domains.toml.
@@ -44,4 +44,4 @@ runs:
           [ -n "$server" ] && args+=(--measure-mcp "$server")
         done <<< "$MEASURE_MCP"
         python3 "$HARNESS/exposure.py" . --repo-name "$REPO_NAME" --domains "$HARNESS/domains.toml" \
-          --fail-on-leak --fail-on-long-descriptions "${args[@]}" --markdown "$GITHUB_STEP_SUMMARY"
+          --fail-on-leak --fail-on-long-descriptions --budget-estimator legacy "${args[@]}" --markdown "$GITHUB_STEP_SUMMARY"

@@ -17,7 +17,7 @@ Per repository and preset (`claude`, `codex`) it reports:
 - start tokens: the root instruction files Claude or Codex actually reads (a `CLAUDE.md` without `@AGENTS.md`
   replaces `AGENTS.md`), always-on rules, and the name and description of every skill and agent that is listed at
   start. Skills with `paths:` and user-only skills (`disable-model-invocation: true`) are counted but cost nothing at
-  start. Tokens are bytes / 3.9; calibrate against a real session before quoting absolute numbers.
+  start. Tokens use the recorded Sonnet instruction-text calibration in `calibration.json`; CLI runtime overhead is separate.
 - MCP servers each preset's config declares (`.mcp.json`, `.codex/config.toml`). A server costs nothing in the
   report until `--measure-mcp NAME` starts it over stdio and counts its tool schemas and instructions; unmeasured
   servers are listed. The full `ai-rulez mcp` server lists 67 tools (about 38k tokens); restricted to `find_skill`
@@ -44,6 +44,9 @@ measurement:
       codex=7250
 ```
 
+The action preserves its existing budget inputs in legacy byte/3.9 units while reporting calibrated totals. It
+also checks the consumer's ai-rulez hook revision and lock against this repository's pins.
+
 The action measures the `ai-rulez` server by default (`measure-mcp`), so it needs `ai-rulez` on `PATH`. Raising a
 budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
 
@@ -61,7 +64,16 @@ another agent session. `--model` has no default: pick one per study and keep it 
 - `harness.py run --repo CHECKOUT --ref REF --model M --out RUN_DIR [--split tune|holdout|all] [--repeats 3]`: a
   throwaway worktree at REF, `ai-rulez generate`, then one `claude -p` per case and repeat with a fresh config
   directory, project settings only, a strict empty MCP config and read-only tools; the tree is reset between
-  sessions. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
+  sessions. `--jobs N` gives each worker its own worktree; `--resume` reuses only saved sessions with identical
+  run parameters. Immutable context/configuration fingerprints and agent/generator binary hashes must match
+  before reuse; existing snapshots are never overwritten. Legacy runs without identity are refused. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
+Every paid command accepts `--budget-ledger PATH --budget-usd 25 --per-call-usd 0.2` before the subcommand.
+Use the same ledger across agents, judges and Claude probes. Claude CLI dollar flags are soft limits, so
+hard-ceiling paid execution is refused by default. `--allow-soft-budget` explicitly opts into prospective
+accounting; it cannot guarantee a provider spending ceiling. Use a provider-enforced limit when a hard ceiling
+is required. Unreported cost retains its reservation and any overrun or uncertain billing stops the shared
+round, including queued callers. `study.toml` records the historical attempt's choices.
+
 - `harness.py judge RUN_DIR --model M` grades criteria; `judge-validate RUN_DIR --model M --second-model M2` computes
   Cohen's kappa per criterion and the mutation-test TPR/TNR. Only validated criteria count.
 - `harness.py report RUN_DIR`, `harness.py compare BASE_RUN ARM_RUN`: per-domain recall, precision, leak and
@@ -76,15 +88,16 @@ the repo-local `context-improvement` skill (`/context-improvement`, user-invoked
 
 ## Probing a real session
 
-`probe.py` calibrates the static numbers against Claude Code itself (issue #3, section 4.1). It copies a consumer
-checkout to a temporary directory, plants a sentinel in the root `CLAUDE.md`, an unscoped and a glob-scoped rule, a
+`probe.py` measures loading in Claude Code and Codex themselves (issue #3, section 4.1). It creates an isolated consumer
+worktree under `.worktrees/<repo>/`, plants a sentinel in the root `CLAUDE.md`, an unscoped and a glob-scoped rule, a
 skill description and a nested `CLAUDE.md`, then runs `claude -p` with a fresh config directory and only project
 settings: once with a trivial prompt (what loads at start, and its token cost) and once after reading a file in the
 scoped directory (what loads on demand). Run it on your own machine with `ANTHROPIC_API_KEY` set, never inside
 another agent session:
 
 ```sh
-python3 tools/context-evals/probe.py ../xberg --scoped-file crates/xberg/src/lib.rs --repeats 3 --json probe.json
+mise exec -- python tools/context-evals/probe.py ../xberg --scoped-file crates/xberg/src/lib.rs \
+  --preset claude --model claude-sonnet-5-5 --repeats 3 --budget-ledger ../reports/study/budget.sqlite3 --json probe.json
 ```
 
 Record the results with the Claude Code version in `docs/load-mechanics.md`.

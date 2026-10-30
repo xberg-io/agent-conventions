@@ -19,6 +19,7 @@ each session calls a model.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -30,6 +31,7 @@ from pathlib import Path
 
 import budget
 import cases as cases_mod
+import exposure
 import judge
 import records
 import runner
@@ -39,8 +41,15 @@ import transcript
 from cases import Case, Criterion, Reference
 
 HERE = Path(__file__).parent
-HARNESS_VERSION = "2"
-VERSION_KEYS = ("judge_prompt_version", "rubric_version", "judge_model")
+HARNESS_VERSION = "3"
+VERSION_KEYS = (
+    "judge_prompt_version",
+    "rubric_version",
+    "judge_model",
+    "calibration_version",
+    "taxonomy_version",
+    "harness_version",
+)
 
 GraderFactory = Callable[[str], judge.Grader]
 
@@ -133,6 +142,8 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         "timeout": args.timeout,
         "allowed_tools": list(config.allowed_tools),
         "harness_version": HARNESS_VERSION,
+        "calibration_version": exposure.CALIBRATION["calibration_version"],
+        "taxonomy_version": hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest(),
         "record_version": records.RECORD_VERSION,
         "judge_prompt_version": judge.JUDGE_PROMPT_VERSION,
         "rubric_version": judge.RUBRIC_VERSION,
@@ -183,6 +194,9 @@ def score_run(run_dir: Path, domains: dict) -> int:
     expected = len(meta["cases"]) * meta["repeats"]
     if len(out) != expected:
         raise HarnessError(f"expected {expected} sessions, found {len(out)}; run is incomplete")
+    meta["calibration_version"] = exposure.CALIBRATION["calibration_version"]
+    meta["taxonomy_version"] = hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest()
+    write_json(run_dir / "run.json", meta)
     apply_judge(run_dir, out)
     records.write_sessions(run_dir / "sessions.jsonl", out)
     errors = sum(1 for r in out if r.error)
@@ -216,7 +230,9 @@ def cmd_score(args: argparse.Namespace) -> int:
     return score_run(args.run_dir, load_domains(args.domains))
 
 
-def _sessions(run_dir: Path) -> list[records.SessionRecord]:
+def _sessions(run_dir: Path, *, current_rubric: bool = False) -> list[records.SessionRecord]:
+    if current_rubric and read_json(run_dir / "run.json").get("rubric_version") != judge.RUBRIC_VERSION:
+        raise HarnessError("run uses a legacy rubric; migrate the reviewed scoring corpus before paid judging")
     path = run_dir / "sessions.jsonl"
     if not path.exists():
         raise HarnessError(f"{path} does not exist; run `score` first")
@@ -224,7 +240,7 @@ def _sessions(run_dir: Path) -> list[records.SessionRecord]:
 
 
 def cmd_judge(args: argparse.Namespace, factory: GraderFactory) -> int:
-    sessions = _sessions(args.run_dir)
+    sessions = _sessions(args.run_dir, current_rubric=True)
     rows = judge.judge_sessions(sessions, run_cases(args.run_dir), factory(args.model), args.model)
     path = args.run_dir / "judge" / "verdicts.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -240,7 +256,7 @@ def cmd_judge(args: argparse.Namespace, factory: GraderFactory) -> int:
 
 
 def cmd_judge_validate(args: argparse.Namespace, factory: GraderFactory) -> int:
-    sessions = _sessions(args.run_dir)
+    sessions = _sessions(args.run_dir, current_rubric=True)
     report = judge.validate(
         sessions,
         run_cases(args.run_dir),
@@ -390,6 +406,11 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--budget-ledger", type=Path, help="shared SQLite spending ledger for this round")
     p.add_argument("--budget-usd", type=float, default=25.0)
     p.add_argument("--per-call-usd", type=float, default=0.2)
+    p.add_argument(
+        "--allow-soft-budget",
+        action="store_true",
+        help="explicitly accept prospective accounting, not a hard spending ceiling",
+    )
     sub = p.add_subparsers(dest="command", required=True)
 
     v = sub.add_parser("validate-cases", help="validate the case corpus (and against a checkout)")
@@ -436,8 +457,20 @@ def main(
     grader_factory: GraderFactory | None = None,
 ) -> int:
     args = parser().parse_args(argv)
+    paid = args.command == "run" or (args.command in ("judge", "judge-validate") and grader_factory is None)
+    if paid and execute is runner.subprocess_execute and not args.allow_soft_budget:
+        print(
+            "error: Claude CLI cannot enforce a hard dollar ceiling; paid execution requires explicit --allow-soft-budget consent",
+            file=sys.stderr,
+        )
+        return 2
+    if paid and execute is runner.subprocess_execute and not args.budget_ledger:
+        print("error: paid execution requires a shared --budget-ledger", file=sys.stderr)
+        return 2
     if args.budget_ledger:
-        execute = budget.BoundedExecute(args.budget_ledger, args.budget_usd, args.per_call_usd, execute)
+        execute = budget.BudgetedExecute(
+            args.budget_ledger, args.budget_usd, args.per_call_usd, execute, allow_soft_limits=args.allow_soft_budget
+        )
     factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ, execute=execute))
     try:
         if args.command == "validate-cases":

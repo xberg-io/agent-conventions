@@ -84,8 +84,8 @@ class ScoringTest(unittest.TestCase):
 
     def test_no_usage_falls_back_to_the_static_estimate(self) -> None:
         r = self.score("xberg-ocr-dpi", SKILL_CALL)
-        # root files 89 B + two skill listings 105 B = 194 B / 3.9
-        self.assertEqual(r.start_tokens, 50)
+        # root files 89 B + two skill listings 105 B = 194 B at the recorded calibration. ~keep
+        self.assertEqual(r.start_tokens, 73)
         self.assertEqual((r.usage, r.turns, r.cost_usd), (Usage(), 3, 0.5))
 
     def test_asking_error_and_contamination(self) -> None:

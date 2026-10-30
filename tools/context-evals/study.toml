@@ -1,0 +1,28 @@
+version = "round-zero-2026-10-30"
+harness_version = "2"
+probe_version = "2"
+judge_prompt_version = "judge-prompt-1"
+independent_prompt_version = "judge-prompt-independent-1"
+rubric_version = "rubric-1"
+agent_model = "claude-sonnet-5-5"
+primary_judge_model = "claude-sonnet-5-5"
+secondary_judge_model = "claude-sonnet-5"
+model_catalog_verified = "2026-10-30"
+round_budget_usd = 25.0
+agent_call_limit_usd = 0.5
+judge_call_limit_usd = 0.05
+repeats = 3
+split = "tune"
+max_turns = 8
+timeout_seconds = 180
+workers_per_consumer = 2
+validation_sessions_per_domain = 4
+claude_code_version = "2.1.314"
+codex_version = "0.165.0-alpha.1.2"
+codex_probe_model = "gpt-6.1-sol"
+ai_rulez_version = "5.9.2"
+ai_rulez_binary_sha256 = "a65b63841e909acac4391f05043867b0ed2c8db88c8bc01fb7ab6f3fbe81e768"
+
+[corpus_review_owners]
+xberg = "@Goldziher"
+sceptre = "@Goldziher"

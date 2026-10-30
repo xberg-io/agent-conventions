@@ -12,11 +12,13 @@ injectable so tests run without the agent.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
 from collections.abc import Callable, Iterator, Mapping
 from concurrent.futures import ThreadPoolExecutor
@@ -28,6 +30,7 @@ from cases import Case
 
 DEFAULT_TOOLS = ("Read", "Glob", "Grep", "Skill")
 CONTEXT_DIRS = (".claude/rules", ".claude/skills", ".claude/agents", ".agents/skills")
+CONTEXT_FILES = (".mcp.json", ".claude/settings.json", ".claude/settings.local.json", ".codex/config.toml")
 PRUNE = {".git", "node_modules", "target", ".venv", "vendor", "dist", "build"}
 STDERR_TAIL = 2000
 
@@ -149,6 +152,25 @@ def snapshot_context(checkout: Path, dest: Path) -> None:
     for rel in CONTEXT_DIRS:
         if (checkout / rel).is_dir():
             shutil.copytree(checkout / rel, dest / rel, symlinks=False, dirs_exist_ok=True)
+    for rel in CONTEXT_FILES:
+        if (checkout / rel).is_file():
+            target = dest / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(checkout / rel, target)
+
+
+def context_fingerprint(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        data = path.read_bytes()
+        digest.update(path.relative_to(root).as_posix().encode() + b"\0")
+        digest.update(len(data).to_bytes(8, "big") + data)
+    return digest.hexdigest()
+
+
+def binary_fingerprint(name: str, environ: Mapping[str, str]) -> str:
+    binary = shutil.which(name, path=environ.get("PATH"))
+    return hashlib.sha256(Path(binary).read_bytes()).hexdigest() if binary else "unavailable"
 
 
 def session_name(case_id: str, repeat: int) -> str:
@@ -202,6 +224,35 @@ class Runner:
         self.adapter = adapter or ClaudeAdapter()
         self.execute = execute
         self.environ = environ
+        self.context_lock = threading.Lock()
+
+    def prepare_context(self, checkout: Path) -> None:
+        with self.context_lock, tempfile.TemporaryDirectory(prefix="ctx-context-check-") as tmp:
+            candidate = Path(tmp)
+            snapshot_context(checkout, candidate)
+            config = asdict(self.config)
+            for key in ("jobs", "resume"):
+                config.pop(key)
+            identity = {
+                "context_sha256": context_fingerprint(candidate),
+                "config": config,
+                "agent_sha256": binary_fingerprint(self.adapter.name, self.environ),
+                "generator_sha256": binary_fingerprint("ai-rulez", self.environ)
+                if self.config.generate
+                else "committed",
+            }
+            identity = json.loads(json.dumps(identity))
+            path = self.out / "context-identity.json"
+            context = self.out / "context"
+            if path.exists():
+                stored = json.loads(path.read_text())
+                if stored != identity or context_fingerprint(context) != stored["context_sha256"]:
+                    raise RunnerError("context identity changed; refusing to reuse transcripts")
+                return
+            if self.config.resume or context.exists():
+                raise RunnerError("missing context identity; legacy runs require review before resumption")
+            shutil.copytree(candidate, context)
+            path.write_text(json.dumps(identity, indent=2) + "\n")
 
     def generate(self, checkout: Path) -> None:
         if not self.config.generate:
@@ -217,6 +268,7 @@ class Runner:
         git("checkout", "--", ".", cwd=checkout)
         git("clean", "-fdq", cwd=checkout)
         self.generate(checkout)
+        self.prepare_context(checkout)
 
     def session(self, checkout: Path, case: Case, repeat: int) -> SessionMeta:
         transcripts = self.out / "transcripts"
@@ -247,12 +299,11 @@ class Runner:
         (transcripts / f"{name}.meta.json").write_text(json.dumps(asdict(meta), indent=2) + "\n")
         return meta
 
-    def run_worker(self, commit: str, cases: list[Case], index: int) -> list[SessionMeta]:
+    def run_worker(self, commit: str, cases: list[Case]) -> list[SessionMeta]:
         metas = []
         with worktree(self.repo, commit) as checkout:
             self.generate(checkout)
-            if index == 0:
-                snapshot_context(checkout, self.out / "context")
+            self.prepare_context(checkout)
             for case in cases:
                 for repeat in range(self.config.repeats):
                     previous = read_meta(self.out / "transcripts", case.id, repeat) if self.config.resume else None
@@ -271,9 +322,9 @@ class Runner:
         (self.out / "transcripts").mkdir(parents=True, exist_ok=True)
         jobs = min(self.config.jobs, len(cases))
         if jobs <= 1:
-            return self.run_worker(commit, cases, 0)
+            return self.run_worker(commit, cases)
         with ThreadPoolExecutor(max_workers=jobs) as pool:
-            pending = [pool.submit(self.run_worker, commit, cases[i::jobs], i) for i in range(jobs)]
+            pending = [pool.submit(self.run_worker, commit, cases[i::jobs]) for i in range(jobs)]
             return [meta for future in pending for meta in future.result()]
 
 

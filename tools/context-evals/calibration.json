@@ -1,0 +1,71 @@
+{
+  "calibration_version": "1",
+  "harness_version": "2",
+  "date": "2026-10-30",
+  "model": "claude-sonnet-5-5",
+  "method": "Anthropic count_tokens endpoint; message-envelope overhead included conservatively",
+  "bytes_per_token": 2.660531326502856,
+  "samples": [
+    {
+      "path": "xberg/AGENTS.md",
+      "sha256": "bfcacde7419d6e84bbbe31ce9d3a7f9f9d713310dcc4a7ff2046737897cb461e",
+      "bytes": 11167,
+      "tokens": 4173
+    },
+    {
+      "path": "xberg/CLAUDE.md",
+      "sha256": "883573ca22bbee04a7dca0b24ffb15e0c4688f0cd49ad1d731ecccb45755bacb",
+      "bytes": 362,
+      "tokens": 212
+    },
+    {
+      "path": "xberg/.claude/rules/api-compatibility.md",
+      "sha256": "8208f7bc16feca6c3b9c7d0a93db0727931112d9c4e4360c59e8fba035a20257",
+      "bytes": 825,
+      "tokens": 335
+    },
+    {
+      "path": "xberg/.claude/rules/async-and-concurrency.md",
+      "sha256": "84698e68eb0d6629ee5d3f3ec898fd9da903959761f9bc636cef670b2989b351",
+      "bytes": 646,
+      "tokens": 293
+    },
+    {
+      "path": "xberg/.claude/rules/c-abi-wrappers.md",
+      "sha256": "a9d1421c2458fcd0e2b86560c3f84b2cb268cb309644e412f9425a312c69c526",
+      "bytes": 1996,
+      "tokens": 842
+    },
+    {
+      "path": "xberg/.claude/rules/changelog-policy.md",
+      "sha256": "0ab21a77caa8e9a38f6c6853e716e71782b97da95bd04faa353398d34483f472",
+      "bytes": 855,
+      "tokens": 369
+    },
+    {
+      "path": "sceptre/.claude/skills/agent-coordination/SKILL.md",
+      "sha256": "c3a5fa8d1a93c47539edbbcdc419cb1055b6c7fdb4013a108a45a8d65fbd3429",
+      "bytes": 8845,
+      "tokens": 3045
+    },
+    {
+      "path": "sceptre/.claude/skills/basemind-tools/SKILL.md",
+      "sha256": "7aee617c405e8f4e01211fe3a22aa824a5a3db70a5d3b514c5bc4a23aceb2bf3",
+      "bytes": 1452,
+      "tokens": 566
+    },
+    {
+      "path": "sceptre/.claude/skills/check/SKILL.md",
+      "sha256": "8f9e7a4ca0df96da00127b5bc71eb411ce8cb114a1228977b2339b395a388583",
+      "bytes": 865,
+      "tokens": 368
+    },
+    {
+      "path": "sceptre/.claude/skills/code-quality-standards/SKILL.md",
+      "sha256": "58f8904f813ba5166e8d53dd99abd109ec52ca39531a29bfd69fe4a553d5f623",
+      "bytes": 2330,
+      "tokens": 826
+    }
+  ],
+  "scope": "Instruction text; excludes CLI built-in prompts, runtime overhead and unmeasured MCP schemas"
+}

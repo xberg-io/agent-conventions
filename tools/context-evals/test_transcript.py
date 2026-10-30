@@ -15,10 +15,10 @@ from records import Loaded, Usage
 
 CWD = "crates/xberg"
 START = [
-    Loaded("instructions", "CLAUDE.md", 0, 3),
-    Loaded("instructions", "AGENTS.md", 0, 13),
-    Loaded("rule", ".claude/rules/general.md", 0, 7),
-    Loaded("instructions", "crates/xberg/CLAUDE.md", 0, 3),
+    Loaded("instructions", "CLAUDE.md", 0, 4),
+    Loaded("instructions", "AGENTS.md", 0, 18),
+    Loaded("rule", ".claude/rules/general.md", 0, 11),
+    Loaded("instructions", "crates/xberg/CLAUDE.md", 0, 5),
 ]
 
 
@@ -118,17 +118,17 @@ class InventoryTest(unittest.TestCase):
         return transcript.inventory(transcript.parse(testkit.transcript_text(name)), self.repo, cwd)
 
     def test_skill_enters_on_invocation(self) -> None:
-        self.assertEqual(self.inventory("skill_used"), [*START, Loaded("skill", "ocr-pipeline-and-quality", 1, 26)])
+        self.assertEqual(self.inventory("skill_used"), [*START, Loaded("skill", "ocr-pipeline-and-quality", 1, 38)])
 
     def test_read_triggers_scoped_rule_and_nested_claude_md_once(self) -> None:
         self.assertEqual(
             self.inventory("nested_claude_md"),
             [
                 *START,
-                Loaded("file", "crates/xberg/src/ocr/mod.rs", 1, 101),
-                Loaded("rule", ".claude/rules/ocr-scoped.md", 1, 19),
-                Loaded("instructions", "crates/xberg/src/ocr/CLAUDE.md", 1, 5),
-                Loaded("file", "crates/xberg/src/ocr/mod.rs", 2, 8),
+                Loaded("file", "crates/xberg/src/ocr/mod.rs", 1, 147),
+                Loaded("rule", ".claude/rules/ocr-scoped.md", 1, 28),
+                Loaded("instructions", "crates/xberg/src/ocr/CLAUDE.md", 1, 7),
+                Loaded("file", "crates/xberg/src/ocr/mod.rs", 2, 12),
             ],
         )
 
@@ -137,8 +137,8 @@ class InventoryTest(unittest.TestCase):
             self.inventory("scoped_rule"),
             [
                 *START,
-                Loaded("file", "crates/xberg/src/web/fetch.rs", 2, 20),
-                Loaded("rule", ".claude/rules/web-scoped.md", 2, 17),
+                Loaded("file", "crates/xberg/src/web/fetch.rs", 2, 29),
+                Loaded("rule", ".claude/rules/web-scoped.md", 2, 26),
             ],
         )
 

@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from collections.abc import Mapping
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -179,6 +180,50 @@ class RunnerTest(unittest.TestCase):
         calls = [c for c in fake.calls if c["argv"][0] == "claude"]
         self.assertEqual(len(metas), 4)
         self.assertEqual(len({c["cwd"].parents[1] if c["cwd"].name == "xberg" else c["cwd"] for c in calls}), 2)
+
+    def test_resume_rejects_changed_context_without_overwriting_original(self) -> None:
+        self.make(FakeAgent()).run(self.commit, self.cases)
+        original = (self.out / "context/CLAUDE.md").read_text()
+        fake = FakeAgent()
+
+        def changing(argv, cwd, env, timeout):
+            if argv[0] == "ai-rulez":
+                (cwd / "CLAUDE.md").write_text("changed generated instructions")
+            return fake(argv, cwd, env, timeout)
+
+        resumed = self.make(changing)
+        resumed.config.resume = True
+        with self.assertRaisesRegex(runner.RunnerError, "identity"):
+            resumed.run(self.commit, self.cases)
+        self.assertEqual((self.out / "context/CLAUDE.md").read_text(), original)
+        self.assertEqual([c for c in fake.calls if c["argv"][0] == "claude"], [])
+
+    def test_resume_rejects_changed_generation_mode_and_binary(self) -> None:
+        self.make(FakeAgent()).run(self.commit, self.cases)
+        resumed = self.make(FakeAgent(), generate=False)
+        resumed.config.resume = True
+        with self.assertRaisesRegex(runner.RunnerError, "identity"):
+            resumed.run(self.commit, self.cases)
+        binary = Path(self.tmp.name) / "different-ai-rulez"
+        binary.write_text("different binary")
+        original_which = runner.shutil.which
+
+        def different_binary(name, *args, **kwargs):
+            return str(binary) if name == "ai-rulez" else original_which(name, *args, **kwargs)
+
+        resumed = self.make(FakeAgent())
+        resumed.config.resume = True
+        with patch.object(runner.shutil, "which", different_binary):
+            with self.assertRaisesRegex(runner.RunnerError, "identity"):
+                resumed.run(self.commit, self.cases)
+
+    def test_legacy_resume_without_identity_is_refused(self) -> None:
+        self.make(FakeAgent()).run(self.commit, self.cases)
+        (self.out / "context-identity.json").unlink(missing_ok=True)
+        resumed = self.make(FakeAgent())
+        resumed.config.resume = True
+        with self.assertRaisesRegex(runner.RunnerError, "identity"):
+            resumed.run(self.commit, self.cases)
 
     def test_unknown_ref_is_an_error(self) -> None:
         with self.assertRaises(runner.RunnerError):

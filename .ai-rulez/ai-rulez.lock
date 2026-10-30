@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.3'
 scope = 'all'
-tree = 'sha256:d8fb24a00a8b5b3743cad76f05ea18557a61e4ae672bffb0f588ddcfd3fc34d7'
+tree = 'sha256:c3549051f2a9a75f032dfee02d36e39df8f39ab67feffaf7c0dfa3155af32c79'
 
 [[served]]
 name = 'adr-authoring'
@@ -52,7 +52,7 @@ digest = 'sha256:d1a591a6f2e46cb431aa80dcd1e976110502132ca23dd2eb02c49b164c49dae
 name = 'context-improvement'
 source = '.ai-rulez/skills/context-improvement/SKILL.md'
 commit = ''
-digest = 'sha256:d7daa0bdc71094c8c6a7dd077771664adaa0b0ab535de059eae5a30796de5d97'
+digest = 'sha256:6ee68d694003145cce1b24827d85e0f4c162f89f8d9c96be80a9469bfde4cbde'
 
 [[served]]
 name = 'dependency-awareness'
@@ -220,4 +220,4 @@ digest = 'sha256:b9ab62b52bd3e9d0815fe69106f7c24a83aa31d2b9f1b250a7489ed77db0c0d
 kind = 'skill'
 id = 'context-improvement'
 path = 'skills/context-improvement'
-digest = 'sha256:0b7af1841c760248e1031b7f41e224814f8953efd4f8cf6a702ef740f559983e'
+digest = 'sha256:a66592888675072bb0db29b82f27dd94d479738727c836dbdd411e0d25c318df'

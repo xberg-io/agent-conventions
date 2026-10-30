@@ -22,8 +22,10 @@ them from the repository root. A run directory holds `run.json` (repo, ref, mode
 
 1. **Baseline.** Run the current ref on the tune split, 3 repeats. Give every `harness.py run`, `judge` and
    `judge-validate` invocation the same `--budget-ledger PATH --budget-usd 25 --per-call-usd 0.2` before the
-   subcommand. A missing cost reserves the full call cap and stops the round. Validate the judge before trusting
-   its scores, and record the control as round zero with `arm_kind` and `decision` both `baseline`.
+   subcommand. Claude CLI dollar limits are soft: hard-ceiling execution is refused unless a provider-enforced
+   limit exists; `--allow-soft-budget` explicitly accepts prospective accounting only. Missing billing data keeps
+   its reservation and stops the whole shared round. Validate the judge before trusting scores, and record a
+   completed control as round zero with `arm_kind` and `decision` both `baseline`.
 2. **Diagnose.** `$L triage RUN_DIR --json triage.json --markdown triage.md [--sandbox sandbox.json]`.
    Pre-labels: `harness`, `sandbox_limit`, `answer_leak`, `wrong_skill`, `not_found`, `over_ask`, `under_ask`; the rest
    is `unlabelled` and is coded against the taxonomy in `triage.TAXONOMY` (version `TAXONOMY_VERSION`): `missing`,

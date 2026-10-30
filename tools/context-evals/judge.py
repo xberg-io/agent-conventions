@@ -35,7 +35,7 @@ from records import SessionRecord
 
 JUDGE_PROMPT_VERSION = "judge-prompt-1"
 INDEPENDENT_PROMPT_VERSION = "judge-prompt-independent-1"
-RUBRIC_VERSION = "rubric-1"
+RUBRIC_VERSION = "rubric-2"
 KAPPA_MIN = 0.6
 MIN_ITEMS = 4
 TPR_MIN = 0.9

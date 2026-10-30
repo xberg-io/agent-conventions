@@ -125,6 +125,15 @@ class ExposureTest(unittest.TestCase):
         self.assertIn("budget 10", failures[1])
         self.assertEqual(exposure.gate([report], {"claude": 10_000}, False, False), [])
 
+    def test_legacy_budgets_preserve_byte_threshold_after_calibration(self) -> None:
+        write(self.repo, "CLAUDE.md", "x" * 390)
+        report = exposure.claude(self.repo)
+        self.assertEqual(exposure.gate([report], {"claude": 100}, False, False, budget_estimator="legacy"), [])
+        self.assertEqual(len(exposure.gate([report], {"claude": 100}, False, False)), 1)
+        write(self.repo, "CLAUDE.md", "x" * 395)
+        report = exposure.claude(self.repo)
+        self.assertEqual(len(exposure.gate([report], {"claude": 100}, False, False, budget_estimator="legacy")), 1)
+
     def test_repo_name_drives_the_owner_lookup(self) -> None:
         write(self.repo, "CLAUDE.md", "beta and alpha-corpus\n")
         report = exposure.claude(self.repo)
@@ -155,7 +164,7 @@ class ExposureTest(unittest.TestCase):
     def test_probe_plants_one_distinct_sentinel_per_artifact(self) -> None:
         write(self.repo, "crates/a/src/lib.rs", "")
         tokens = probe.plant(self.repo, "crates/a/src/lib.rs")
-        self.assertEqual(len(set(tokens.values())), 5)
+        self.assertEqual(len(set(tokens.values())), 10)
         self.assertTrue(all(probe.SENTINEL.fullmatch(t) for t in tokens.values()))
         scoped = (self.repo / ".claude/rules/probe-scoped.md").read_text()
         self.assertIn('"crates/a/src/**"', scoped)

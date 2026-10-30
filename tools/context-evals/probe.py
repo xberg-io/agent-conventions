@@ -1,19 +1,5 @@
 #!/usr/bin/env python3
-"""Probe what Claude Code loads at start and on demand (issue #3, section 4.1).
-
-Copies a consumer checkout to a throwaway directory, plants a unique sentinel in each candidate artifact (the root
-CLAUDE.md, an unscoped and a glob-scoped rule, a skill description, a nested CLAUDE.md), and runs headless sessions
-with a fresh config directory:
-
-- start: a trivial prompt; reports usage (input + cache tokens) and which sentinels the model can see.
-- on-demand: the same after reading a file the glob-scoped rule and the nested CLAUDE.md cover.
-
-Needs `claude` on PATH and ANTHROPIC_API_KEY in the environment; nothing from the user's own configuration is used.
-Run it on a machine you control, not inside another agent session (the child would inherit that session).
-
-Usage:
-    probe.py REPO --scoped-file crates/foo/src/lib.rs [--repeats 3] [--json out.json]
-"""
+"""Measure Claude Code and Codex context loading in disposable consumer worktrees."""
 
 from __future__ import annotations
 
@@ -24,109 +10,199 @@ import re
 import secrets
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
+import budget
+import runner
+import transcript
+
+PROBE_VERSION = "2"
 SENTINEL = re.compile(r"PROBE-[A-Z]+-[0-9a-f]{8}")
 ASK = (
-    "List every string matching PROBE-<WORD>-<8 hex> that appears anywhere in your instructions, rules, "
-    "skill listings or context, one per line, and nothing else. Print NONE if there are none."
+    "List every string matching PROBE-<WORD>-<8 hex> visible in your current instructions, rules, "
+    "skill listings or context, one per line. Print NONE if none. Do not search or read files to find markers."
 )
 
 
-def plant(root: Path, scoped_file: str) -> dict[str, str]:
-    """Write one sentinel per artifact; return {artifact: sentinel}."""
-    tokens = {
-        name: f"PROBE-{name.upper().replace('-', '')}-{secrets.token_hex(4)}"
-        for name in ("root", "rule", "scoped", "skill", "nested")
-    }
-    claude_md = root / "CLAUDE.md"
-    claude_md.write_text(
-        claude_md.read_text() + f"\n\nProbe marker: {tokens['root']}\n"
-        if claude_md.exists()
-        else f"Probe marker: {tokens['root']}\n"
-    )
-    rules = root / ".claude" / "rules"
-    rules.mkdir(parents=True, exist_ok=True)
-    (rules / "probe-unscoped.md").write_text(f"Probe marker: {tokens['rule']}\n")
+def write(path: Path, text: str, *, append: bool = False) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text((path.read_text() if append and path.exists() else "") + text)
+
+
+def plant(root: Path, scoped_file: str, *, preset: str = "claude") -> dict[str, str]:
+    names = ("root", "agentsroot", "rule", "scoped", "skill", "skillbody", "gated", "manual", "agent", "nested")
+    tokens = {name: f"PROBE-{name.upper()}-{secrets.token_hex(4)}" for name in names}
+    instruction = "CLAUDE.md" if preset == "claude" else "AGENTS.md"
+    write(root / instruction, f"\nProbe marker: {tokens['root']}\n", append=True)
+    if preset == "claude":
+        write(root / "AGENTS.md", f"\nProbe marker: {tokens['agentsroot']}\n", append=True)
     scoped_dir = str(Path(scoped_file).parent)
-    (rules / "probe-scoped.md").write_text(
-        f'---\npaths:\n  - "{scoped_dir}/**"\n---\nProbe marker: {tokens["scoped"]}\n'
-    )
-    skill = root / ".claude" / "skills" / "probe-skill"
-    skill.mkdir(parents=True, exist_ok=True)
-    (skill / "SKILL.md").write_text(
-        f"---\nname: probe-skill\ndescription: Probe marker {tokens['skill']}.\n---\nbody\n"
-    )
-    (root / scoped_dir / "CLAUDE.md").write_text(f"Probe marker: {tokens['nested']}\n")
+    rules = root / ".claude/rules"
+    write(rules / "probe-unscoped.md", f"Probe marker: {tokens['rule']}\n")
+    write(rules / "probe-scoped.md", f'---\npaths: ["{scoped_dir}/**"]\n---\n{tokens["scoped"]}\n')
+    skills = root / (".claude/skills" if preset == "claude" else ".agents/skills")
+    for name, marker, extra, body in (
+        ("probe-skill", "skill", "", tokens["skillbody"]),
+        ("probe-gated", "gated", f'paths: ["{scoped_dir}/**"]\n', "body"),
+        ("probe-manual", "manual", "disable-model-invocation: true\n", "body"),
+    ):
+        write(
+            skills / name / "SKILL.md", f"---\nname: {name}\ndescription: Probe {tokens[marker]}.\n{extra}---\n{body}\n"
+        )
+    write(root / scoped_dir / instruction, f"Probe marker: {tokens['nested']}\n")
+    if preset == "claude":
+        write(
+            root / ".claude/agents/probe-agent.md",
+            f"---\nname: probe-agent\ndescription: Probe {tokens['agent']}.\n---\nbody\n",
+        )
+    else:
+        write(
+            root / ".codex/agents/probe-agent.toml", f'name = "probe-agent"\ndescription = "Probe {tokens["agent"]}"\n'
+        )
     return tokens
 
 
-def run(root: Path, prompt: str, config_dir: Path) -> dict:
-    env = {
-        "PATH": os.environ["PATH"],
-        "HOME": str(config_dir),
-        "CLAUDE_CONFIG_DIR": str(config_dir),
-        "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
-    }
-    out = subprocess.run(
-        [
-            "claude",
-            "-p",
-            prompt,
-            "--output-format",
-            "json",
-            "--allowedTools",
-            "Read",
-            "--strict-mcp-config",
-            "--setting-sources",
-            "project",
-        ],
-        cwd=root,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=300,
-        check=False,
+def codex_result(text: str) -> dict:
+    answer, usage, model = "", {}, ""
+    for line in text.splitlines():
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if row.get("type") == "turn.completed":
+            usage = row.get("usage", {})
+        item = row.get("item", {})
+        if item.get("type") == "agent_message":
+            answer = item.get("text", "")
+        model = row.get("model", model)
+    return {"answer": answer, "tokens": usage.get("input_tokens", 0), "usage": usage, "model": model}
+
+
+def run_codex(
+    root: Path, prompt: str, config: Path, model: str, execute: runner.Execute
+) -> tuple[dict, runner.Completed]:
+    environ = os.environ
+    original = Path(environ.get("CODEX_HOME", str(Path.home() / ".codex"))) / "auth.json"
+    if not original.is_file() or json.loads(original.read_text()).get("auth_mode") != "chatgpt":
+        raise runner.RunnerError("Codex probe needs existing CLI subscription auth")
+    if original.is_file():
+        shutil.copy2(original, config / "auth.json")
+    env = {"PATH": environ["PATH"], "HOME": str(config), "CODEX_HOME": str(config)}
+    argv = [
+        "codex",
+        "exec",
+        "--ignore-user-config",
+        "--ignore-rules",
+        "--ephemeral",
+        "--json",
+        "--sandbox",
+        "read-only",
+        "--model",
+        model,
+        "-c",
+        'approval_policy="never"',
+        "-c",
+        "features.multi_agent=false",
+        prompt,
+    ]
+    done = execute(argv, root, env, 180)
+    result = codex_result(done.stdout)
+    result["model"] = result["model"] or model
+    return result, done
+
+
+def run(root: Path, prompt: str, config: Path, *, preset: str, model: str, execute: runner.Execute) -> dict:
+    environ = os.environ
+    if preset == "claude":
+        mcp = config / "mcp.json"
+        mcp.write_text('{"mcpServers": {}}')
+        spec = runner.SessionSpec(prompt, model, 4, mcp, runner.DEFAULT_TOOLS)
+        done = execute(runner.ClaudeAdapter().command(spec), root, runner.ClaudeAdapter().env(config, environ), 180)
+        parsed = transcript.parse(done.stdout)
+        usage = parsed.first_usage
+        result = {
+            "answer": parsed.answer,
+            "tokens": sum((usage.input_tokens, usage.cache_read_tokens, usage.cache_creation_tokens)) if usage else 0,
+            "model": parsed.model,
+            "cost_usd": parsed.cost_usd,
+        }
+    else:
+        result, done = run_codex(root, prompt, config, model, execute)
+    result.update(
+        {
+            "seen": sorted(set(SENTINEL.findall(result["answer"]))),
+            "error": done.stderr[-1000:] if done.returncode else "",
+            "returncode": done.returncode,
+            "raw": done.stdout,
+            "stderr": done.stderr,
+        }
     )
-    data = json.loads(out.stdout or "{}")
-    usage = data.get("usage", {})
-    start = sum(usage.get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
-    return {"tokens": start, "seen": sorted(set(SENTINEL.findall(data.get("result", "")))), "error": out.stderr[-500:]}
+    return result
+
+
+def arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("repo", type=Path)
+    parser.add_argument("--scoped-file", required=True)
+    parser.add_argument("--preset", choices=("claude", "codex"), default="claude")
+    parser.add_argument("--model", required=True)
+    parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument("--budget-ledger", type=Path, required=True)
+    parser.add_argument(
+        "--allow-soft-budget",
+        action="store_true",
+        help="accept prospective accounting; the CLI cannot enforce a hard dollar ceiling",
+    )
+    parser.add_argument("--json", type=Path, required=True)
+    parser.add_argument("--phases", nargs="+", choices=("start", "search", "read", "skill", "nested-start"))
+    return parser.parse_args()
+
+
+def measure_phases(args: argparse.Namespace, root: Path, tokens: dict, paid: runner.Execute, info: dict) -> None:
+    results = []
+    phases = (
+        ("start", ASK),
+        ("search", f"Search {args.scoped_file} for __probe_no_match__, without reading it. Then: {ASK}"),
+        ("read", f"Read {args.scoped_file}. Then: {ASK}"),
+        ("skill", f"Invoke probe-skill. Then: {ASK}"),
+        ("nested-start", ASK),
+    )
+    for repeat in range(args.repeats):
+        for phase, prompt in phases:
+            if args.phases and phase not in args.phases:
+                continue
+            cwd = root / Path(args.scoped_file).parent if phase == "nested-start" else root
+            with tempfile.TemporaryDirectory(prefix="ctx-probe-home-") as home:
+                result = run(cwd, prompt, Path(home), preset=args.preset, model=args.model, execute=paid)
+            loaded = {name: value in result["seen"] for name, value in tokens.items()}
+            results.append({"phase": phase, "repeat": repeat, **result, "loaded": loaded})
+            args.json.write_text(json.dumps({**info, "results": results}, indent=2) + "\n")
+            print(f"{args.preset} {phase} repeat={repeat} tokens={result['tokens']} loaded={loaded}", flush=True)
+            if result["returncode"]:
+                raise runner.RunnerError("probe subprocess failed; see local JSON stderr")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("repo", type=Path)
-    parser.add_argument("--scoped-file", required=True, help="a tracked file under the directory to scope")
-    parser.add_argument("--repeats", type=int, default=1)
-    parser.add_argument("--json", type=Path)
-    args = parser.parse_args()
-    if "ANTHROPIC_API_KEY" not in os.environ or shutil.which("claude") is None:
-        sys.exit("needs `claude` on PATH and ANTHROPIC_API_KEY")
-    if os.environ.get("CLAUDECODE"):
-        sys.exit("refusing to run inside another Claude Code session")
-
-    results = []
-    with tempfile.TemporaryDirectory(prefix="ctx-probe-") as tmp:
-        root = Path(tmp) / "repo"
-        shutil.copytree(args.repo, root, symlinks=True, ignore=shutil.ignore_patterns(".git", "target", "node_modules"))
-        tokens = plant(root, args.scoped_file)
-        for _ in range(args.repeats):
-            for phase, prompt in (("start", ASK), ("on-demand", f"Read {args.scoped_file}, then: {ASK}")):
-                config = Path(tempfile.mkdtemp(prefix="cfg-", dir=tmp))
-                result = run(root, prompt, config)
-                loaded = {name: tok in result["seen"] for name, tok in tokens.items()}
-                results.append({"phase": phase, **result, "loaded": loaded})
-                print(
-                    f"{phase:9} tokens={result['tokens']:>7}  "
-                    + "  ".join(f"{k}={'y' if v else '-'}" for k, v in loaded.items())
-                )
-    if args.json:
-        args.json.write_text(json.dumps(results, indent=2) + "\n")
+    args = arguments()
+    if args.preset == "claude":
+        runner.preflight(os.environ)
+        if not args.allow_soft_budget:
+            raise runner.RunnerError(
+                "Claude CLI cannot enforce a hard dollar ceiling; explicit --allow-soft-budget consent is required"
+            )
+    paid = budget.BudgetedExecute(
+        args.budget_ledger, 25, 0.2, runner.subprocess_execute, allow_soft_limits=args.allow_soft_budget
+    )
+    commit = runner.resolve_ref(args.repo, "main")
+    version = subprocess.check_output([args.preset, "--version"], text=True).strip()
+    with runner.worktree(args.repo, commit) as root:
+        runner.Runner(args.repo, args.json.parent, runner.RunConfig(model=args.model)).generate(root)
+        tokens = plant(root, args.scoped_file, preset=args.preset)
+        info = {"probe_version": PROBE_VERSION, "harness_version": version, "preset": args.preset, "commit": commit}
+        measure_phases(args, root, tokens, paid, info)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

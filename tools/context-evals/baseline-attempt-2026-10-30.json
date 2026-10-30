@@ -1,0 +1,39 @@
+{
+  "status": "incomplete-budget-stop",
+  "date": "2026-10-30",
+  "harness_version": "2",
+  "agent_model": "claude-sonnet-5-5",
+  "primary_judge_model": "claude-sonnet-5-5",
+  "secondary_judge_model": "claude-sonnet-5",
+  "budget_usd": 25,
+  "reported_cli_cost_usd": 23.4157297,
+  "unsettled_reservations_usd": 1.1,
+  "charged_or_reserved_usd": 24.5157297,
+  "consumers": {
+    "xberg": {
+      "commit": "1b0ed4788e3eb34a4bbab6ba5ede188f08fdfb70",
+      "expected_sessions": 138,
+      "completed_sessions": 128,
+      "failed_sessions": 2,
+      "reported_session_cost_usd": 7.8237013,
+      "case_corpus_hash": "f2a7fbddd1cec42fd16bac3b1614e436677a86447f3fab5597b8112fe9c41ec9"
+    },
+    "sceptre": {
+      "commit": "bdaa3664ef55f00cd1648f0b1c50ed5b3264017c",
+      "expected_sessions": 48,
+      "completed_sessions": 48,
+      "failed_sessions": 0,
+      "reported_session_cost_usd": 2.6686265000000002,
+      "case_corpus_hash": "e12bdb6cb036a57b2a2ecb54d857022bb2a5f2f52517095f816dae0ddb00ba8a"
+    }
+  },
+  "cached_judge_responses": {
+    "claude-sonnet-5": 182,
+    "claude-sonnet-5-5": 196
+  },
+  "judge_validity": "not-completed; cached responses are not a validity report",
+  "round_zero_ledger": "not-appended; baseline and validation are incomplete",
+  "taxonomy_sha256": "2be44ecdb9eaacbb9c3e2a485aa05a20d432a402da3de0fea679564a8ca1ae08",
+  "raw_outputs": "polyrepo reports/context-evals-2026-10-30 (ignored; not published)",
+  "note": "Costs include all pilot/probe/judge attempts. Unreported interrupted calls retain their full reservations. CLI per-call budget flags can overshoot by a request; actual reported overrun cost is retained."
+}

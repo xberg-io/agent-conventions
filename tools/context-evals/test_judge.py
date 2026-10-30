@@ -193,7 +193,7 @@ class JudgeSessionsTest(unittest.TestCase):
         self.assertEqual(rows[0]["verdicts"], {"names-dpi-default": True, "names-engine": True})
         self.assertEqual(
             {k: rows[0][k] for k in ("judge_model", "judge_prompt_version", "rubric_version")},
-            {"judge_model": "judge-m", "judge_prompt_version": "judge-prompt-1", "rubric_version": "rubric-1"},
+            {"judge_model": "judge-m", "judge_prompt_version": "judge-prompt-1", "rubric_version": "rubric-2"},
         )
         judge.apply(sessions, rows, {"xberg-ocr-dpi/names-engine", "xberg-ocr-module/names-file"})
         self.assertEqual([s.criteria for s in sessions], [
