@@ -24,6 +24,8 @@ TOTAL = 25_000_000_000
 # ~keep Exact v3 admission implementation from 07d086c must stay fenced after a reviewed recovery.
 LEGACY_RESERVE_SOURCE = 'def reserve(self, model: str, max_tokens: int) -> int:\n        amount = Policy().reservation(model, max_tokens)\n        birth = process_identity(os.getpid())\n        if not birth:\n            raise GatewayError("cannot establish request owner identity")\n        with self.connection() as db:\n            db.execute("BEGIN IMMEDIATE")\n            if db.execute("SELECT stopped FROM hard_round WHERE id=1").fetchone()[0]:\n                raise GatewayError("round stopped")\n            spent = db.execute("SELECT COALESCE(SUM(charge), 0) FROM hard_requests").fetchone()[0]\n            if spent + amount > self.total:\n                raise GatewayError("round budget cannot reserve another complete request")\n            return db.execute(\n                "INSERT INTO hard_requests VALUES (NULL, ?, ?, ?, \'pending\', ?, ?)",\n                (model, max_tokens, amount, os.getpid(), birth),\n            ).lastrowid'
 
+LEGACY_STOP_SOURCE = 'def stop(self, reason: str) -> None:\n        with self.connection() as db:\n            db.execute("UPDATE hard_round SET stopped=? WHERE id=1", (reason,))'
+
 
 class RecoveryTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -60,6 +62,7 @@ class RecoveryTest(unittest.TestCase):
             "next_policy": gateway.policy_hash(),
             "round": self.identity,
             "reason": "protocol-compatibility-recovery",
+            "previous_admission": None,
         }
 
     def migrate(self) -> None:
@@ -104,6 +107,65 @@ class RecoveryTest(unittest.TestCase):
             self.migrate()
         self.assertEqual(gateway.Ledger(self.path, 25).spent(), HELD)
 
+    def test_policy_cycle_cannot_replay_an_earlier_transition_approval(self) -> None:
+        self.migrate()
+        current = gateway.Ledger(self.path, 25)
+        current.stop("first compatibility hold")
+        approval = self.approval | {
+            "previous_policy": gateway.policy_hash(),
+            "next_policy": gateway_epochs.digest(self.previous),
+            "previous_admission": self.admission(),
+        }
+        gateway_epochs.recover(
+            self.path, self.identity, gateway.manifest(), self.previous, approval, gateway.GatewayError
+        )
+        with closing(sqlite3.connect(self.path)) as db, db:
+            db.execute("INSERT INTO hard_epoch_stops VALUES(2,'second compatibility hold')")
+        before = self.query("SELECT * FROM hard_epochs")
+        with self.assertRaisesRegex(gateway.GatewayError, "prior admission"):
+            self.migrate()
+        self.assertEqual(self.query("SELECT * FROM hard_epochs"), before)
+        self.assertEqual(self.query("SELECT charge,state FROM hard_requests"), [(HELD, "uncertain")])
+
+    def test_legacy_stop_cannot_clear_or_replace_the_permanent_fence(self) -> None:
+        from types import SimpleNamespace
+
+        self.migrate()
+        current = gateway.Ledger(self.path, 25)
+        before = self.query("SELECT * FROM hard_round")
+        namespace = {
+            "Policy": gateway.Policy,
+            "process_identity": gateway.process_identity,
+            "os": os,
+            "GatewayError": gateway.GatewayError,
+        }
+        exec(compile(LEGACY_RESERVE_SOURCE, "immutable-v3-reserve", "exec"), namespace)
+        exec(compile(LEGACY_STOP_SOURCE, "immutable-v3-stop", "exec"), namespace)
+        legacy = SimpleNamespace(connection=current.connection, total=TOTAL)
+        for reason in ("", "replacement"):
+            with self.subTest(reason=reason), self.assertRaises(sqlite3.IntegrityError):
+                namespace["stop"](legacy, reason)
+            with self.assertRaisesRegex(gateway.GatewayError, "round stopped"):
+                namespace["reserve"](legacy, MODEL, 4096)
+        self.assertEqual(self.query("SELECT * FROM hard_round"), before)
+        self.assertEqual(self.query("SELECT charge,state FROM hard_requests"), [(HELD, "uncertain")])
+
+    def test_round_identity_and_retained_stop_are_database_immutable(self) -> None:
+        self.migrate()
+        before = self.query("SELECT * FROM hard_round")
+        statements = [
+            "DELETE FROM hard_round",
+            "UPDATE hard_round SET total=26000000000",
+            "UPDATE hard_round SET policy='changed'",
+            "UPDATE hard_round SET round_uuid='changed'",
+            "UPDATE hard_round SET canonical_path='changed'",
+        ]
+        for statement in statements:
+            with self.subTest(statement=statement), self.assertRaises(sqlite3.IntegrityError):
+                with closing(sqlite3.connect(self.path)) as db, db:
+                    db.execute(statement)
+        self.assertEqual(self.query("SELECT * FROM hard_round"), before)
+
     def test_wrong_round_and_changed_bounds_do_not_mutate_legacy_data(self) -> None:
         before = self.query("SELECT * FROM hard_round"), self.query("SELECT * FROM hard_requests")
         for field, value in [
@@ -127,6 +189,11 @@ class RecoveryTest(unittest.TestCase):
             self.migrate()
         self.assertEqual(self.query("SELECT charge,state FROM hard_requests"), [(HELD, "pending")])
 
+    def admission(self) -> dict:
+        with closing(sqlite3.connect(self.path)) as db:
+            current = gateway_epochs.history(db, self.identity, gateway.GatewayError)[-1]
+        return {key: current[key] for key in ("epoch", "audit_hash")}
+
     def next_epoch(self) -> tuple[dict, dict, dict]:
         previous = gateway.manifest()
         future = copy.deepcopy(previous)
@@ -134,6 +201,7 @@ class RecoveryTest(unittest.TestCase):
         approval = self.approval | {
             "previous_policy": gateway_epochs.digest(previous),
             "next_policy": gateway_epochs.digest(future),
+            "previous_admission": self.admission(),
         }
         return previous, future, approval
 

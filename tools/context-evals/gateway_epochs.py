@@ -83,6 +83,12 @@ def create_tables(db: sqlite3.Connection) -> None:
     db.execute(
         "CREATE TRIGGER hard_requests_update BEFORE UPDATE ON hard_requests WHEN OLD.state!='pending' OR NEW.model IS NOT OLD.model OR NEW.max_tokens IS NOT OLD.max_tokens OR NEW.owner IS NOT OLD.owner OR NEW.birth IS NOT OLD.birth OR NEW.charge>OLD.charge OR NEW.charge<0 OR NEW.state NOT IN ('settled','uncertain') BEGIN SELECT RAISE(ABORT,'immutable request accounting'); END"
     )
+    db.execute(
+        "CREATE TRIGGER hard_round_delete BEFORE DELETE ON hard_round BEGIN SELECT RAISE(ABORT,'immutable financial round'); END"
+    )
+    db.execute(
+        "CREATE TRIGGER hard_round_update BEFORE UPDATE ON hard_round WHEN NEW.id IS NOT OLD.id OR NEW.total IS NOT OLD.total OR NEW.policy IS NOT OLD.policy OR NEW.round_uuid IS NOT OLD.round_uuid OR NEW.canonical_path IS NOT OLD.canonical_path OR (OLD.stopped!='' AND NEW.stopped IS NOT OLD.stopped) BEGIN SELECT RAISE(ABORT,'immutable financial round'); END"
+    )
     for table in ("hard_epochs", "hard_epoch_stops", "hard_request_epochs"):
         for operation in ("UPDATE", "DELETE"):
             db.execute(
@@ -189,7 +195,7 @@ class Epochs:
 
 
 def validate_approval(identity: dict, previous: dict, current: dict, approval: dict, fail: type[Exception]) -> None:
-    required = {"reviewed_ref", "previous_policy", "next_policy", "round", "reason"}
+    required = {"reviewed_ref", "previous_policy", "next_policy", "round", "reason", "previous_admission"}
     if (
         not isinstance(approval, dict)
         or set(approval) != required
@@ -223,6 +229,8 @@ def recover(path: Path, identity: dict, previous: dict, current: dict, approval:
             raise fail("pending requests block recovery")
         exists = db.execute("SELECT name FROM sqlite_master WHERE name='hard_epochs'").fetchone()
         if not exists:
+            if approval["previous_admission"] is not None:
+                raise fail("approval does not bind the exact prior admission")
             if root_policy != digest(previous) or not legacy_stop:
                 raise fail("legacy policy/stop does not authorize the expected recovery")
             create_tables(db)
@@ -232,6 +240,9 @@ def recover(path: Path, identity: dict, previous: dict, current: dict, approval:
             db.execute("INSERT INTO hard_request_epochs SELECT id,0,'legacy' FROM hard_requests")
         else:
             old = history(db, identity, fail)[-1]
+            expected = {key: old[key] for key in ("epoch", "audit_hash")}
+            if approval["previous_admission"] != expected:
+                raise fail("approval does not bind the exact prior admission")
             if (
                 old["policy_sha256"] != digest(previous)
                 or not db.execute("SELECT reason FROM hard_epoch_stops WHERE epoch=?", (old["epoch"],)).fetchone()
