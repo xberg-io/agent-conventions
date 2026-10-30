@@ -9,7 +9,7 @@ import subprocess
 import threading
 import time
 from collections.abc import Callable, Iterator, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import BinaryIO, Self
 
@@ -542,17 +542,24 @@ def isolated_process(
     )
 
 
-def bounded_task_failure(result: runner.Completed, argv: list[str], ledger: gateway.Ledger) -> bool:
-    if result.returncode != 1 or result.timed_out or argv.count("--max-turns") != 1:
-        return False
+def terminal_event(stdout: str) -> dict | None:
     try:
-        maximum = int(argv[argv.index("--max-turns") + 1])
-        events = [decode_json(line.encode()) for line in result.stdout.splitlines() if line.strip()]
-    except (ValueError, IndexError, gateway.GatewayError):
+        events = [decode_json(line.encode()) for line in stdout.splitlines() if line.strip()]
+    except (ValueError, gateway.GatewayError):
+        return None
+    if not events or sum(event.get("type") == "result" for event in events) != 1:
+        return None
+    if sum(event.get("type") == "system" and event.get("subtype") == "init" for event in events) != 1:
+        return None
+    return events[-1] if events[-1].get("type") == "result" else None
+
+
+def maximum_turn_failure(result: runner.Completed, maximum: int) -> bool:
+    if result.returncode != 1 or result.timed_out or type(maximum) is not int:
         return False
-    if maximum <= 0 or not events or sum(event.get("type") == "result" for event in events) != 1:
+    terminal = terminal_event(result.stdout)
+    if maximum <= 0 or terminal is None:
         return False
-    terminal = events[-1]
     expected = {
         "type": "result",
         "subtype": "error_max_turns",
@@ -568,7 +575,34 @@ def bounded_task_failure(result: runner.Completed, argv: list[str], ledger: gate
         return False
     if terminal.get("result") not in (None, ""):
         return False
-    return ledger.actor_requests_settled()
+    return True
+
+
+def bounded_task_failure(result: runner.Completed, argv: list[str], ledger: gateway.Ledger) -> bool:
+    if argv.count("--max-turns") != 1:
+        return False
+    try:
+        maximum = int(argv[argv.index("--max-turns") + 1])
+    except (ValueError, IndexError):
+        return False
+    return maximum_turn_failure(result, maximum) and ledger.actor_requests_settled()
+
+
+def certify_cli_result(
+    result: runner.Completed, argv: list[str], gate: InitGate, tools: tuple[str, ...], ledger: gateway.Ledger
+) -> runner.Completed:
+    terminal = terminal_event(result.stdout)
+    successful = (
+        result.returncode == 0
+        and terminal is not None
+        and terminal.get("subtype") == "success"
+        and terminal.get("is_error") is False
+    )
+    invalid = result.timed_out or not gate.valid or bool(runner.tool_profile_error(result.stdout, tools))
+    bounded = not invalid and bool(result.returncode) and bounded_task_failure(result, argv, ledger)
+    if invalid or not (successful or bounded):
+        ledger.stop("CLI execution did not complete with the verified tool profile")
+    return replace(result, bounded_failure=bounded)
 
 
 class HardExecute:
@@ -619,14 +653,7 @@ class HardExecute:
                 except BaseException:
                     self.ledger.stop("isolated CLI interrupted or failed")
                     raise
-            if (
-                result.timed_out
-                or not gate.valid
-                or runner.tool_profile_error(result.stdout, tools)
-                or (result.returncode and not bounded_task_failure(result, argv, self.ledger))
-            ):
-                self.ledger.stop("CLI execution did not complete with the verified tool profile")
-            return result
+            return certify_cli_result(result, argv, gate, tools, self.ledger)
 
     @staticmethod
     def profile(argv: list[str]) -> tuple[str, tuple[str, ...]]:

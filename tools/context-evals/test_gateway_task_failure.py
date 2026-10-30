@@ -44,6 +44,7 @@ class BoundedTaskFailureTest(unittest.TestCase):
         }
         self.state = "settled"
         self.timeout = False
+        self.returncode = 1
 
     def execute(self) -> runner.Completed:
         def isolated(_argv, _cwd, _environment, _timeout, gate):
@@ -56,7 +57,7 @@ class BoundedTaskFailureTest(unittest.TestCase):
                 self.ledger.stop("existing first stop")
             gate.observe(json.dumps(self.init))
             text = "\n".join(json.dumps(value) for value in (self.init, self.terminal)) + "\n"
-            return runner.Completed(1, text, "", timed_out=self.timeout)
+            return runner.Completed(self.returncode, text, "", timed_out=self.timeout)
 
         with (
             patch("gateway_transport.verify_sandbox", return_value={}),
@@ -72,6 +73,7 @@ class BoundedTaskFailureTest(unittest.TestCase):
     def test_known_maximum_turn_failure_is_retained_without_stopping_the_financial_round(self) -> None:
         result = self.execute()
         self.assertEqual(result.returncode, 1)
+        self.assertTrue(result.bounded_failure)
         self.assertEqual(transcript.parse(result.stdout).error, "error_max_turns")
         self.assertEqual(transcript.parse(result.stdout).answer, "")
         self.assertEqual(self.ledger.snapshot()["stop_reason"], "")
@@ -80,18 +82,21 @@ class BoundedTaskFailureTest(unittest.TestCase):
 
     def test_wrong_tool_or_model_profile_still_stops(self) -> None:
         self.init["tools"] = ["Bash"]
-        self.execute()
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
         self.assertTrue(self.ledger.snapshot()["stop_reason"])
 
     def test_unsettled_request_still_stops(self) -> None:
         self.state = "pending"
-        self.execute()
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
         self.assertTrue(self.ledger.snapshot()["stop_reason"])
         self.assertEqual(self.ledger.spent(), 6_140_960_000)
 
     def test_wrong_model_still_stops(self) -> None:
         self.init["model"] = "claude-sonnet-5"
-        self.execute()
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
         self.assertTrue(self.ledger.snapshot()["stop_reason"])
 
     def test_malformed_or_additional_failure_conditions_still_stop(self) -> None:
@@ -124,7 +129,8 @@ class BoundedTaskFailureTest(unittest.TestCase):
 
     def test_unknown_error_subtype_still_stops(self) -> None:
         self.terminal["subtype"] = "error_unknown"
-        self.execute()
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
         self.assertTrue(self.ledger.snapshot()["stop_reason"])
 
     def test_prior_stop_cannot_be_cleared_by_a_known_failure(self) -> None:
@@ -134,13 +140,38 @@ class BoundedTaskFailureTest(unittest.TestCase):
 
     def test_new_uncertainty_still_stops_and_retains_full_charge(self) -> None:
         self.state = "uncertain"
-        self.execute()
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
         self.assertTrue(self.ledger.snapshot()["stop_reason"])
         self.assertEqual(self.ledger.spent(), 6_140_960_000)
 
+    def test_zero_exit_with_an_error_terminal_still_stops(self) -> None:
+        self.returncode = 0
+        self.terminal["subtype"] = "unknown_failure"
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
+        self.assertTrue(self.ledger.snapshot()["stop_reason"])
+
+    def test_zero_exit_with_the_success_terminal_keeps_the_round_open(self) -> None:
+        self.returncode = 0
+        self.terminal.update(
+            subtype="success",
+            is_error=False,
+            result="fixture answer",
+            terminal_reason="completed",
+            errors=[],
+            num_turns=1,
+            stop_reason="end_turn",
+        )
+        result = self.execute()
+        self.assertEqual(result.returncode, 0)
+        self.assertFalse(result.bounded_failure)
+        self.assertEqual(self.ledger.snapshot()["stop_reason"], "")
+
     def test_timeout_still_stops(self) -> None:
         self.timeout = True
-        self.execute()
+        result = self.execute()
+        self.assertFalse(result.bounded_failure)
         self.assertTrue(self.ledger.snapshot()["stop_reason"])
 
 
@@ -175,6 +206,7 @@ class ActualBoundedFailureTest(unittest.TestCase):
             )
             result = execute(argv, root, {"PATH": os.environ["PATH"]}, 30)
             self.assertEqual(result.returncode, 1)
+            self.assertTrue(result.bounded_failure)
             self.assertEqual(transcript.parse(result.stdout).error, "error_max_turns")
             self.assertEqual(ledger.snapshot()["stop_reason"], "")
             self.assertEqual(ledger.snapshot()["requests"][0]["state"], "settled")

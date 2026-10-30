@@ -63,7 +63,19 @@ def rates(model: str) -> dict[str, int]:
 
 
 def manifest() -> dict:
-    files = ("gateway.py", "gateway_transport.py", "gateway_epochs.py", "harness.py", "runner.py", "judge.py")
+    files = (
+        "gateway.py",
+        "gateway_transport.py",
+        "gateway_epochs.py",
+        "harness.py",
+        "runner.py",
+        "judge.py",
+        "records.py",
+        "scoring.py",
+        "continuation.py",
+        "continuation_compat.py",
+        "continuation_runtime.py",
+    )
     source = b"".join((Path(__file__).parent / name).read_bytes() for name in files)
     return {
         "version": POLICY_VERSION,

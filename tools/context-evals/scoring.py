@@ -10,6 +10,7 @@ The domains.toml accept list applies, with the artifact named as exposure.py nam
 from __future__ import annotations
 
 import re
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,7 +19,7 @@ import exposure
 import stats
 import transcript
 from cases import Case
-from records import Loaded, SessionRecord, Usage
+from records import RECORD_VERSION, Loaded, SessionRecord, Usage
 from transcript import Transcript
 
 CONTEXT_KINDS = ("instructions", "rule", "skill", "agent")
@@ -111,12 +112,10 @@ def score(
     run_dir: str = "",
     error: str = "",
     root: str | None = None,
+    bounded_failure: bool = False,
+    provenance: dict | None = None,
 ) -> SessionRecord:
-    """One session's record.
-
-    `context` holds the checkout's context files, `root` is the checkout path at run time (derived from the init
-    cwd when omitted) and `error` a runner failure such as a timeout.
-    """
+    """Score one transcript; only a controller certificate can mark a bounded task failure."""
     root = transcript.session_root(t, case.cwd) if root is None else root
     loaded = transcript.inventory(t, context, case.cwd, root)
     used = list(dict.fromkeys(name for name, _ in t.skills_used()))
@@ -147,6 +146,9 @@ def score(
         turns=t.turns or t.assistant_turns,
         error=error,
         contaminated=contaminated,
+        bounded_failure=bounded_failure is True and error == "error_max_turns" and not contaminated and not t.answer,
+        expect_applicable=bool(case.expect),
+        provenance=provenance or {},
     )
 
 
@@ -189,9 +191,59 @@ def per_case(records: list[SessionRecord], metric: Metric) -> dict[str, list[flo
     return out
 
 
+def valid_trial(record: SessionRecord) -> bool:
+    if type(record.version) is not int or record.version != RECORD_VERSION:
+        return False
+    if record.contaminated:
+        return False
+    if not record.error:
+        return not record.bounded_failure
+    return record.error == "error_max_turns" and record.bounded_failure is True and not record.answer
+
+
+def trial_rate(rows: list[SessionRecord], value: Callable[[SessionRecord], float | None]) -> dict:
+    values = [0.0 if row.bounded_failure else value(row) for row in rows]
+    missing = sum(item is None for item in values)
+    numerator = sum(item for item in values if item is not None)
+    return {
+        "numerator": numerator,
+        "denominator": len(rows),
+        "rate": numerator / len(rows) if rows and not missing else None,
+        "ungraded_trials": missing,
+    }
+
+
+def all_trials(records: list[SessionRecord]) -> dict:
+    valid = [row for row in records if valid_trial(row)]
+    invalid = [row for row in records if not valid_trial(row)]
+    expectations = [row for row in valid if row.expect_applicable or row.expect_pass is not None]
+    criteria = [row for row in valid if row.criteria]
+    return {
+        "version": 1,
+        "executed_trials": len(records),
+        "valid_trials": len(valid),
+        "invalid_trials": len(invalid),
+        "execution_valid": bool(records) and not invalid,
+        "invalid_errors": dict(Counter(row.error or "invalid completion classification" for row in invalid)),
+        "completion": trial_rate(valid, lambda _row: 1.0),
+        "expect_pass": trial_rate(
+            expectations, lambda row: float(row.expect_pass) if row.expect_pass is not None else None
+        ),
+        "criteria_pass": trial_rate(
+            criteria,
+            lambda row: row.criteria_pass_rate if all(value is not None for value in row.criteria.values()) else None,
+        ),
+    }
+
+
 def summarise(records: list[SessionRecord], *, seed: int = 0) -> dict:
     clusters = {r.case_id: r.cluster for r in records}
-    out: dict = {"sessions": len(records), "errors": sum(1 for r in records if r.error), "metrics": {}}
+    out: dict = {
+        "sessions": len(records),
+        "errors": sum(1 for r in records if r.error),
+        "metrics": {},
+        "all_trials": all_trials(records),
+    }
     for metric in METRICS:
         values = per_case(records, metric)
         if not values:

@@ -31,6 +31,7 @@ from pathlib import Path
 
 import budget
 import cases as cases_mod
+import continuation
 import exposure
 import gateway
 import gateway_transport
@@ -112,27 +113,10 @@ def cmd_validate_cases(args: argparse.Namespace) -> int:
     return 1 if errors else 0
 
 
-def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[str, str]) -> int:
-    domains = load_domains(args.domains)
-    out: Path = args.out.resolve()
-    if out.exists() and any(out.iterdir()) and not args.resume:
-        raise HarnessError(f"{out} is not empty; every run gets a fresh directory")
-    corpus = cases_mod.load_corpus(args.cases_dir, domains)
+def run_metadata(
+    args: argparse.Namespace, commit: str, config: runner.RunConfig, selected: list[Case], domains: dict
+) -> dict:
     name = args.repo_name or args.repo.resolve().name
-    selected = cases_mod.select(corpus, repo=name, pattern=args.cases, split=args.split)
-    if not selected:
-        raise HarnessError(f"no {args.split} case matches repo {name!r} and {args.cases!r}")
-    runner.preflight(environ)
-    config = runner.RunConfig(
-        model=args.model,
-        max_turns=args.max_turns,
-        timeout=args.timeout,
-        repeats=args.repeats,
-        generate=not args.skip_generate,
-        jobs=args.jobs,
-        resume=args.resume,
-    )
-    commit = runner.resolve_ref(args.repo.resolve(), args.ref)
     started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     meta = {
         "run_id": f"{name}@{commit[:12]}@{started}",
@@ -161,68 +145,184 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         "cases": [c.id for c in selected],
         "started_at": started,
     }
+    return meta
+
+
+def resume_metadata(out: Path, meta: dict) -> None:
+    previous = read_json(out / "run.json")
+    stable = (
+        "commit",
+        "model",
+        "split",
+        "repeats",
+        "max_turns",
+        "timeout",
+        "case_corpus_hash",
+        "harness_version",
+        "allowed_tools",
+        "tool_profile_version",
+        "judge_tool_profile_version",
+        "execution_policy",
+        "budget_round",
+        "continuation_manifest",
+        "admission_epoch",
+    )
+    if any(previous.get(key) != meta.get(key) for key in stable):
+        raise HarnessError("resume parameters differ from the recorded run")
+    meta["started_at"], meta["run_id"] = previous["started_at"], previous["run_id"]
+    meta["judge_model"] = previous.get("judge_model", "")
+
+
+def cmd_run(
+    args: argparse.Namespace,
+    execute: runner.Execute,
+    environ: Mapping[str, str],
+    continuation_plan: continuation.Plan | None = None,
+) -> int:
+    domains = load_domains(args.domains)
+    out: Path = args.out.resolve()
+    if out.exists() and any(out.iterdir()) and not args.resume:
+        raise HarnessError(f"{out} is not empty; every run gets a fresh directory")
+    corpus = cases_mod.load_corpus(args.cases_dir, domains)
+    name = args.repo_name or args.repo.resolve().name
+    selected = cases_mod.select(corpus, repo=name, pattern=args.cases, split=args.split)
+    if not selected:
+        raise HarnessError(f"no {args.split} case matches repo {name!r} and {args.cases!r}")
+    runner.preflight(environ)
+    config = runner.RunConfig(
+        model=args.model,
+        max_turns=args.max_turns,
+        timeout=args.timeout,
+        repeats=args.repeats,
+        generate=not args.skip_generate,
+        jobs=args.jobs,
+        resume=args.resume,
+    )
+    commit = runner.resolve_ref(args.repo.resolve(), args.ref)
+    meta = run_metadata(args, commit, config, selected, domains)
+    if continuation_plan is not None:
+        meta["continuation_manifest"] = {"path": str(continuation_plan.path), "sha256": continuation_plan.sha256}
+        meta["admission_epoch"] = continuation_plan.data["next_admission"]
     if args.resume:
-        previous = read_json(out / "run.json")
-        stable = (
-            "commit",
-            "model",
-            "split",
-            "repeats",
-            "max_turns",
-            "timeout",
-            "case_corpus_hash",
-            "harness_version",
-            "allowed_tools",
-            "tool_profile_version",
-            "judge_tool_profile_version",
-            "execution_policy",
-            "budget_round",
-        )
-        if any(previous.get(key) != meta[key] for key in stable):
-            raise HarnessError("resume parameters differ from the recorded run")
-        meta["started_at"], meta["run_id"] = previous["started_at"], previous["run_id"]
-        meta["judge_model"] = previous.get("judge_model", "")
+        resume_metadata(out, meta)
     meta["jobs"] = args.jobs
     write_json(out / "run.json", meta)
     write_json(out / "cases.json", [asdict(c) for c in selected])
-    runner.Runner(args.repo, out, config, execute=execute, environ=environ).run(commit, selected)
+    inherited = continuation_plan.inherited(name) if continuation_plan else None
+    guarded = continuation_plan.wrap(execute, out, name) if continuation_plan else execute
+    runner.Runner(args.repo, out, config, execute=guarded, environ=environ, inherited=inherited).run(commit, selected)
     meta["finished_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     write_json(out / "run.json", meta)
     return score_run(out, load_domains(args.domains))
 
 
+def cmd_continue(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[str, str]) -> int:
+    if not args.hard_budget:
+        raise HarnessError("reviewed continuation requires the original hard-budget ledger")
+    corpus = cases_mod.load_corpus(args.cases_dir, load_domains(args.domains))
+    plan = continuation.Plan.load(args.manifest, args.manifest_sha256, corpus, args.budget_ledger)
+    name = args.repo.resolve().name
+    if name not in plan.selected:
+        raise HarnessError("consumer is outside the reviewed continuation")
+    config = plan.identities[name]["config"]
+    sealed = argparse.Namespace(
+        **(
+            vars(args)
+            | {
+                "repo_name": name,
+                "ref": plan.data["repos"][name]["ref"],
+                "model": config["model"],
+                "cases": "*",
+                "split": "tune",
+                "repeats": config["repeats"],
+                "max_turns": config["max_turns"],
+                "timeout": config["timeout"],
+                "jobs": 1,
+                "resume": False,
+                "skip_generate": not config["generate"],
+            }
+        )
+    )
+    return cmd_run(sealed, execute, environ, continuation_plan=plan)
+
+
+def cmd_continuation_report(args: argparse.Namespace) -> int:
+    data = continuation.read_bound_json(args.manifest, args.manifest_sha256)
+    domains = load_domains(args.domains)
+    corpus = cases_mod.load_corpus(args.cases_dir, domains)
+    ledger = Path(data["round"]["ledger_path"])
+    plan = continuation.Plan.load(args.manifest, args.manifest_sha256, corpus, ledger, allow_stopped=True)
+    report = plan.aggregate(args.runs, domains)
+    out = args.out.resolve()
+    continuation.controlled_path(str(out), ledger)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("x") as stream:
+        json.dump(report, stream, indent=2, sort_keys=True)
+        stream.write("\n")
+    print(f"verified {report['expected_trials']} planned trials across {len(report['sources'])} consumers")
+    return 0
+
+
+def recorded_continuation(run_dir: Path, domains: dict) -> continuation.Plan | None:
+    meta = read_json(run_dir / "run.json")
+    item = meta.get("continuation_manifest")
+    if item is None:
+        return None
+    corpus = cases_mod.load_corpus(HERE / "cases", domains)
+    return continuation.Plan.load(
+        Path(item["path"]), item["sha256"], corpus, Path(meta["budget_round"]["ledger_path"]), allow_stopped=True
+    )
+
+
+def score_trial(
+    run_dir: Path, case: Case, repeat: int, meta: dict, domains: dict, plan: continuation.Plan | None
+) -> records.SessionRecord | None:
+    if plan is not None:
+        path, info, provenance = plan.resolve(meta["repo"], case.id, repeat, run_dir)
+    else:
+        path = run_dir / "transcripts" / f"{runner.session_name(case.id, repeat)}.jsonl"
+        info = runner.read_meta(run_dir / "transcripts", case.id, repeat)
+        provenance = {}
+    if path is None or not path.exists():
+        return None
+    raw = path.read_text()
+    profile_error = (
+        runner.tool_profile_error(raw, tuple(meta["allowed_tools"]))
+        if meta.get("harness_version") == HARNESS_VERSION
+        else ""
+    )
+    return scoring.score(
+        case,
+        transcript.parse(raw),
+        domains,
+        run_dir / "context",
+        run_id=meta["run_id"],
+        repeat=repeat,
+        run_dir=str(run_dir.resolve()),
+        error=(info.error if info else "") or profile_error,
+        root=info.root if info else None,
+        bounded_failure=info.bounded_failure if info else False,
+        provenance=provenance,
+    )
+
+
 def score_run(run_dir: Path, domains: dict) -> int:
     meta = read_json(run_dir / "run.json")
     corpus = run_cases(run_dir)
+    plan = recorded_continuation(run_dir, domains)
     out = []
     for case_id in meta["cases"]:
         for repeat in range(meta["repeats"]):
-            path = run_dir / "transcripts" / f"{runner.session_name(case_id, repeat)}.jsonl"
-            if not path.exists():
-                continue
-            info = runner.read_meta(run_dir / "transcripts", case_id, repeat)
-            t = transcript.parse_file(path)
-            profile_error = (
-                runner.tool_profile_error(path.read_text(), tuple(meta["allowed_tools"]))
-                if meta.get("harness_version") == HARNESS_VERSION
-                else ""
-            )
-            out.append(
-                scoring.score(
-                    corpus[case_id],
-                    t,
-                    domains,
-                    run_dir / "context",
-                    run_id=meta["run_id"],
-                    repeat=repeat,
-                    run_dir=str(run_dir.resolve()),
-                    error=(info.error if info else "") or profile_error,
-                    root=info.root if info else None,
-                )
-            )
+            value = score_trial(run_dir, corpus[case_id], repeat, meta, domains, plan)
+            if value is not None:
+                out.append(value)
     expected = len(meta["cases"]) * meta["repeats"]
     if len(out) != expected:
         raise HarnessError(f"expected {expected} sessions, found {len(out)}; run is incomplete")
+    if plan is not None:
+        from continuation_runtime import verify_request_partition
+
+        verify_request_partition(plan, out)
     meta["calibration_version"] = exposure.CALIBRATION["calibration_version"]
     meta["taxonomy_version"] = hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest()
     write_json(run_dir / "run.json", meta)
@@ -231,6 +331,21 @@ def score_run(run_dir: Path, domains: dict) -> int:
     errors = sum(1 for r in out if r.error)
     print(f"scored {len(out)} sessions ({errors} failed) into {run_dir / 'sessions.jsonl'}")
     return 0
+
+
+def verdict_sources_match(rows: list[dict], sessions: list[records.SessionRecord]) -> bool:
+    indexed = {(row.case_id, row.repeat): row for row in sessions}
+    seen = set()
+    for row in rows:
+        if not isinstance(row.get("case_id"), str) or type(row.get("repeat")) is not int:
+            return False
+        key = row["case_id"], row["repeat"]
+        if key in seen or key not in indexed or indexed[key].error:
+            return False
+        if row.get("session_provenance", {}) != indexed[key].provenance:
+            return False
+        seen.add(key)
+    return True
 
 
 def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
@@ -248,6 +363,9 @@ def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
         recorded_round = recorded_meta.get("budget_round")
         same = (
             validity.get("execution_policy") == recorded_policy
+            and validity.get("continuation_manifest_sha256")
+            == recorded_meta.get("continuation_manifest", {}).get("sha256")
+            and verdict_sources_match(rows, sessions)
             and validity.get("budget_round") == recorded_round
             and all(row.get("budget_round") == recorded_round for row in rows)
             and all(row.get("execution_policy") == recorded_policy for row in rows)
@@ -297,9 +415,11 @@ def cmd_judge(args: argparse.Namespace, factory: GraderFactory) -> int:
     sessions = _sessions(args.run_dir, current_rubric=True)
     rows = judge.judge_sessions(sessions, run_cases(args.run_dir), factory(args.model), args.model)
     identity = budget_round(args)
+    provenance = {(row.case_id, row.repeat): row.provenance for row in sessions}
     for row in rows:
         row["execution_policy"] = execution_policy(args)
         row["budget_round"] = identity
+        row["session_provenance"] = provenance[(row["case_id"], row["repeat"])]
     path = args.run_dir / "judge" / "verdicts.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows))
@@ -327,6 +447,9 @@ def cmd_judge_validate(args: argparse.Namespace, factory: GraderFactory) -> int:
     report["models"] = {"primary": args.model, "secondary": args.second_model}
     report["execution_policy"] = execution_policy(args)
     report["budget_round"] = budget_round(args)
+    report["continuation_manifest_sha256"] = (
+        read_json(args.run_dir / "run.json").get("continuation_manifest", {}).get("sha256")
+    )
     write_json(args.run_dir / "judge" / "validity.json", report)
     (args.run_dir / "judge" / "validity.md").write_text(judge.validity_markdown(report))
     apply_judge(args.run_dir, sessions)
@@ -344,6 +467,32 @@ def _cell(m: dict | None, digits: int = 3) -> str:
     return f"{m['mean']:.{digits}f} [{m['lo']:.{digits}f}, {m['hi']:.{digits}f}] ({m['cases']})"
 
 
+def completion_markdown(blocks: dict) -> list[str]:
+    columns = list(blocks)
+    output = [
+        "All executed trials (invalid trials prevent baseline acceptance):",
+        "",
+        "| Measure | " + " | ".join(columns) + " |",
+        "|---|" + "---|" * len(columns),
+    ]
+    for name, key in (
+        ("executed trials", "executed_trials"),
+        ("invalid trials", "invalid_trials"),
+        ("execution valid", "execution_valid"),
+    ):
+        output.append(
+            "| " + name + " | " + " | ".join(str(blocks[column]["all_trials"][key]) for column in columns) + " |"
+        )
+    for name in ("completion", "expect_pass", "criteria_pass"):
+        cells = []
+        for column in columns:
+            value = blocks[column]["all_trials"][name]
+            rate = f"{value['rate']:.3f}" if value["rate"] is not None else "ungraded"
+            cells.append(f"{value['numerator']:g}/{value['denominator']} ({rate})")
+        output.append("| " + name + " | " + " | ".join(cells) + " |")
+    return output + ["", "Conditional diagnostics (failed sessions excluded):", ""]
+
+
 def report_markdown(meta: dict, summary: dict) -> str:
     out = [
         f"# Context run {meta['run_id']}",
@@ -359,6 +508,7 @@ def report_markdown(meta: dict, summary: dict) -> str:
     ]
     columns = ["overall", *summary["domains"]]
     blocks = {"overall": summary["overall"], **summary["domains"]}
+    out.extend(completion_markdown(blocks))
     out.append("| Metric | " + " | ".join(columns) + " |")
     out.append("|---|" + "---|" * len(columns))
     for metric in scoring.METRICS:
@@ -374,7 +524,9 @@ def report_markdown(meta: dict, summary: dict) -> str:
 
 def cmd_report(args: argparse.Namespace) -> int:
     meta = read_json(args.run_dir / "run.json")
-    summary = scoring.aggregate(_sessions(args.run_dir))
+    plan = recorded_continuation(args.run_dir, load_domains(args.domains))
+    sessions = plan.verify_run(args.run_dir, load_domains(args.domains)) if plan else _sessions(args.run_dir)
+    summary = scoring.aggregate(sessions)
     validity = args.run_dir / "judge" / "validity.json"
     write_json(
         args.run_dir / "report.json",
@@ -466,6 +618,13 @@ def require_execution_policy(args: argparse.Namespace) -> None:
         raise HarnessError("run uses a different execution policy; fresh sessions and judging are required")
     if read_json(args.run_dir / "run.json").get("budget_round") != budget_round(args):
         raise HarnessError("run belongs to a different budget round; reuse its original shared ledger")
+    plan = recorded_continuation(args.run_dir, load_domains(args.domains))
+    if plan is not None:
+        if args.model != "claude-sonnet-5-5" or (
+            hasattr(args, "second_model") and args.second_model != "claude-sonnet-5"
+        ):
+            raise HarnessError("continuation requires its approved primary and secondary judge models")
+        plan.verify_run(args.run_dir, load_domains(args.domains))
 
 
 def budget_round(args: argparse.Namespace) -> dict | None:
@@ -480,6 +639,37 @@ def execution_policy(args: argparse.Namespace) -> dict:
     if args.hard_budget:
         return {"mode": "hard-gateway", "policy": gateway.manifest(), "policy_sha256": gateway.policy_hash()}
     return {"mode": "soft" if args.allow_soft_budget else "unmetered-injected-test"}
+
+
+def continuation_parsers(sub) -> None:
+    continued = sub.add_parser("continue", help="collect only an explicitly reviewed immutable continuation plan")
+    continued.add_argument("--manifest", type=Path, required=True)
+    continued.add_argument("--manifest-sha256", required=True)
+    continued.add_argument("--repo", type=Path, required=True)
+    continued.add_argument("--out", type=Path, required=True)
+
+    combined = sub.add_parser("continue-report", help="verify and aggregate every immutable continuation trial")
+    combined.add_argument("--manifest", type=Path, required=True)
+    combined.add_argument("--manifest-sha256", required=True)
+    combined.add_argument("--run", dest="runs", type=Path, action="append", required=True)
+    combined.add_argument("--out", type=Path, required=True)
+
+
+def result_parsers(sub) -> None:
+    for name in ("score", "report"):
+        sub.add_parser(name).add_argument("run_dir", type=Path)
+    j = sub.add_parser("judge", help="grade every session's criteria")
+    j.add_argument("run_dir", type=Path)
+    j.add_argument("--model", required=True)
+    jv = sub.add_parser("judge-validate", help="agreement and mutation tests for the judge")
+    jv.add_argument("run_dir", type=Path)
+    jv.add_argument("--model", required=True)
+    jv.add_argument("--second-model", required=True)
+    jv.add_argument("--per-domain", type=int, default=20)
+    c = sub.add_parser("compare", help="paired comparison of two runs")
+    c.add_argument("base", type=Path)
+    c.add_argument("arm", type=Path)
+    c.add_argument("--json", type=Path)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -517,21 +707,32 @@ def parser() -> argparse.ArgumentParser:
     r.add_argument("--skip-generate", action="store_true", help="the ref has its generated outputs committed")
     r.add_argument("--out", type=Path, required=True)
 
-    for name in ("score", "report"):
-        sub.add_parser(name).add_argument("run_dir", type=Path)
-    j = sub.add_parser("judge", help="grade every session's criteria")
-    j.add_argument("run_dir", type=Path)
-    j.add_argument("--model", required=True)
-    jv = sub.add_parser("judge-validate", help="agreement and mutation tests for the judge")
-    jv.add_argument("run_dir", type=Path)
-    jv.add_argument("--model", required=True)
-    jv.add_argument("--second-model", required=True)
-    jv.add_argument("--per-domain", type=int, default=20)
-    c = sub.add_parser("compare", help="paired comparison of two runs")
-    c.add_argument("base", type=Path)
-    c.add_argument("arm", type=Path)
-    c.add_argument("--json", type=Path)
+    continuation_parsers(sub)
+
+    result_parsers(sub)
     return p
+
+
+def dispatch(
+    args: argparse.Namespace, execute: runner.Execute, environ: Mapping[str, str], factory: GraderFactory
+) -> int:
+    if args.command == "validate-cases":
+        return cmd_validate_cases(args)
+    if args.command == "run":
+        return cmd_run(args, execute, environ)
+    if args.command == "continue":
+        return cmd_continue(args, execute, environ)
+    if args.command == "score":
+        return cmd_score(args)
+    if args.command == "judge":
+        return cmd_judge(args, factory)
+    if args.command == "judge-validate":
+        return cmd_judge_validate(args, factory)
+    if args.command == "report":
+        return cmd_report(args)
+    if args.command == "continue-report":
+        return cmd_continuation_report(args)
+    return cmd_compare(args)
 
 
 def main(
@@ -542,7 +743,9 @@ def main(
     grader_factory: GraderFactory | None = None,
 ) -> int:
     args = parser().parse_args(argv)
-    paid = args.command == "run" or (args.command in ("judge", "judge-validate") and grader_factory is None)
+    paid = args.command in ("run", "continue") or (
+        args.command in ("judge", "judge-validate") and grader_factory is None
+    )
     if paid and execute is runner.subprocess_execute and not (args.allow_soft_budget or args.hard_budget):
         print(
             "error: a hard dollar ceiling requires --hard-budget; otherwise explicit --allow-soft-budget consent is required",
@@ -557,7 +760,7 @@ def main(
             execute = gateway_transport.HardExecute(
                 gateway.Ledger(args.budget_ledger, args.budget_usd), environ.get("ANTHROPIC_API_KEY", "")
             )
-        elif args.budget_ledger:
+        elif args.budget_ledger and paid:
             execute = budget.BudgetedExecute(
                 args.budget_ledger,
                 args.budget_usd,
@@ -566,20 +769,8 @@ def main(
                 allow_soft_limits=args.allow_soft_budget,
             )
         factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ, execute=execute))
-        if args.command == "validate-cases":
-            return cmd_validate_cases(args)
-        if args.command == "run":
-            return cmd_run(args, execute, environ)
-        if args.command == "score":
-            return cmd_score(args)
-        if args.command == "judge":
-            return cmd_judge(args, factory)
-        if args.command == "judge-validate":
-            return cmd_judge_validate(args, factory)
-        if args.command == "report":
-            return cmd_report(args)
-        return cmd_compare(args)
-    except (HarnessError, runner.RunnerError, cases_mod.CaseError) as exc:
+        return dispatch(args, execute, environ, factory)
+    except (HarnessError, runner.RunnerError, cases_mod.CaseError, continuation.ContinuationError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
