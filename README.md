@@ -154,12 +154,14 @@ Put the example in `.ai-rulez/config.toml`. The repository's own root context is
 it, no procedures) and only the rules that hold for every file. Everything else is a path-scoped rule, a skill
 gated by `paths:`, or a nested `.ai-rulez` under the directory it serves. Put marketplace and plugin declarations in
 `.ai-rulez/config.plugins.toml`, selected by the `plugins` default layer. Add only the modules
-your repository uses, by version range (`version = "^1"`; the lock records the exact tag and commit). Use the mise-pinned
-ai-rulez release (currently 5.9.3, matching CI) to validate and regenerate after editing sources:
+your repository uses, by version range (`version = "^1"`; the lock records the exact tag and commit). ai-rulez is never
+pinned and always runs the latest release: tasks through `npx -y ai-rulez@latest`, CI through
+`xberg-io/actions/setup-ai-rulez`, and the hooks from a global `npm install -g ai-rulez@latest`. Validate and
+regenerate after editing sources:
 
 ```sh
-mise exec -- ai-rulez validate --no-local
-mise exec -- ai-rulez generate --no-local --strict-config
+npx -y ai-rulez@latest validate --no-local
+npx -y ai-rulez@latest generate --no-local --strict-config
 mise run governance:check
 ```
 
