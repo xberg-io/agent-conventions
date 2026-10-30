@@ -23,7 +23,7 @@ import time
 from collections.abc import Callable, Iterator, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import transcript
@@ -47,6 +47,8 @@ class Completed:
     stdout: str
     stderr: str
     timed_out: bool = False
+    bounded_failure: bool = False
+    collection: dict = field(default_factory=dict)
 
 
 Execute = Callable[[list[str], Path, Mapping[str, str], float], Completed]
@@ -191,6 +193,8 @@ class SessionMeta:
     seconds: float
     error: str = ""
     stderr: str = ""
+    bounded_failure: bool = False
+    collection: dict = field(default_factory=dict)
 
 
 def tool_profile_error(stdout: str, expected: tuple[str, ...]) -> str:
@@ -234,7 +238,9 @@ class Runner:
         adapter: ClaudeAdapter | None = None,
         execute: Execute = subprocess_execute,
         environ: Mapping[str, str] = os.environ,
+        inherited: Mapping[tuple[str, int], SessionMeta] | None = None,
     ) -> None:
+        self.inherited = inherited or {}
         self.repo = repo.resolve()
         self.out = out.resolve()
         self.config = config
@@ -309,6 +315,8 @@ class Runner:
                 )
                 meta.seconds = round(time.monotonic() - started, 3)
             meta.returncode, meta.stderr = done.returncode, done.stderr[-STDERR_TAIL:]
+            meta.bounded_failure = done.bounded_failure
+            meta.collection = done.collection
             if done.timed_out:
                 meta.error = "timeout"
             elif done.returncode != 0 and not done.stdout.strip():
@@ -326,6 +334,10 @@ class Runner:
             self.prepare_context(checkout)
             for case in cases:
                 for repeat in range(self.config.repeats):
+                    inherited = self.inherited.get((case.id, repeat))
+                    if inherited is not None:
+                        metas.append(inherited)
+                        continue
                     previous = read_meta(self.out / "transcripts", case.id, repeat) if self.config.resume else None
                     raw = self.out / "transcripts" / f"{session_name(case.id, repeat)}.jsonl"
                     if previous is not None and raw.is_file():

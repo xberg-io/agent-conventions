@@ -125,3 +125,51 @@ and turn limit. It alone does not stop the financial round when its exact known 
 model/tool profile match, every request in the current epoch is settled, and this controller owns settled
 requests. Existing stops, unknown failures, timeouts, malformed terminals, profile drift and unsettled or
 uncertain billing still stop the round. This classification does not turn a failed task into a successful answer.
+
+Reports preserve the existing success-conditional diagnostics and add `all_trials` counts and rates. A
+controller-certified bounded failure contributes zero to completion, applicable expectation and criteria rates
+while retaining its error and unjudged per-criterion values. Unknown, profile, billing and infrastructure failures
+invalidate execution eligibility; they cannot become model misses or disappear into an apparently valid baseline.
+Criteria rates remain ungraded when applicable completed trials lack validated verdicts. Reported execution
+eligibility alone does not satisfy the separate complete-corpus and judge-validity gates. Old records default to
+uncertified, and legacy record schemas cannot claim a valid primary baseline; the error string alone cannot
+certify a failed trial.
+
+
+## Immutable continuation of a reviewed collection
+
+`continue` is a separate operation from `run --resume`. Its SHA-bound manifest enumerates every original and
+remaining `(consumer, case, repeat)` tuple. Duplicate, missing, unplanned or rerun original trials are refused.
+Original run metadata, case snapshots, context identity and raw/metadata pairs remain in place, hash-checked;
+derived records retain their original policy, epoch, request IDs and source run. A separately hash-bound
+adjudication can certify the observed maximum-turn nonanswer only after its exact transcript profile and fully
+settled, serialized request slice are verified. It remains a failed trial with unjudged criterion values.
+
+The operator prepares the manifest with `continuation.make_draft`, loading the corpus from the harness's absolute
+`HERE / "cases"` path. The reviewed source commit, old/new admission policies, original round identity, immutable
+financial history and identical pricing/context/output bounds must all match. The exact approved transition is
+checked independently of its audit-chain hash. Model-facing command, prompt, sandbox, provider and judge ASTs
+must match the original source, allowing only the declared post-execution classification and metadata changes.
+Freshly generated context, CLI and generator identities must match before any model request. The only varying
+command paths follow the anchored worktree and temporary empty-MCP templates; arbitrary normalization is refused.
+
+After a separately approved same-ledger recovery, collect each consumer into a fresh directory:
+
+```sh
+mise run context:eval -- --hard-budget --budget-ledger ORIGINAL_LEDGER --budget-usd 25 continue \
+  --manifest REVIEWED_MANIFEST --manifest-sha256 REVIEWED_SHA256 --repo CONSUMER --out FRESH_RUN
+```
+
+The manifest supplies the original model, turn limit, timeout, repeats and serial execution. `run --resume` cannot
+drop this manifest and recollect inherited trials. Each new session records its owning epoch, policy, actor and
+exact new request IDs; admitted trials require settled accounting. Judging verifies the entire derived dataset and source provenance first; cached
+verdicts and validity reports must match both session provenance and the continuation manifest. Reports mask
+unvalidated or stale criteria without rewriting original artifacts. `continue-report --manifest ...
+--manifest-sha256 ... --run XBERG_RUN --run SCEPTRE_RUN --out NEW_REPORT` verifies the full planned cohort and reads
+the financial ledger without changing it. Collection completeness and execution validity remain separate from
+judge validity and criterion availability.
+
+`all_trials` is the primary baseline metric namespace. The existing `metrics` namespace and paired comparison
+helpers retain their success-conditional diagnostic semantics. Primary criterion rates stay ungraded until every
+applicable answered criterion is validated; certified bounded nonanswers contribute zero. No continuation,
+financial migration, new round or paid request follows automatically from producing a manifest or report.

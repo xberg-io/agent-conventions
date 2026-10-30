@@ -11,7 +11,7 @@ import json
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
-RECORD_VERSION = 1
+RECORD_VERSION = 2
 BEHAVIOURS = ("answer", "ask", "either")
 
 
@@ -72,9 +72,12 @@ class SessionRecord:
     cost_usd: float = 0.0
     turns: int = 0
     error: str = ""
-    """Non-empty when the session itself failed (timeout, crash): a `harness` failure, never scored as a model miss."""
+    """Non-empty when the session itself failed (timeout, crash): an invalid trial unless separately certified as a bounded model-task failure."""
     contaminated: list[str] = field(default_factory=list)
     """Paths under the harness directory or the run directory that the session looked at; such a session is void."""
+    bounded_failure: bool = False
+    expect_applicable: bool = False
+    provenance: dict = field(default_factory=dict)
     version: int = RECORD_VERSION
 
     @property
@@ -99,6 +102,8 @@ class SessionRecord:
         data["usage"] = Usage(**data.get("usage", {}))
         data["loaded"] = [Loaded(**item) for item in data.get("loaded", [])]
         record = cls(**data)
+        if type(record.bounded_failure) is not bool or type(record.expect_applicable) is not bool:
+            raise ValueError("completion classification fields must be boolean")
         if record.behaviour not in BEHAVIOURS:
             raise ValueError(f"{record.case_id}: behaviour {record.behaviour!r} not in {BEHAVIOURS}")
         if record.split not in ("tune", "holdout"):
