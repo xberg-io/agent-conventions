@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -11,7 +12,17 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import gateway
 import gateway_transport
+import runner
 from test_gateway import MODEL, TOOLS, payload, usage
+
+CREDENTIAL_PATHS = (
+    ".ssh/id_ed25519",
+    ".aws/credentials",
+    ".netrc",
+    ".config/gcloud/credentials.db",
+    ".claude/.credentials.json",
+    "Library/Keychains/login.keychain-db",
+)
 
 
 def stream_body(final_usage: dict | None = None) -> bytes:
@@ -274,17 +285,7 @@ class FileBoundaryTest(unittest.TestCase):
             session_home = base / "session-home"
             workspace.mkdir(parents=True)
             session_home.mkdir()
-            secrets = [
-                original_home / name
-                for name in [
-                    ".ssh/id_ed25519",
-                    ".aws/credentials",
-                    ".netrc",
-                    ".config/gcloud/credentials.db",
-                    ".claude/.credentials.json",
-                    "Library/Keychains/login.keychain-db",
-                ]
-            ]
+            secrets = [original_home / name for name in CREDENTIAL_PATHS]
             secrets += [workspace / ".env", workspace / "downloaded.pem"]
             for path in secrets:
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -370,10 +371,6 @@ class ActualCliTest(unittest.TestCase):
                 self.assertNotIn("never-forwarded-fixture", result.stdout + result.stderr)
 
     def test_real_read_tool_cannot_send_a_fixture_secret_but_can_read_project_context(self) -> None:
-        import os
-
-        import runner
-
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / ".env").write_text("OFFLINE_FIXTURE_SECRET_NEVER_SEND")
@@ -456,3 +453,67 @@ raise SystemExit(1 if response.status==400 else 0)
             self.assertEqual(calls, [])
             self.assertEqual(ledger.spent(), 0)
             self.assertTrue(ledger.snapshot()["stop_reason"])
+
+
+@unittest.skipUnless(sys.platform == "darwin", "macOS sandbox proof")
+class WriteBoundaryTest(unittest.TestCase):
+    def test_ledger_controller_source_and_worktree_reject_direct_symlink_and_hardlink_writes(self) -> None:
+        import subprocess
+
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            original, home = base / "original", base / "session"
+            workspace, controller = original / "worktree", original / "controller"
+            for path in (home, workspace, controller):
+                path.mkdir(parents=True)
+            protected = [controller / "round.sqlite3", controller / "gateway.py", workspace / "AGENTS.md"]
+            for index, path in enumerate(protected):
+                path.write_bytes(b"UNCHANGED")
+                (home / f"symlink-{index}").symlink_to(path)
+            probe = """import json,os,pathlib,sys
+home=pathlib.Path(sys.argv[1]);paths=json.loads(sys.argv[2]);rows={}
+for index,name in enumerate(paths):
+    for mode,path in [('direct',pathlib.Path(name)),('symlink',home/f'symlink-{index}')]:
+        try:path.write_bytes(b'CORRUPTED');rows[f'{index}-{mode}']=False
+        except PermissionError:rows[f'{index}-{mode}']=True
+    try:os.link(name,home/f'hardlink-{index}');rows[f'{index}-hardlink']=False
+    except PermissionError:rows[f'{index}-hardlink']=True
+(home/'config').write_text('permitted session state');rows['home_write']=True
+with open('/dev/null','w') as sink:sink.write('fixture')
+rows['null_write']=True
+print(json.dumps(rows))
+"""
+            command = gateway_transport.sandbox_command(
+                12345,
+                [
+                    str(Path(sys.executable).resolve()),
+                    "-I",
+                    "-c",
+                    probe,
+                    str(home),
+                    json.dumps([str(path) for path in protected]),
+                ],
+                workspace=workspace,
+                home=home,
+                original_home=original,
+            )
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            rows = json.loads(result.stdout)
+            self.assertEqual(len(rows), 11)
+            self.assertTrue(all(rows.values()), rows)
+            self.assertEqual([path.read_bytes() for path in protected], [b"UNCHANGED"] * 3)
+
+    def test_preexisting_hardlinks_in_a_writable_home_are_refused(self) -> None:
+        import os
+
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            workspace, home = base / "worktree", base / "session"
+            workspace.mkdir()
+            home.mkdir()
+            source = workspace / "source.py"
+            source.write_text("unchanged")
+            os.link(source, home / "alias")
+            with self.assertRaises(gateway.GatewayError):
+                gateway_transport.file_profile(workspace, home)

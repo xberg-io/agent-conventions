@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
+import signal
+import subprocess
 import threading
+import time
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import BinaryIO, Self
@@ -154,7 +158,11 @@ def sandbox_command(
 
     if sys.platform != "darwin" or not 0 < port < 65536:
         raise gateway.GatewayError("hard-budget OS network confinement is unavailable")
-    profile = f'(version 1)(allow default)(deny network*)(allow network-outbound (remote tcp4 "localhost:{port}"))'
+    profile = (
+        "(version 1)(allow default)(deny file-write*)(deny file-link)"
+        "(deny mach-lookup)(deny appleevent-send)(deny mach-priv-task-port)(deny network*)"
+        f'(allow network-outbound (remote tcp4 "localhost:{port}"))'
+    )
     if workspace is not None:
         profile += file_profile(workspace, home, original_home)
     return ["/usr/bin/sandbox-exec", "-p", profile, *command]
@@ -165,9 +173,15 @@ def child_environment(home: Path, token: str, port: int, model: str) -> dict[str
 
     if model not in gateway.MODELS:
         raise gateway.GatewayError("unknown child model")
+    temporary = home / "tmp"
+    temporary.mkdir(mode=0o700)
     return {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "HOME": str(home),
+        "TMPDIR": str(temporary),
+        "TMP": str(temporary),
+        "TEMP": str(temporary),
+        "XDG_CACHE_HOME": str(home / "cache"),
         "CLAUDE_CONFIG_DIR": str(home / "claude"),
         "ANTHROPIC_API_KEY": token,
         "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{port}",
@@ -310,14 +324,27 @@ class AnthropicProvider:
             connection.close()
 
 
+def validate_writable_home(home: Path, workspace: Path, original: Path) -> None:
+    import stat
+
+    if home == original or home in original.parents or home.is_relative_to(workspace) or workspace.is_relative_to(home):
+        raise gateway.GatewayError("writable home must be isolated from the case worktree and original home")
+    for path in home.rglob("*"):
+        info = path.lstat()
+        if stat.S_ISREG(info.st_mode) and info.st_nlink > 1:
+            raise gateway.GatewayError("writable home contains a preexisting hardlink")
+
+
 def file_profile(workspace: Path, home: Path | str, original_home: Path | None = None) -> str:
     import pathlib
     import shutil
     import sys
 
     original = pathlib.Path(original_home or pathlib.Path.home()).resolve()
+    writable = pathlib.Path(home).resolve() if home is not None else None
     if home is None or not pathlib.Path(home).is_dir() or not pathlib.Path(workspace).is_dir():
         raise gateway.GatewayError("isolated session paths are required")
+    validate_writable_home(writable, pathlib.Path(workspace).resolve(), original)
 
     def quoted(value: Path | str) -> str:
         return json.dumps(str(pathlib.Path(value).resolve()))
@@ -335,6 +362,7 @@ def file_profile(workspace: Path, home: Path | str, original_home: Path | None =
         r"(^|/)([.][eE][nN][vV]($|[.])|[.]netrc$|[.]npmrc$|[^/]*[.]([pP][eE][mM]|[kK][eE][yY]|p12|pfx|keychain-db)$)"
     )
     profile += f"(deny file-read* (regex #{json.dumps(pattern)}))"
+    profile += f'(allow file-write* (subpath {quoted(writable)}) (literal "/dev/null"))(deny file-link)'
     return profile
 
 
@@ -384,20 +412,18 @@ def capture_pipe(pipe: BinaryIO, output: bytearray, observe: Callable[[str], Non
 def isolated_process(
     argv: list[str], cwd: Path, environment: dict[str, str], timeout: float, gate: InitGate
 ) -> runner.Completed:
-    import os
-    import signal
-    import subprocess
-    import threading
-    import time
-
-    import runner
-
     workspace = next((path for path in (cwd, *cwd.parents) if (path / ".git").exists()), cwd)
     command = sandbox_command(
         int(environment["ANTHROPIC_BASE_URL"].rsplit(":", 1)[1]), argv, workspace=workspace, home=environment["HOME"]
     )
     process = subprocess.Popen(
-        command, cwd=cwd, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True
+        command,
+        cwd=cwd,
+        env=environment,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
     )
     output, errors, failed = bytearray(), bytearray(), threading.Event()
     readers = [

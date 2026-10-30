@@ -126,6 +126,17 @@ class PolicyTest(unittest.TestCase):
 
 
 class LedgerTest(unittest.TestCase):
+    def test_copied_ledger_cannot_restart_the_round_at_another_canonical_path(self) -> None:
+        import shutil
+
+        with tempfile.TemporaryDirectory() as directory:
+            source, copied = Path(directory) / "source.sqlite3", Path(directory) / "copy.sqlite3"
+            original = gateway.Ledger(source, 25)
+            shutil.copyfile(source, copied)
+            with self.assertRaisesRegex(gateway.GatewayError, "canonical ledger identity"):
+                gateway.Ledger(copied, 25)
+            self.assertEqual(gateway.Ledger(source, 25).identity(), original.identity())
+
     def test_uncertain_request_keeps_its_entire_reservation_and_stops_all_callers(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "round.sqlite3"
