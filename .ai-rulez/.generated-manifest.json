@@ -65,6 +65,7 @@
     ".codex/agents/code-reviewer.toml",
     ".codex/agents/docs-writer.toml",
     ".codex/agents/security-auditor.toml",
+    ".codex/config.toml",
     ".mcp.json",
     ".opencode/agents/code-reviewer.md",
     ".opencode/agents/docs-writer.md",
@@ -102,13 +103,26 @@
   ],
   "merged": {
     ".claude/settings.json": [],
+    ".codex/config.toml": [],
     ".mcp.json": [],
     "opencode.json": []
   },
   "servers": {
+    ".codex/config.toml": [
+      [
+        "mcp_servers",
+        "ai-rulez"
+      ]
+    ],
     ".mcp.json": [
       [
         "mcpServers",
+        "ai-rulez"
+      ]
+    ],
+    "opencode.json": [
+      [
+        "mcp",
         "ai-rulez"
       ]
     ]
