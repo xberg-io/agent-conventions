@@ -322,7 +322,7 @@
   expect: ["SecurityBudget"]
   criteria:
     - id: budget
-      check: "The answer says Office/ODF XML extractors use SecurityBudget threaded through the XML walkers, not ZipBombValidator."
+      check: "The answer says Office/ODF XML extractors need SecurityBudget threaded through the XML walkers in addition to ZIP-container validation, and that ZipBombValidator is not a substitute for the XML complexity budget."
     - id: alef-skip
       check: "The answer mentions the extractor struct needs #[cfg_attr(alef, alef(skip))]."
   reference:

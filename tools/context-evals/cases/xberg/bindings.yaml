@@ -40,7 +40,7 @@
     - id: struct-literal
       check: "The answer says generated From impls build the core type with a struct literal, which #[non_exhaustive] forbids across crates."
     - id: derive-default
-      check: "The answer says to drop #[non_exhaustive] and derive Default instead, keeping #[non_exhaustive] only on types in [crates.exclude]."
+      check: "The answer says to remove #[non_exhaustive] from binding-facing ChunkingConfig and retain its existing Default implementation rather than adding a conflicting derive, keeping #[non_exhaustive] only on types in [crates.exclude]."
   reference:
     facts:
       - >-
