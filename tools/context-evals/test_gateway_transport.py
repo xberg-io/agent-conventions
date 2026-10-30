@@ -162,6 +162,34 @@ class BackendTest(unittest.TestCase):
             self.assertEqual(ledger.spent(), 6_140_960_000)
 
 
+class InterruptedCaptureTest(unittest.TestCase):
+    def test_actual_subprocess_interrupt_carries_output_after_process_cleanup(self) -> None:
+        from unittest.mock import patch
+
+        gate = gateway_transport.InitGate(MODEL, TOOLS)
+        line = json.dumps(
+            {"type": "system", "subtype": "init", "model": MODEL, "tools": list(TOOLS), "mcp_servers": []}
+        )
+        fixture = f"print({line!r},flush=True);import time;time.sleep(30)"
+
+        def interrupt(_seconds: float) -> None:
+            self.assertTrue(gate.event.wait(5), "fixture initialization must be captured before interruption")
+            raise KeyboardInterrupt()
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = {"HOME": directory, "ANTHROPIC_BASE_URL": "http://127.0.0.1:12345"}
+            with (
+                patch("gateway_transport.sandbox_command", return_value=[sys.executable, "-c", fixture]),
+                patch("gateway_transport.time.sleep", side_effect=interrupt),
+                self.assertRaises(runner.Interrupted) as caught,
+            ):
+                gateway_transport.isolated_process([], root, env, 30, gate)
+            self.assertEqual(caught.exception.completed.returncode, 130)
+            self.assertEqual(caught.exception.completed.stdout, line + "\n")
+            self.assertFalse(caught.exception.completed.bounded_failure)
+
+
 class LoopbackBoundaryTest(unittest.TestCase):
     setUp = BackendTest.setUp
     provider = BackendTest.provider

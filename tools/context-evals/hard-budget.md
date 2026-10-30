@@ -173,3 +173,17 @@ judge validity and criterion availability.
 helpers retain their success-conditional diagnostic semantics. Primary criterion rates stay ungraded until every
 applicable answered criterion is validated; certified bounded nonanswers contribute zero. No continuation,
 financial migration, new round or paid request follows automatically from producing a manifest or report.
+
+
+Local request-policy failures record only fixed error codes and bounded structural counts, presence flags and
+known content/tool-name enums. Unknown names and error messages are projected to `unknown` or
+`unclassified_policy_failure`; prompts, arbitrary request keys/values, credentials and arbitrary exception strings are
+never diagnostic fields. A mock-provider run of the actual CLI proves that an unavailable `Write` tool response
+can cause a rejected follow-up despite a correct four-tool initialization. This does not identify the lost
+payload behind the historical epoch-2 refusal, and does not permit that tool or resume the stopped round.
+
+If interrupted, an isolated subprocess is terminated and its bounded captured output is retained under
+`transcripts/interrupted/`, with explicit return code 130 and an incomplete-evidence error. The interrupt still
+propagates. These files are separate from completed trial records and do not establish completion, valid tool
+usage, a final answer or financial attribution for an interrupted request. Already lost output cannot be
+recovered retrospectively; unassigned historical request rows remain charged and unchanged.
