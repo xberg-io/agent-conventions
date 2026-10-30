@@ -39,27 +39,29 @@ class HookPinsTest(unittest.TestCase):
         self.assertEqual((setup[0].get("with") or {}).get("ai-rulez-version", "latest"), "latest")
         revision = hook_pins.source(root / "poly.toml", "hooks")["revision"]
         self.assertRegex(revision, re.compile(r"^v[0-9]+$"))
-        commit = hook_pins.source(root / "poly-hooks.lock", "sources")["revision"]
-        self.assertEqual(hook_pins.check(root, revision, commit), [])
+        self.assertEqual(hook_pins.check(root, revision), [])
 
     def test_rejects_old_pin_stale_lock_and_empty_hook_set(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
             (repo / "poly.toml").write_text('[[hooks.sources]]\nid="ai-rulez"\nrevision="v5.3.0"\n')
-            (repo / "poly-hooks.lock").write_text('[[sources]]\nid="ai-rulez"\nrevision="old"\n')
-            errors = hook_pins.check(repo, "v5", "current")
+            (repo / "poly-hooks.lock").write_text('[[sources]]\nid="ai-rulez"\nrevision="v5"\n')
+            errors = hook_pins.check(repo, "v5")
             self.assertEqual(len(errors), 2)
             self.assertIn("v5.3.0", errors[0])
-            self.assertIn("old", errors[1])
+            self.assertIn("not a resolved commit", errors[1])
             (repo / "poly.toml").write_text("")
-            self.assertIn("exactly one", hook_pins.check(repo, "v5", "current")[0])
+            self.assertIn("exactly one", hook_pins.check(repo, "v5")[0])
 
-    def test_accepts_current_pin_and_resolved_lock(self) -> None:
+    def test_accepts_the_floating_tag_resolved_to_any_release_commit(self) -> None:
+        # The tag moves on every ai-rulez release, so consumers lock different commits of it.
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
             (repo / "poly.toml").write_text('[[hooks.sources]]\nid="ai-rulez"\nrevision="v5"\n')
-            (repo / "poly-hooks.lock").write_text('[[sources]]\nid="ai-rulez"\nrevision="current"\n')
-            self.assertEqual(hook_pins.check(repo, "v5", "current"), [])
+            for commit in ("3109074724717b1cad38a0a4e0bd94e0e5609669", "8dd59ae052ee9ffbcc371dc0ee1d14e1e9a0a515"):
+                with self.subTest(commit=commit):
+                    (repo / "poly-hooks.lock").write_text(f'[[sources]]\nid="ai-rulez"\nrevision="{commit}"\n')
+                    self.assertEqual(hook_pins.check(repo, "v5"), [])
 
 
 if __name__ == "__main__":

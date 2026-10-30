@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Fail when a consumer's ai-rulez hook source differs from the convention repository's (org ADR-0015)."""
+"""Fail when a consumer's ai-rulez hook source does not follow the convention repository's floating tag (org ADR-0015).
+
+The tag moves on every ai-rulez release, so a consumer's lock may hold any commit it resolved to; the gate checks only
+that the lock holds a resolved commit, not which one.
+"""
 
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -18,18 +23,23 @@ def source(path: Path, table: str) -> dict:
     return found[0]
 
 
-def check(consumer: Path, expected_revision: str, expected_commit: str) -> list[str]:
+COMMIT = re.compile(r"^[0-9a-f]{40}$")
+
+
+def check(consumer: Path, expected_revision: str) -> list[str]:
     errors = []
-    for filename, table, expected in (
-        ("poly.toml", "hooks", expected_revision),
-        ("poly-hooks.lock", "sources", expected_commit),
-    ):
-        try:
-            actual = source(consumer / filename, table).get("revision")
-            if actual != expected:
-                errors.append(f"{consumer / filename}: ai-rulez revision {actual!r}, expected {expected!r}")
-        except (OSError, ValueError) as exc:
-            errors.append(str(exc))
+    try:
+        actual = source(consumer / "poly.toml", "hooks").get("revision")
+        if actual != expected_revision:
+            errors.append(f"{consumer / 'poly.toml'}: ai-rulez revision {actual!r}, expected {expected_revision!r}")
+    except (OSError, ValueError) as exc:
+        errors.append(str(exc))
+    try:
+        locked = source(consumer / "poly-hooks.lock", "sources").get("revision")
+        if not isinstance(locked, str) or not COMMIT.match(locked):
+            errors.append(f"{consumer / 'poly-hooks.lock'}: ai-rulez revision {locked!r} is not a resolved commit")
+    except (OSError, ValueError) as exc:
+        errors.append(str(exc))
     return errors
 
 
@@ -40,14 +50,13 @@ def main() -> int:
     args = parser.parse_args()
     try:
         expected = source(args.conventions / "poly.toml", "hooks")["revision"]
-        commit = source(args.conventions / "poly-hooks.lock", "sources")["revision"]
-        errors = check(args.consumer, expected, commit)
+        errors = check(args.consumer, expected)
     except (OSError, ValueError, KeyError) as exc:
         errors = [str(exc)]
     for error in errors:
         print(f"error: {error}", file=sys.stderr)
     if not errors:
-        print(f"checked 1 consumer: ai-rulez {expected}, lock {commit}")
+        print(f"checked 1 consumer: ai-rulez {expected}")
     return int(bool(errors))
 
 
