@@ -75,6 +75,7 @@ lint = { exclude = [
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
   "/.ai-rulez/.generated-manifest.json",
+  "/adrs/**",
 ] }
 fmt = { exclude = [
   "**/*.lock",
@@ -92,6 +93,7 @@ fmt = { exclude = [
   "crates/*-ffi/include/*.h",
   "packages/go/include/*.h",
   "/.ai-rulez/.generated-manifest.json",
+  "/adrs/**",
 ] }
 commit = { stages = ["commit-msg"] }
 file_safety = { exclude = [
@@ -136,4 +138,4 @@ revision = "v5.9.2"
 hooks = ["ai-rulez-validate"]
 
 [discovery]
-exclude = ["/.ai-rulez/.generated-manifest.json"]
+exclude = ["/.ai-rulez/.generated-manifest.json", "/adrs/**"]
