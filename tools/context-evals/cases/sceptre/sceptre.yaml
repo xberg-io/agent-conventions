@@ -14,16 +14,18 @@
     - id: new-adr
       check: "The answer says not to rewrite the accepted ADR; add a new ADR that supersedes 0036."
     - id: status
-      check: "The answer says to set 0036's status to superseded by the new ADR's number."
+      check: "The answer uses status: superseded and a separate superseded-by field naming the new ADR."
   reference:
     facts:
       - Do not rewrite accepted ADR 0036. Accepted ADRs are immutable; record the reversal in a new sequential NNNN-kebab-title.md
         ADR that supersedes 0036.
-      - Change ADR 0036 status to superseded by the new ADR number, following the existing superseded-by-NNNN convention.
+      - >-
+        Set ADR 0036 front matter to status: superseded and add a separate superseded-by field naming the new ADR.
+        Keep the accepted decision body unchanged; do not encode the successor number inside the status value.
     sources:
       - adrs/0036-opt-in-ctc-beam-search-decoding.md
-      - adrs/0009-candle-evaluation-ort-primary.md
-      - adrs/README.md
+      - adrs/0024-documentation-site-and-web-presence.md
+      - docs-site/src/content/docs/reference/decision-records.mdx
   sandbox: result
 
 - id: sceptre-backend-seam-direct-ort

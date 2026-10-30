@@ -165,6 +165,22 @@ class CasesTest(unittest.TestCase):
         changed = [cases.Case(**{**corpus[0].__dict__, "prompt": "other"}), *corpus[1:]]
         self.assertNotEqual(cases.corpus_hash(corpus), cases.corpus_hash(changed))
 
+    def test_sceptre_adr_case_references_the_current_decision_log_paths(self) -> None:
+        corpus = cases.load_corpus(Path(__file__).with_name("cases"), self.domains)
+        case = next(case for case in corpus if case.id == "sceptre-adr-reverse-decision")
+        root = Path(self.tmp.name) / "sceptre"
+        sources = (
+            "adrs/0036-opt-in-ctc-beam-search-decoding.md",
+            "adrs/0024-documentation-site-and-web-presence.md",
+            "docs-site/src/content/docs/reference/decision-records.mdx",
+        )
+        for source in sources:
+            path = root / source
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("Frozen-reference path fixture\n")
+        self.assertEqual(len(case.reference.sources), len(sources))
+        self.assertEqual(cases.check_checkout([case], root), [])
+
     def test_tune_reference_answers_satisfy_their_static_answer_patterns(self) -> None:
         corpus = cases.select(cases.load_corpus(Path(__file__).with_name("cases"), self.domains))
         self.assertEqual({case.repo for case in corpus}, {"xberg", "sceptre"})
