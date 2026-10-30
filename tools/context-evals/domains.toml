@@ -104,6 +104,15 @@ domains = []
 [repos.homebrew-tap]
 domains = []
 
+[repos.python-wheels]
+domains = []
+
+[repos."xberg-io.r-universe.dev"]
+domains = []
+
+[repos.toolchains]
+domains = []
+
 [repos.scoop-bucket]
 domains = []
 
