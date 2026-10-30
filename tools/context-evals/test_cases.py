@@ -141,10 +141,15 @@ class CasesTest(unittest.TestCase):
             errors,
             [
                 f"reference source 'crates/xberg/src/ocr/mod.rs' does not exist in {repo}",
-                f"skill 'crawl-tuning' is not generated in {repo}",
                 f"reference source 'crates/xberg/src/ocr/mod.rs' does not exist in {repo}",
             ],
         )
+
+    def test_forbidden_skills_need_not_exist_in_consumer(self) -> None:
+        repo = testkit.make_checkout(Path(self.tmp.name) / "repo")
+        case = cases.load_corpus(testkit.CASES, self.domains)[0]
+        case = cases.Case(**{**case.__dict__, "must_not_use": ("foreign-product-skill",)})
+        self.assertEqual(cases.check_checkout([case], repo), [])
 
     def test_open_layout_skills_count_as_generated(self) -> None:
         repo = Path(self.tmp.name) / "open"

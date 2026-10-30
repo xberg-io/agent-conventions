@@ -232,7 +232,7 @@ def check_checkout(cases: list[Case], repo_root: Path) -> list[str]:
         for source in case.reference.sources:
             if not (repo_root / source).exists():
                 errors.append(f"{where}: reference source {source!r} does not exist in {repo_root}")
-        for skill in (*case.must_use, *case.must_not_use):
+        for skill in case.must_use:
             if skill not in skills:
                 errors.append(f"{where}: skill {skill!r} is not generated in {repo_root}")
     return errors

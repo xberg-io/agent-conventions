@@ -241,7 +241,7 @@
   cwd: crates/xberg
   prompt: "I added a new `djvu` feature to `full` in crates/xberg/Cargo.toml and CI now fails a feature-parity check. What does it want?"
   behaviour: answer
-  must_use: [feature-flag-policy]
+  must_use: [feature-flag-conventions]
   expect: ["windows-target"]
   criteria:
     - id: add-to-windows
@@ -259,7 +259,7 @@
   cwd: .
   prompt: "Can I raise the release opt-level override for sevenz-rust2 in the root Cargo.toml from 1 to 2? It looks like an oversight."
   behaviour: answer
-  must_use: [feature-flag-policy]
+  must_use: [feature-flag-conventions]
   expect: ["(?i)SIGBUS"]
   criteria:
     - id: keep-opt-level-1
@@ -613,7 +613,7 @@
       check: "The answer says private individuals' names in quoted text are written as [NAME]."
   reference:
     facts: ["partner-corpus-handling defines sha1(relpath)[:10] ids and [NAME] redaction for private individuals."]
-    sources: [.ai-rulez/rules/partner-corpus-handling.md, ATTRIBUTIONS.md]
+    sources: [.claude/skills/document-corpus-handling/SKILL.md, ATTRIBUTIONS.md]
   sandbox: result
 
 # --- cross-domain negatives ---------------------------------------------------------------------
