@@ -542,6 +542,35 @@ def isolated_process(
     )
 
 
+def bounded_task_failure(result: runner.Completed, argv: list[str], ledger: gateway.Ledger) -> bool:
+    if result.returncode != 1 or result.timed_out or argv.count("--max-turns") != 1:
+        return False
+    try:
+        maximum = int(argv[argv.index("--max-turns") + 1])
+        events = [decode_json(line.encode()) for line in result.stdout.splitlines() if line.strip()]
+    except (ValueError, IndexError, gateway.GatewayError):
+        return False
+    if maximum <= 0 or not events or sum(event.get("type") == "result" for event in events) != 1:
+        return False
+    terminal = events[-1]
+    expected = {
+        "type": "result",
+        "subtype": "error_max_turns",
+        "is_error": True,
+        "num_turns": maximum + 1,
+        "stop_reason": "tool_use",
+        "terminal_reason": "max_turns",
+        "errors": [f"Reached maximum number of turns ({maximum})"],
+        "safety_stops": 0,
+        "permission_denials": [],
+    }
+    if any(type(terminal.get(key)) is not type(value) or terminal.get(key) != value for key, value in expected.items()):
+        return False
+    if terminal.get("result") not in (None, ""):
+        return False
+    return ledger.actor_requests_settled()
+
+
 class HardExecute:
     def __init__(self, ledger: gateway.Ledger, api_key: str, provider: Provider | None = None) -> None:
         self.ledger = ledger
@@ -592,9 +621,9 @@ class HardExecute:
                     raise
             if (
                 result.timed_out
-                or result.returncode
                 or not gate.valid
                 or runner.tool_profile_error(result.stdout, tools)
+                or (result.returncode and not bounded_task_failure(result, argv, self.ledger))
             ):
                 self.ledger.stop("CLI execution did not complete with the verified tool profile")
             return result

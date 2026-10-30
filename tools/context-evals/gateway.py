@@ -411,6 +411,21 @@ class Ledger:
         with self.connection() as db:
             return db.execute("SELECT COALESCE(SUM(charge), 0) FROM hard_requests").fetchone()[0]
 
+    def actor_requests_settled(self) -> bool:
+        with self.connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if self.epochs.policy != policy_hash():
+                return False
+            try:
+                self.epochs.guard(db)
+            except GatewayError:
+                return False
+            rows = db.execute(
+                "SELECT r.state,e.actor FROM hard_requests r JOIN hard_request_epochs e ON e.request=r.id WHERE e.epoch=?",
+                (self.epochs.epoch,),
+            ).fetchall()
+            return any(actor == self.epochs.actor for _, actor in rows) and all(state == "settled" for state, _ in rows)
+
     def reserve(self, model: str, max_tokens: int) -> int:
         amount = Policy().reservation(model, max_tokens)
         birth = process_identity(os.getpid())
