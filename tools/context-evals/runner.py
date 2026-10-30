@@ -124,15 +124,15 @@ def resolve_ref(repo: Path, ref: str) -> str:
 @contextmanager
 def worktree(repo: Path, commit: str) -> Iterator[Path]:
     """A detached throwaway worktree outside the repository, removed afterwards whatever happens."""
-    parent = Path(tempfile.mkdtemp(prefix="ctx-run-")).resolve()
-    path = parent / repo.resolve().name
+    parent = repo.resolve().parent / ".worktrees" / repo.resolve().name
+    parent.mkdir(parents=True, exist_ok=True)
+    path = Path(tempfile.mkdtemp(prefix="context-eval-", dir=parent)).resolve()
     git("worktree", "add", "--detach", "--quiet", str(path), commit, cwd=repo)
     try:
         yield path
     finally:
         subprocess.run(["git", "worktree", "remove", "--force", str(path)], cwd=repo, capture_output=True, check=False)
-        shutil.rmtree(parent, ignore_errors=True)
-        subprocess.run(["git", "worktree", "prune"], cwd=repo, capture_output=True, check=False)
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def snapshot_context(checkout: Path, dest: Path) -> None:
@@ -209,6 +209,8 @@ class Runner:
             raise RunnerError(f"ai-rulez generate failed: {done.stderr[-STDERR_TAIL:]}")
 
     def reset(self, checkout: Path) -> None:
+        if checkout.resolve() == self.repo:
+            raise RunnerError("refusing to reset the source checkout")
         git("checkout", "--", ".", cwd=checkout)
         git("clean", "-fdq", cwd=checkout)
         self.generate(checkout)

@@ -28,6 +28,7 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 
+import budget
 import cases as cases_mod
 import judge
 import records
@@ -38,7 +39,7 @@ import transcript
 from cases import Case, Criterion, Reference
 
 HERE = Path(__file__).parent
-HARNESS_VERSION = "1"
+HARNESS_VERSION = "2"
 VERSION_KEYS = ("judge_prompt_version", "rubric_version", "judge_model")
 
 GraderFactory = Callable[[str], judge.Grader]
@@ -374,6 +375,9 @@ def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--domains", type=Path, default=HERE / "domains.toml")
     p.add_argument("--cases-dir", type=Path, default=HERE / "cases")
+    p.add_argument("--budget-ledger", type=Path, help="shared SQLite spending ledger for this round")
+    p.add_argument("--budget-usd", type=float, default=25.0)
+    p.add_argument("--per-call-usd", type=float, default=0.2)
     sub = p.add_subparsers(dest="command", required=True)
 
     v = sub.add_parser("validate-cases", help="validate the case corpus (and against a checkout)")
@@ -418,7 +422,9 @@ def main(
     grader_factory: GraderFactory | None = None,
 ) -> int:
     args = parser().parse_args(argv)
-    factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ))
+    if args.budget_ledger:
+        execute = budget.BoundedExecute(args.budget_ledger, args.budget_usd, args.per_call_usd, execute)
+    factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ, execute=execute))
     try:
         if args.command == "validate-cases":
             return cmd_validate_cases(args)

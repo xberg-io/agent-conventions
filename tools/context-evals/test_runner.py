@@ -105,6 +105,7 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual([c["stray_before"] for c in agent], [False, False, False, False])
         self.assertEqual([c["mod_before"] for c in agent[:2]], [testkit.FILES["crates/xberg/src/ocr/mod.rs"]] * 2)
         checkout = first["cwd"].parent.parent
+        self.assertEqual(checkout.parent.parent.name, ".worktrees")
         self.assertFalse(checkout.exists())
         self.assertEqual(len(git(self.repo, "worktree", "list").splitlines()), 1)
         self.assertEqual(git(self.repo, "status", "--porcelain"), "")

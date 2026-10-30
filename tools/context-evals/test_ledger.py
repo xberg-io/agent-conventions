@@ -53,6 +53,11 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(second["prev"], ledger.digest(lines[0]))
         self.assertEqual([e["round"] for e in self.ledger.entries()], [1, 2])
 
+    def test_round_zero_records_only_a_baseline(self) -> None:
+        baseline = self.ledger.append(entry(round=0, arm_kind="baseline", decision="baseline"))
+        self.assertEqual(baseline["round"], 0)
+        self.assertEqual(ledger.accepted_changes(self.ledger.entries()), 0)
+
     def test_timestamp_is_filled_in(self) -> None:
         data = entry()
         del data["timestamp"]

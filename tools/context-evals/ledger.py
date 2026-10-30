@@ -13,8 +13,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 DEFAULT_PATH = Path(__file__).parent / "ledger.jsonl"
-ARM_KINDS = ("change", "placebo", "deletion")
-DECISIONS = ("accept", "reject", "inconclusive", "stopped")
+ARM_KINDS = ("change", "placebo", "deletion", "baseline")
+DECISIONS = ("accept", "reject", "inconclusive", "stopped", "baseline")
 """`stopped`: the arm was dropped at the screen stage (paired mean difference <= 0)."""
 STAGES = ("screen", "test")
 TEXT_FIELDS = (
@@ -44,8 +44,11 @@ def validate(entry: dict) -> None:
     for name in TEXT_FIELDS:
         if not isinstance(entry[name], str) or not entry[name]:
             raise ValueError(f"ledger entry: {name} must be a non-empty string")
-    if type(entry["round"]) is not int or entry["round"] < 1:
-        raise ValueError("ledger entry: round must be an integer >= 1")
+    if type(entry["round"]) is not int or entry["round"] < 0:
+        raise ValueError("ledger entry: round must be an integer >= 0")
+    baseline = entry["arm_kind"] == "baseline" and entry["decision"] == "baseline"
+    if (entry["round"] == 0) != baseline:
+        raise ValueError("ledger entry: round zero is reserved for a baseline")
     if entry["arm_kind"] not in ARM_KINDS:
         raise ValueError(f"ledger entry: arm_kind {entry['arm_kind']!r} not in {ARM_KINDS}")
     if entry["decision"] not in DECISIONS:
