@@ -98,11 +98,10 @@
   reference:
     facts:
       - >-
-        URL ingestion is a field on the ExtractInput accepted by POST /extract, not a separate POST /extract-url
-        route.
+        URL ingestion is a field on the ExtractInput accepted by POST /extract.
       - >-
-        Submit a batch through POST /extract-async and poll GET /jobs/{job_id} for its job status/result; there
-        is no POST /batch route; These routes are registered in crates/xberg/src/api/router.rs.
+        Submit a batch through POST /extract-async and poll GET /jobs/{job_id} for its job status/result;
+        these routes are registered in crates/xberg/src/api/router.rs.
     sources: [crates/xberg/src/api/router.rs]
   sandbox: result
 

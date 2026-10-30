@@ -409,6 +409,9 @@
     - id: mcp
       check: "The answer says to run the sceptre mcp subcommand (mcp feature) and use its readtext tool."
   reference:
-    facts: ["README.md documents the readtext tool with an image_path parameter, exposed by the mcp subcommand."]
+    facts:
+      [
+        "Run sceptre mcp (with the mcp feature) and use its readtext tool with an image_path parameter, as documented in README.md.",
+      ]
     sources: [README.md, crates/sceptre/src/mcp/tools.rs]
   sandbox: result

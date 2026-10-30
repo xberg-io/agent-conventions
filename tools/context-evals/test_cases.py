@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 import tempfile
 import unittest
@@ -163,6 +164,19 @@ class CasesTest(unittest.TestCase):
         self.assertEqual(cases.corpus_hash(corpus), cases.corpus_hash(moved))
         changed = [cases.Case(**{**corpus[0].__dict__, "prompt": "other"}), *corpus[1:]]
         self.assertNotEqual(cases.corpus_hash(corpus), cases.corpus_hash(changed))
+
+    def test_tune_reference_answers_satisfy_their_static_answer_patterns(self) -> None:
+        corpus = cases.select(cases.load_corpus(Path(__file__).with_name("cases"), self.domains))
+        self.assertEqual({case.repo for case in corpus}, {"xberg", "sceptre"})
+        errors = []
+        for case in corpus:
+            self.assertTrue(case.reference.facts, case.id)
+            answer = " ".join(case.reference.facts)
+            errors.extend(f"{case.id}: missing {pattern}" for pattern in case.expect if not re.search(pattern, answer))
+            errors.extend(
+                f"{case.id}: forbidden {pattern}" for pattern in case.must_not_mention if re.search(pattern, answer)
+            )
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":
