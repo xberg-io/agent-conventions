@@ -63,7 +63,9 @@ another agent session. `--model` has no default: pick one per study and keep it 
   checkout that every `cwd`, source and skill exists; CI runs the schema check.
 - `harness.py run --repo CHECKOUT --ref REF --model M --out RUN_DIR [--split tune|holdout|all] [--repeats 3]`: a
   throwaway worktree at REF, `ai-rulez generate`, then one `claude -p` per case and repeat with a fresh config
-  directory, project settings only, a strict empty MCP config and read-only tools; the tree is reset between
+  directory, project settings only, a strict empty MCP config and `--tools Read,Glob,Grep,Skill` plus the same
+  permission allowlist. The advertised tool set and tool calls must match that profile; mismatches fail the
+  session. This limits available tools; it is not an operating-system filesystem sandbox. The tree is reset between
   sessions. `--jobs N` gives each worker its own worktree; `--resume` reuses only saved sessions with identical
   run parameters. Immutable context/configuration fingerprints and agent/generator binary hashes must match
   before reuse; existing snapshots are never overwritten. Legacy runs without identity are refused. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
@@ -75,7 +77,10 @@ is required. Unreported cost retains its reservation and any overrun or uncertai
 round, including queued callers. `study.toml` records the historical attempt's choices.
 
 - `harness.py judge RUN_DIR --model M` grades criteria; `judge-validate RUN_DIR --model M --second-model M2` computes
-  Cohen's kappa per criterion and the mutation-test TPR/TNR. Only validated criteria count.
+  Cohen's kappa per criterion and the mutation-test TPR/TNR. Judges use `--tools ""` and must advertise an empty
+  tool set. Only validated criteria count. Harness 4 rejects older tool profiles for resume and paid judging;
+  comparisons, verdicts and validity reports retain protocol provenance. Both judge prompts include their
+  no-tools protocol versions so prompt-digest caches cannot reuse replies from the earlier tool-enabled profile.
 - `harness.py report RUN_DIR`, `harness.py compare BASE_RUN ARM_RUN`: per-domain recall, precision, leak and
   answer-leak rates, over-/under-ask, criteria pass rate, start tokens and cost, with paired cluster-bootstrap
   intervals; "inconclusive" when an interval spans zero.

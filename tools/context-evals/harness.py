@@ -41,7 +41,7 @@ import transcript
 from cases import Case, Criterion, Reference
 
 HERE = Path(__file__).parent
-HARNESS_VERSION = "3"
+HARNESS_VERSION = "4"
 VERSION_KEYS = (
     "judge_prompt_version",
     "rubric_version",
@@ -49,6 +49,8 @@ VERSION_KEYS = (
     "calibration_version",
     "taxonomy_version",
     "harness_version",
+    "tool_profile_version",
+    "judge_tool_profile_version",
 )
 
 GraderFactory = Callable[[str], judge.Grader]
@@ -141,6 +143,8 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         "max_turns": args.max_turns,
         "timeout": args.timeout,
         "allowed_tools": list(config.allowed_tools),
+        "tool_profile_version": runner.TOOL_PROFILE_VERSION,
+        "judge_tool_profile_version": judge.TOOL_PROFILE_VERSION,
         "harness_version": HARNESS_VERSION,
         "calibration_version": exposure.CALIBRATION["calibration_version"],
         "taxonomy_version": hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest(),
@@ -154,7 +158,19 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
     }
     if args.resume:
         previous = read_json(out / "run.json")
-        stable = ("commit", "model", "split", "repeats", "max_turns", "timeout", "case_corpus_hash", "harness_version")
+        stable = (
+            "commit",
+            "model",
+            "split",
+            "repeats",
+            "max_turns",
+            "timeout",
+            "case_corpus_hash",
+            "harness_version",
+            "allowed_tools",
+            "tool_profile_version",
+            "judge_tool_profile_version",
+        )
         if any(previous.get(key) != meta[key] for key in stable):
             raise HarnessError("resume parameters differ from the recorded run")
         meta["started_at"], meta["run_id"] = previous["started_at"], previous["run_id"]
@@ -179,6 +195,11 @@ def score_run(run_dir: Path, domains: dict) -> int:
                 continue
             info = runner.read_meta(run_dir / "transcripts", case_id, repeat)
             t = transcript.parse_file(path)
+            profile_error = (
+                runner.tool_profile_error(path.read_text(), tuple(meta["allowed_tools"]))
+                if meta.get("harness_version") == HARNESS_VERSION
+                else ""
+            )
             out.append(
                 scoring.score(
                     corpus[case_id],
@@ -188,7 +209,7 @@ def score_run(run_dir: Path, domains: dict) -> int:
                     run_id=meta["run_id"],
                     repeat=repeat,
                     run_dir=str(run_dir.resolve()),
-                    error=info.error if info else "",
+                    error=(info.error if info else "") or profile_error,
                     root=info.root if info else None,
                 )
             )
@@ -218,10 +239,12 @@ def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
         same = (
             validity["judge_prompt_version"] == judge.JUDGE_PROMPT_VERSION
             and validity["rubric_version"] == judge.RUBRIC_VERSION
+            and validity.get("judge_tool_profile_version") == judge.TOOL_PROFILE_VERSION
             and models <= {validity.get("models", {}).get("primary")}
             and all(
                 row.get("judge_prompt_version") == judge.JUDGE_PROMPT_VERSION
                 and row.get("rubric_version") == judge.RUBRIC_VERSION
+                and row.get("judge_tool_profile_version") == judge.TOOL_PROFILE_VERSION
                 for row in rows
             )
         )
@@ -237,8 +260,18 @@ def cmd_score(args: argparse.Namespace) -> int:
 
 
 def _sessions(run_dir: Path, *, current_rubric: bool = False) -> list[records.SessionRecord]:
-    if current_rubric and read_json(run_dir / "run.json").get("rubric_version") != judge.RUBRIC_VERSION:
+    meta = read_json(run_dir / "run.json")
+    if current_rubric and meta.get("rubric_version") != judge.RUBRIC_VERSION:
         raise HarnessError("run uses a legacy rubric; migrate the reviewed scoring corpus before paid judging")
+    if current_rubric and any(
+        meta.get(key) != expected
+        for key, expected in (
+            ("harness_version", HARNESS_VERSION),
+            ("tool_profile_version", runner.TOOL_PROFILE_VERSION),
+            ("judge_tool_profile_version", judge.TOOL_PROFILE_VERSION),
+        )
+    ):
+        raise HarnessError("run uses a legacy tool profile; fresh sessions are required before paid judging")
     path = run_dir / "sessions.jsonl"
     if not path.exists():
         raise HarnessError(f"{path} does not exist; run `score` first")

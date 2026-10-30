@@ -125,7 +125,7 @@ class HarnessTest(unittest.TestCase):
                 "model": "m-1",
                 "split": "tune",
                 "repeats": 2,
-                "judge_prompt_version": "judge-prompt-1",
+                "judge_prompt_version": "judge-prompt-2",
                 "rubric_version": "rubric-2",
             },
         )
@@ -216,6 +216,71 @@ class HarnessTest(unittest.TestCase):
             {**json.loads((out / "run.json").read_text()), "judge_model": "judge-other"},
         )
         self.assertIn("judge_model: 'judge-original' != 'judge-other'", reasons)
+
+    def test_legacy_tool_profiles_cannot_resume_be_judged_or_compare_as_current(self) -> None:
+        out = self.run_harness("legacy-profile")
+        path = out / "run.json"
+        current = json.loads(path.read_text())
+        self.assertEqual(current["harness_version"], "4")
+        legacy = {**current, "harness_version": "3"}
+        path.write_text(json.dumps(legacy))
+        self.assertIn("harness_version: '3' != '4'", harness.comparable(legacy, current))
+        code, _, err = self.main(
+            "run",
+            "--repo",
+            str(self.repo),
+            "--ref",
+            "main",
+            "--model",
+            "m-1",
+            "--repeats",
+            "2",
+            "--skip-generate",
+            "--out",
+            str(out),
+            "--resume",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("resume parameters differ", err)
+        code, _, err = self.main("judge", str(out), "--model", "judge-m")
+        self.assertEqual(code, 2)
+        self.assertIn("legacy tool profile", err)
+
+    def test_old_judge_tool_profiles_mask_rows_and_validity(self) -> None:
+        out = self.run_harness("old-judge-profile", BASE, "--split", "holdout")
+        self.main("judge-validate", str(out), "--model", "judge-m", "--second-model", "judge-n")
+        self.main("judge", str(out), "--model", "judge-m")
+        row_path, validity_path = out / "judge/verdicts.jsonl", out / "judge/validity.json"
+        rows = [json.loads(line) for line in row_path.read_text().splitlines()]
+        validity = json.loads(validity_path.read_text())
+        for change in ("row", "validity"):
+            with self.subTest(change=change):
+                changed = [{**row, "judge_tool_profile_version": "legacy"} for row in rows]
+                row_path.write_text("".join(json.dumps(row) + "\n" for row in (changed if change == "row" else rows)))
+                validity_path.write_text(
+                    json.dumps(
+                        {**validity, "judge_tool_profile_version": "legacy"} if change == "validity" else validity
+                    )
+                )
+                self.assertEqual(self.main("score", str(out))[0], 0)
+                self.assertTrue(
+                    all(
+                        value is None
+                        for record in records.read_sessions(out / "sessions.jsonl")
+                        for value in record.criteria.values()
+                    )
+                )
+
+    def test_rescoring_rejects_tool_profile_drift_in_saved_raw_transcripts(self) -> None:
+        out = self.run_harness("drift-after-run")
+        path = next((out / "transcripts").glob("*.jsonl"))
+        original = path.read_text()
+        changed = original.replace('"Read", "Glob", "Grep", "Skill"', '"Read", "Bash"')
+        self.assertNotEqual(original, changed)
+        path.write_text(changed)
+        self.assertEqual(self.main("score", str(out))[0], 0)
+        errors = [record.error for record in records.read_sessions(out / "sessions.jsonl") if record.error]
+        self.assertEqual(errors, ["tool profile mismatch"])
 
     def test_mixed_stale_verdict_versions_cannot_use_current_validity(self) -> None:
         out = self.run_harness("stale-verdicts", BASE, "--split", "holdout")

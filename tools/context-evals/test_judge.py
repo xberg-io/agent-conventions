@@ -193,7 +193,7 @@ class JudgeSessionsTest(unittest.TestCase):
         self.assertEqual(rows[0]["verdicts"], {"names-dpi-default": True, "names-engine": True})
         self.assertEqual(
             {k: rows[0][k] for k in ("judge_model", "judge_prompt_version", "rubric_version")},
-            {"judge_model": "judge-m", "judge_prompt_version": "judge-prompt-1", "rubric_version": "rubric-2"},
+            {"judge_model": "judge-m", "judge_prompt_version": "judge-prompt-2", "rubric_version": "rubric-2"},
         )
         judge.apply(sessions, rows, {"xberg-ocr-dpi/names-engine", "xberg-ocr-module/names-file"})
         self.assertEqual([s.criteria for s in sessions], [
@@ -205,20 +205,30 @@ class JudgeSessionsTest(unittest.TestCase):
 
 
 class ClaudeGraderTest(unittest.TestCase):
+    def test_both_prompt_cache_keys_include_the_no_tools_protocol(self) -> None:
+        for style, version in (("primary", "judge-prompt-2"), ("independent", "judge-prompt-independent-2")):
+            with self.subTest(style=style):
+                prompt = judge.PROMPTS[style](DPI, "answer", "")
+                self.assertIn(version, prompt)
+                self.assertIn("claude-judge-no-tools-1", prompt)
+
     def test_hermetic_invocation_and_result_extraction(self) -> None:
         seen = {}
 
         def fake(argv: list[str], cwd: Path, env: Mapping[str, str], timeout: float) -> runner.Completed:
             seen.update(argv=argv, cwd=cwd, env=dict(env))
-            return runner.Completed(0, json.dumps({"type": "result", "result": '{"verdicts": {}}'}), "")
+            init = {"type": "system", "subtype": "init", "tools": []}
+            result = {"type": "result", "result": '{"verdicts": {}}'}
+            return runner.Completed(0, json.dumps(init) + "\n" + json.dumps(result), "")
 
         env = {"PATH": "/bin", "ANTHROPIC_API_KEY": "k", "HOME": "/home/dev"}
         grader = judge.ClaudeGrader("judge-m", execute=fake, environ=env)
         self.assertEqual(grader("hello"), '{"verdicts": {}}')
         mcp = seen["argv"][seen["argv"].index("--mcp-config") + 1]
         self.assertEqual(seen["argv"], [
-            "claude", "-p", "hello", "--output-format", "json", "--model", "judge-m", "--max-turns", "1",
-            "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", mcp,
+            "claude", "-p", "hello", "--output-format", "stream-json", "--verbose", "--model", "judge-m",
+            "--max-turns", "1", "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", mcp,
+            "--tools", "",
         ])  # fmt: skip
         self.assertEqual(seen["env"]["HOME"], str(seen["cwd"]))
         self.assertEqual(set(seen["env"]), {"PATH", "ANTHROPIC_API_KEY", "HOME", "CLAUDE_CONFIG_DIR"})
@@ -228,6 +238,20 @@ class ClaudeGraderTest(unittest.TestCase):
             judge.ClaudeGrader("m", execute=fake, environ={**env, "CLAUDECODE": "1"})
         with self.assertRaises(runner.RunnerError):
             judge.ClaudeGrader("", execute=fake, environ=env)
+
+    def test_rejects_judge_outputs_when_tools_are_available_or_unreported(self) -> None:
+        for tools in (["Read"], None):
+            with self.subTest(tools=tools):
+                events = [{"type": "result", "result": '{"verdicts": {"criterion": true}}'}]
+                if tools is not None:
+                    events.insert(0, {"type": "system", "subtype": "init", "tools": tools})
+
+                def fake(*_args: object, events: list[dict] = events) -> runner.Completed:
+                    return runner.Completed(0, "\n".join(map(json.dumps, events)), "")
+
+                grader = judge.ClaudeGrader("m", execute=fake, environ={"ANTHROPIC_API_KEY": "test-key"})
+                with self.assertRaisesRegex(runner.RunnerError, "tool profile"):
+                    grader("offline")
 
 
 if __name__ == "__main__":

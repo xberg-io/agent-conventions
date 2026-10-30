@@ -26,9 +26,11 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+import transcript
 from cases import Case
 
 DEFAULT_TOOLS = ("Read", "Glob", "Grep", "Skill")
+TOOL_PROFILE_VERSION = "claude-read-only-1"
 CONTEXT_DIRS = (".claude/rules", ".claude/skills", ".claude/agents", ".agents/skills")
 CONTEXT_FILES = (".mcp.json", ".claude/settings.json", ".claude/settings.local.json", ".codex/config.toml")
 PRUNE = {".git", "node_modules", "target", ".venv", "vendor", "dist", "build"}
@@ -93,6 +95,8 @@ class ClaudeAdapter:
             "--strict-mcp-config",
             "--mcp-config",
             str(spec.mcp_config),
+            "--tools",
+            ",".join(spec.allowed_tools),
             "--allowedTools",
             ",".join(spec.allowed_tools),
         ]
@@ -189,6 +193,19 @@ class SessionMeta:
     stderr: str = ""
 
 
+def tool_profile_error(stdout: str, expected: tuple[str, ...]) -> str:
+    """Fail closed when the CLI's advertised or used tools differ from its command contract."""
+    parsed = transcript.parse(stdout)
+    tools = parsed.init.get("tools")
+    if not isinstance(tools, list):
+        return "missing init tool profile"
+    if not all(isinstance(tool, str) for tool in tools) or len(tools) != len(expected) or set(tools) != set(expected):
+        return "tool profile mismatch"
+    if any(call.name not in expected for call in parsed.calls):
+        return "tool profile mismatch: unexpected tool call"
+    return ""
+
+
 @dataclass
 class RunConfig:
     model: str
@@ -234,6 +251,7 @@ class Runner:
             for key in ("jobs", "resume"):
                 config.pop(key)
             identity = {
+                "tool_profile_version": TOOL_PROFILE_VERSION,
                 "context_sha256": context_fingerprint(candidate),
                 "config": config,
                 "agent_sha256": binary_fingerprint(self.adapter.name, self.environ),
@@ -295,6 +313,8 @@ class Runner:
                 meta.error = "timeout"
             elif done.returncode != 0 and not done.stdout.strip():
                 meta.error = f"exit {done.returncode}"
+            else:
+                meta.error = tool_profile_error(done.stdout, self.config.allowed_tools)
             (transcripts / f"{name}.jsonl").write_text(done.stdout)
         (transcripts / f"{name}.meta.json").write_text(json.dumps(asdict(meta), indent=2) + "\n")
         return meta
@@ -309,6 +329,8 @@ class Runner:
                     previous = read_meta(self.out / "transcripts", case.id, repeat) if self.config.resume else None
                     raw = self.out / "transcripts" / f"{session_name(case.id, repeat)}.jsonl"
                     if previous is not None and raw.is_file():
+                        if not previous.error:
+                            previous.error = tool_profile_error(raw.read_text(), self.config.allowed_tools)
                         metas.append(previous)
                         continue
                     metas.append(self.session(checkout, case, repeat))

@@ -30,11 +30,13 @@ from pathlib import Path
 import exposure
 import runner
 import stats
+import transcript
 from cases import Case
 from records import SessionRecord
 
-JUDGE_PROMPT_VERSION = "judge-prompt-1"
-INDEPENDENT_PROMPT_VERSION = "judge-prompt-independent-1"
+JUDGE_PROMPT_VERSION = "judge-prompt-2"
+INDEPENDENT_PROMPT_VERSION = "judge-prompt-independent-2"
+TOOL_PROFILE_VERSION = "claude-judge-no-tools-1"
 RUBRIC_VERSION = "rubric-2"
 KAPPA_MIN = 0.6
 MIN_ITEMS = 4
@@ -73,6 +75,7 @@ def _sandbox_note(case: Case) -> str:
 def primary_prompt(case: Case, answer: str, summary: str) -> str:
     ids = ", ".join(c.id for c in case.criteria)
     return f"""You are grading an AI coding assistant's answer against binary criteria.
+Protocol: {JUDGE_PROMPT_VERSION}; {TOOL_PROFILE_VERSION}. Use only the supplied material; tools are unavailable.
 {RUBRIC}
 {_sandbox_note(case)}
 
@@ -100,6 +103,7 @@ Reply with exactly one JSON object and nothing else:
 def independent_prompt(case: Case, answer: str, summary: str) -> str:
     """A second wording, ordered differently, so agreement is not an artefact of one prompt."""
     lines = [
+        f"Protocol: {INDEPENDENT_PROMPT_VERSION}; {TOOL_PROFILE_VERSION}. Tools are unavailable.",
         "Check a response for factual compliance. For every statement below decide whether the response satisfies it.",
         "Use the ground truth to decide; a response that only says how to find the answer does not satisfy a",
         "statement about the answer. Say null only when the statement cannot be decided.",
@@ -177,6 +181,7 @@ def judge_sessions(records: list[SessionRecord], cases: dict[str, Case], grader:
                 "judge_model": model,
                 "judge_prompt_version": JUDGE_PROMPT_VERSION,
                 "rubric_version": RUBRIC_VERSION,
+                "judge_tool_profile_version": TOOL_PROFILE_VERSION,
             }
         )
     return rows
@@ -307,6 +312,7 @@ def validate(
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
         "independent_prompt_version": INDEPENDENT_PROMPT_VERSION,
         "rubric_version": RUBRIC_VERSION,
+        "judge_tool_profile_version": TOOL_PROFILE_VERSION,
         "kappa_min": KAPPA_MIN,
         "min_items": MIN_ITEMS,
         "criteria": criteria,
@@ -379,12 +385,16 @@ class ClaudeGrader:
             mcp = Path(home) / "mcp.json"
             mcp.write_text(json.dumps({"mcpServers": {}}))
             argv = [
-                "claude", "-p", prompt, "--output-format", "json", "--model", self.model, "--max-turns", "1",
+                "claude", "-p", prompt, "--output-format", "stream-json", "--verbose", "--model", self.model,
+                "--max-turns", "1",
                 "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", str(mcp),
+                "--tools", "",
             ]  # fmt: skip
             env = runner.ClaudeAdapter().env(Path(home), self.environ)
             done = self.execute(argv, Path(home), env, self.timeout)
-        try:
-            return str(json.loads(done.stdout).get("result", ""))
-        except (json.JSONDecodeError, AttributeError):
+        if done.returncode or done.timed_out:
             return ""
+        if error := runner.tool_profile_error(done.stdout, ()):
+            raise runner.RunnerError(f"judge {error}")
+        parsed = transcript.parse(done.stdout)
+        return "" if parsed.error else parsed.answer

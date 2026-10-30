@@ -91,7 +91,8 @@ class RunnerTest(unittest.TestCase):
             [
                 "claude", "-p", "What DPI does OCR render pages at by default?", "--output-format", "stream-json",
                 "--verbose", "--model", "m-1", "--max-turns", "7", "--setting-sources", "project",
-                "--strict-mcp-config", "--mcp-config", mcp_path, "--allowedTools", "Read,Glob,Grep,Skill",
+                "--strict-mcp-config", "--mcp-config", mcp_path, "--tools", "Read,Glob,Grep,Skill",
+                "--allowedTools", "Read,Glob,Grep,Skill",
             ],
         )  # fmt: skip
         self.assertEqual(json.loads(first["mcp"]), {"mcpServers": {}})
@@ -141,6 +142,31 @@ class RunnerTest(unittest.TestCase):
         )
         self.assertEqual(metas[2].stderr, "slow")
         self.assertEqual((self.out / "transcripts" / "xberg-gone.r0.jsonl").read_text(), "")
+
+    def test_rejects_advertised_tools_outside_the_read_only_profile(self) -> None:
+        fake = FakeAgent()
+
+        def drift(argv: list[str], cwd: Path, env: Mapping[str, str], timeout: float) -> runner.Completed:
+            done = fake(argv, cwd, env, timeout)
+            if argv[0] == "claude":
+                done.stdout = done.stdout.replace('"Read", "Glob", "Grep", "Skill"', '"Read", "Bash"')
+            return done
+
+        metas = self.make(drift).run(self.commit, self.cases[:1])
+        self.assertEqual(len(metas), 2)
+        self.assertTrue(all("tool profile mismatch" in meta.error for meta in metas))
+
+    def test_rejects_a_missing_init_tool_profile(self) -> None:
+        fake = FakeAgent()
+
+        def no_init(argv: list[str], cwd: Path, env: Mapping[str, str], timeout: float) -> runner.Completed:
+            done = fake(argv, cwd, env, timeout)
+            if argv[0] == "claude":
+                done.stdout = "\n".join(done.stdout.splitlines()[1:])
+            return done
+
+        metas = self.make(no_init).run(self.commit, self.cases[:1])
+        self.assertTrue(all("missing init tool profile" in meta.error for meta in metas))
 
     def test_refuses_nested_session_missing_key_and_missing_model(self) -> None:
         fake = FakeAgent()

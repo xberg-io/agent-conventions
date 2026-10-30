@@ -31,6 +31,25 @@ hard-ceiling execution by default; prospective accounting needs explicit `--allo
 overrun or uncertain billing stops the whole shared round. A new allowance alone does not establish a hard
 provider budget.
 
+## Tool-profile limitation
+
+The historical runner passed `--allowedTools`, which grants permissions but does not restrict available tools.
+All 248 saved initialization records across pilot and baseline runs advertised Bash, Edit and Write alongside
+the intended four tools. There were 178 Bash attempts and 62 successful Bash tool results: 43 in pinned runs
+(33 Xberg, 10 Sceptre), and 19 in discarded runs. No Edit or Write calls were observed.
+
+The 62 successful command strings use read/search utilities and Git inspection (`status`, `branch`, `worktree
+list`, `log`, `diff`, `show`, `rev-parse`). Their seven explicit output redirections target `/dev/null`; no explicit
+file mutation, network command or target outside a session worktree was found. This is a transcript audit, not
+an operating-system trace; Git inspection may refresh its own metadata. It does not establish filesystem
+isolation or validate the original read-only-profile claim.
+
+The judge likewise omitted an explicit empty tool list. Harness 4 now sets the runner's available tools and
+validates its initialization records; judges explicitly disable tools and validate an empty advertised profile.
+Older sessions cannot resume or enter new paid judging under that protocol. New prompt versions and explicit
+judge-profile provenance invalidate the earlier cached replies and validity artifacts. Historical raw transcripts,
+case snapshots and caches remain unchanged and are observational evidence only.
+
 ## Validation diagnosis
 
 There are 378 cached judge replies from distinct Sonnet 5.5 and Sonnet 5 models. The cache is not a completed
@@ -53,8 +72,8 @@ optional parameter, while its reference merely names three files. The judge corr
 positive controls.
 
 Before further paid judging, curate complete canonical reference answers against each frozen consumer commit.
-Keep the original collection hashes, record the revised scoring corpus/rubric version, finish the ten missing
-sessions, and rerun validation plus session grading. A continuation needs a new explicit spending allowance;
+Keep the original collection hashes, record the revised scoring corpus/rubric version, collect fresh sessions
+under the enforced tool profile, and rerun validation plus session grading. A continuation needs a new explicit spending allowance;
 this attempt does not silently increase its cap or weaken the validity thresholds. Version 3 also refuses legacy
 resumption without an immutable context identity; review the original context/toolchain provenance before any
 migration. The historical collection used harness 2/rubric 1. Nine Sceptre tune references have since been
