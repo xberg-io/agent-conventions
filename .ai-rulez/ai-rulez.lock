@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.9.2'
+ai_rulez_version = '5.9.3'
 scope = 'all'
-tree = 'sha256:6e2d0b7bd9b795025739d5ef026d28a04f64798a41b8cacb62b92cc948f675e3'
+tree = 'sha256:d8fb24a00a8b5b3743cad76f05ea18557a61e4ae672bffb0f588ddcfd3fc34d7'
 
 [[served]]
 name = 'adr-authoring'
@@ -52,7 +52,7 @@ digest = 'sha256:d1a591a6f2e46cb431aa80dcd1e976110502132ca23dd2eb02c49b164c49dae
 name = 'context-improvement'
 source = '.ai-rulez/skills/context-improvement/SKILL.md'
 commit = ''
-digest = 'sha256:64cb0529376198bd9438104d112f359e6428b5fc6a973e4850e6f7aca85f74ac'
+digest = 'sha256:d7daa0bdc71094c8c6a7dd077771664adaa0b0ab535de059eae5a30796de5d97'
 
 [[served]]
 name = 'dependency-awareness'
@@ -220,4 +220,4 @@ digest = 'sha256:b9ab62b52bd3e9d0815fe69106f7c24a83aa31d2b9f1b250a7489ed77db0c0d
 kind = 'skill'
 id = 'context-improvement'
 path = 'skills/context-improvement'
-digest = 'sha256:038b447580003f2fbb80eb0c0a18228efc7dfcc27d841faff063b7c52f69c32c'
+digest = 'sha256:0b7af1841c760248e1031b7f41e224814f8953efd4f8cf6a702ef740f559983e'

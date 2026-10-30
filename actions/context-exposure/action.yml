@@ -19,6 +19,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check ai-rulez hook version
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        HARNESS: ${{ github.action_path }}/../../tools/context-evals
+      run: python3 "$HARNESS/hook_pins.py" --consumer .
     - name: Check context exposure
       shell: bash
       working-directory: ${{ inputs.working-directory }}
