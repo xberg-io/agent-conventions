@@ -47,6 +47,18 @@ class CompletionMetricsTest(unittest.TestCase):
         for metric in ("completion", "expect_pass", "criteria_pass"):
             self.assertEqual(all_trials[metric], {"numerator": 1, "denominator": 2, "rate": 0.5, "ungraded_trials": 0})
 
+    def test_serialized_records_require_an_explicit_supported_integer_schema_version(self) -> None:
+        value = json.loads(record(0).to_json())
+        missing = value.copy()
+        missing.pop("version")
+        for payload in [missing, *[value | {"version": version} for version in (True, "2", 2.0, None, 99)]]:
+            with self.subTest(version=payload.get("version")), self.assertRaises(ValueError):
+                SessionRecord.from_dict(payload)
+        self.assertEqual(SessionRecord.from_dict(value).version, 2)
+        self.assertEqual(record(0).version, 2)
+        legacy = SessionRecord.from_dict(value | {"version": 1})
+        self.assertFalse(scoring.summarise([legacy])["all_trials"]["execution_valid"])
+
     def test_legacy_record_schema_cannot_claim_a_valid_primary_baseline(self) -> None:
         legacy = record(0)
         legacy.version = 1
