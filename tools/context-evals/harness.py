@@ -158,6 +158,7 @@ def cmd_run(args: argparse.Namespace, execute: runner.Execute, environ: Mapping[
         if any(previous.get(key) != meta[key] for key in stable):
             raise HarnessError("resume parameters differ from the recorded run")
         meta["started_at"], meta["run_id"] = previous["started_at"], previous["run_id"]
+        meta["judge_model"] = previous.get("judge_model", "")
     meta["jobs"] = args.jobs
     write_json(out / "run.json", meta)
     write_json(out / "cases.json", [asdict(c) for c in selected])
@@ -218,6 +219,11 @@ def apply_judge(run_dir: Path, sessions: list[records.SessionRecord]) -> None:
             validity["judge_prompt_version"] == judge.JUDGE_PROMPT_VERSION
             and validity["rubric_version"] == judge.RUBRIC_VERSION
             and models <= {validity.get("models", {}).get("primary")}
+            and all(
+                row.get("judge_prompt_version") == judge.JUDGE_PROMPT_VERSION
+                and row.get("rubric_version") == judge.RUBRIC_VERSION
+                for row in rows
+            )
         )
         if same:
             valid = set(validity["valid_criteria"]) if validity.get("judge_valid") else set()

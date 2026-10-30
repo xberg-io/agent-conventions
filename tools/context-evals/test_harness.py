@@ -206,6 +206,34 @@ class HarnessTest(unittest.TestCase):
         self.assertEqual(report["summary"]["overall"]["metrics"]["skill_recall"]["mean"], 1.0)
         self.assertEqual(report["judge_validity"]["models"], {"primary": "judge-m", "secondary": "judge-n"})
 
+    def test_resume_preserves_the_model_that_graded_existing_verdicts(self) -> None:
+        out = self.run_harness("resume-judge")
+        self.main("judge", str(out), "--model", "judge-original")
+        self.run_harness("resume-judge", BASE, "--resume")
+        self.assertEqual(json.loads((out / "run.json").read_text())["judge_model"], "judge-original")
+        reasons = harness.comparable(
+            json.loads((out / "run.json").read_text()),
+            {**json.loads((out / "run.json").read_text()), "judge_model": "judge-other"},
+        )
+        self.assertIn("judge_model: 'judge-original' != 'judge-other'", reasons)
+
+    def test_mixed_stale_verdict_versions_cannot_use_current_validity(self) -> None:
+        out = self.run_harness("stale-verdicts", BASE, "--split", "holdout")
+        self.main("judge-validate", str(out), "--model", "judge-m", "--second-model", "judge-n")
+        self.main("judge", str(out), "--model", "judge-m")
+        path = out / "judge/verdicts.jsonl"
+        original = [json.loads(line) for line in path.read_text().splitlines()]
+        for key in ("rubric_version", "judge_prompt_version"):
+            with self.subTest(version=key):
+                rows = [dict(row) for row in original]
+                rows[0][key] = "legacy"
+                path.write_text("".join(json.dumps(row) + "\n" for row in rows))
+                self.assertEqual(self.main("score", str(out))[0], 0)
+                self.assertEqual(
+                    records.read_sessions(out / "sessions.jsonl")[0].criteria,
+                    {"names-dpi-default": None, "names-engine": None},
+                )
+
     def test_validity_for_another_judge_model_is_not_applied(self) -> None:
         out = self.run_harness("hold", BASE, "--split", "holdout")
         self.main("judge-validate", str(out), "--model", "judge-m", "--second-model", "judge-n")
