@@ -18,8 +18,9 @@ import hook_pins
 POLICY = {
     "ai-rulez": hook_pins.Pin("ai-rulez", "v5", required=True),
     "gh-actions-updater": hook_pins.Pin("gh-actions-updater", "v0"),
-    "adrlint": hook_pins.Pin("adrlint", "v0.4.1"),
+    "adrlint": hook_pins.Pin("adrlint", "v0"),
 }
+EXACT = {**POLICY, "fixture-exact": hook_pins.Pin("fixture-exact", "v1.2.3")}
 COMMIT = "8dd59ae052ee9ffbcc371dc0ee1d14e1e9a0a515"
 
 
@@ -57,14 +58,14 @@ class HookPinsTest(unittest.TestCase):
         self.assertEqual(hook_pins.source(root / "poly.toml", "hooks")["revision"], policy["ai-rulez"].revision)
         self.assertEqual(hook_pins.check(root, policy), [])
 
-    def test_policy_floats_ai_rulez_and_gau_and_pins_adrlint_exactly(self) -> None:
+    def test_policy_floats_every_source_on_its_bare_major(self) -> None:
         policy = hook_pins.load_policy(Path(__file__).resolve().parents[2] / hook_pins.POLICY)
         self.assertEqual(
             {pin.id: (pin.revision, pin.floating, pin.required) for pin in policy.values()},
             {
                 "ai-rulez": ("v5", True, True),
                 "gh-actions-updater": ("v0", True, False),
-                "adrlint": ("v0.4.1", False, False),
+                "adrlint": ("v0", True, False),
             },
         )
 
@@ -99,32 +100,34 @@ class HookPinsTest(unittest.TestCase):
             (repo / "poly.toml").write_text("")
             self.assertIn("exactly one ai-rulez", hook_pins.check(repo, POLICY)[0])
 
-    def test_each_source_kind_rejects_a_drifted_pin(self) -> None:
-        cases = (
-            ("gh-actions-updater", "v0.4.0", "a floating source names its bare major"),
-            (
-                "gh-actions-updater",
-                "c3a8d3778bfdfd3d2af0bb472a517eff873e5af5",
-                "a floating source names its bare major",
-            ),
-            ("gh-actions-updater", "main", "a floating source names its bare major"),
-            ("adrlint", "v0.4.0", "an exact source names its full tag"),
-            ("adrlint", "v0", "an exact source names its full tag"),
-        )
-        for source_id, revision, kind in cases:
-            with self.subTest(source=source_id, revision=revision), tempfile.TemporaryDirectory() as tmp:
-                repo = consumer(Path(tmp), {"ai-rulez": "v5", source_id: revision})
-                self.assertEqual(
-                    hook_pins.check(repo, POLICY),
-                    [
-                        f"{repo / 'poly.toml'}: {source_id} revision {revision!r}, "
-                        f"expected {POLICY[source_id].revision!r} ({kind})"
-                    ],
-                )
+    def test_each_floating_source_rejects_every_drift_shape(self) -> None:
+        drift = ("v0.4.1", "v0.4", "v1", "a4fc1b972267792a7ee8fb2d84ea55d2e9c17c7b", "main")
+        for source_id in POLICY:
+            for revision in drift + (("v4",) if source_id == "ai-rulez" else ()):
+                if revision == POLICY[source_id].revision:
+                    continue
+                with self.subTest(source=source_id, revision=revision), tempfile.TemporaryDirectory() as tmp:
+                    repo = consumer(Path(tmp), {"ai-rulez": "v5", source_id: revision})
+                    self.assertEqual(
+                        hook_pins.check(repo, POLICY),
+                        [
+                            f"{repo / 'poly.toml'}: {source_id} revision {revision!r}, "
+                            f"expected {POLICY[source_id].revision!r} (a floating source names its bare major)"
+                        ],
+                    )
+
+    def test_an_exact_source_accepts_its_tag_and_rejects_the_major_and_other_tags(self) -> None:
+        for revision, errors in (("v1.2.3", 0), ("v1", 1), ("v1.2.4", 1)):
+            with self.subTest(revision=revision), tempfile.TemporaryDirectory() as tmp:
+                repo = consumer(Path(tmp), {"ai-rulez": "v5", "fixture-exact": revision})
+                found = hook_pins.check(repo, EXACT)
+                self.assertEqual(len(found), errors)
+                if errors:
+                    self.assertIn("an exact source names its full tag", found[0])
 
     def test_accepts_every_source_on_policy_and_skips_undeclared_optional_ones(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            repo = consumer(Path(tmp), {"ai-rulez": "v5", "gh-actions-updater": "v0", "adrlint": "v0.4.1"})
+            repo = consumer(Path(tmp), {"ai-rulez": "v5", "gh-actions-updater": "v0", "adrlint": "v0"})
             self.assertEqual(hook_pins.check(repo, POLICY), [])
             self.assertEqual(len(hook_pins.in_use(POLICY, hook_pins.sources(repo / "poly.toml", "hooks"))), 3)
         with tempfile.TemporaryDirectory() as tmp:
@@ -135,7 +138,7 @@ class HookPinsTest(unittest.TestCase):
 
     def test_an_optional_source_needs_a_resolved_lock_entry_once_declared(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            repo = consumer(Path(tmp), {"ai-rulez": "v5", "adrlint": "v0.4.1"}, locked=["ai-rulez"])
+            repo = consumer(Path(tmp), {"ai-rulez": "v5", "adrlint": "v0"}, locked=["ai-rulez"])
             self.assertEqual(
                 hook_pins.check(repo, POLICY),
                 [f"{repo / 'poly-hooks.lock'}: expected exactly one adrlint hook source, found 0"],

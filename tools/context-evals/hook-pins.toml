@@ -1,6 +1,7 @@
 # Hook sources a consumer's poly.toml must pin, read by hook_pins.py.
-# A bare major (`vN`) floats with the publisher's releases (org ADR-0015); a full tag (`vN.N.N`) is exact, for
-# publishers without a major tag. A `required` source must be declared; the others are checked where declared.
+# Every source floats on its bare major (`vN`, org ADR-0008, ADR-0015). The loader also accepts an exact full tag
+# (`vN.N.N`) for a publisher without a major tag; no source uses one. A `required` source must be declared; the
+# others are checked where declared.
 
 [[sources]]
 id = "ai-rulez"
@@ -13,4 +14,4 @@ revision = "v0"
 
 [[sources]]
 id = "adrlint"
-revision = "v0.4.1"
+revision = "v0"

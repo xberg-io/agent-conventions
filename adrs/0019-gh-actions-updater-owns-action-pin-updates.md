@@ -32,17 +32,20 @@ poly hook from a `gh-actions-updater` hook source on the floating `v0` tag, and 
 `reusable-actions-bump.yml` moves references to their latest major. Renovate and Dependabot do not manage
 `github-actions`: the toolchains preset disables that manager, and a Dependabot config drops that ecosystem.
 
+Poly hook sources take the same form: ai-rulez, gh-actions-updater and adrlint each float on their bare major tag
+(`v5`, `v0`, `v0`), and the lock records the commit it resolved to.
+
 ### Consequences
 
 * Good, because one tool writes and checks action references, so a bot never proposes a pin the hook rejects.
 * Good, because the hook needs no token or network.
-* Bad, because gau is one more hook source every repository pins and updates.
+* Bad, because gau is one more hook source every repository declares and locks.
 * Bad, because xberg-enterprise's `.github/dependabot.yml` still lists the `github-actions` ecosystem until its own
   change drops it.
 
 ### Confirmation
 
 xberg-io/toolchains `default.json` disables Renovate's `github-actions` manager (`xberg-io/toolchains@04e2041`).
-`tools/context-evals/hook-pins.toml` floats the `gh-actions-updater` hook source on `v0`, and `hook_pins.py`, run by
-`actions/context-exposure`, rejects a consumer that pins it otherwise (`test_hook_pins.py`). The
+`tools/context-evals/hook-pins.toml` floats every hook source on its bare major, and `hook_pins.py`, run by
+`actions/context-exposure`, rejects a consumer that pins one otherwise (`test_hook_pins.py`). The
 `github-workflow-conventions` skill and the `toolchain-management` rule state the policy.
