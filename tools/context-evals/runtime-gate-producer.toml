@@ -1,0 +1,18 @@
+version = 1
+
+[[hooks]]
+id = "ai-runtime-freshness"
+stages = ["pre-commit"]
+workspace = true
+always_run = true
+pass_filenames = false
+
+[[hooks.paths]]
+channel = "system"
+check = "command -v python3 && python3 -c 'import tomllib' && command -v ai-rulez"
+run = 'python3 "$POLY_HOOK_SOURCE_ROOT/tools/context-evals/hook_preflight.py"'
+
+[[hooks.paths]]
+channel = "npm"
+check = "command -v python3 && python3 -c 'import tomllib' && command -v npx"
+run = 'python3 "$POLY_HOOK_SOURCE_ROOT/tools/context-evals/hook_preflight.py"'
