@@ -1,3 +1,3 @@
 # Subdirectories
 
-* [xberg-brand-and-docs](xberg-brand-and-docs/index.md)
+- [xberg-brand-and-docs](xberg-brand-and-docs/index.md)

@@ -1,3 +1,3 @@
 # Subdirectories
 
-* [gcloud-conventions](gcloud-conventions/index.md)
+- [gcloud-conventions](gcloud-conventions/index.md)
