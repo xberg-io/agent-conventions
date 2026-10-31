@@ -276,25 +276,71 @@ def recorded_continuation(run_dir: Path, domains: dict) -> continuation.Plan | N
     )
 
 
+def certificate_fields(info: runner.SessionMeta | None, meta: dict, versions: tuple[str, ...]) -> bool:
+    return (
+        info is not None
+        and info.bounded_failure is True
+        and type(info.returncode) is int
+        and info.returncode == 1
+        and isinstance(info.stderr, str)
+        and meta.get("harness_version") in versions
+        and meta.get("allowed_tools") == list(runner.DEFAULT_TOOLS)
+        and meta.get("model") in gateway.MODELS
+    )
+
+
+def certificate_profile(raw: str, meta: dict) -> bool:
+    gate = gateway_transport.InitGate(meta["model"], runner.DEFAULT_TOOLS)
+    gate.observe(json.dumps(transcript.parse(raw).init))
+    return gate.valid
+
+
 def unavailable_certificate(info: runner.SessionMeta | None, raw: str, meta: dict) -> bool:
-    if (
-        info is None
-        or info.error != "tool_unavailable"
-        or info.bounded_failure is not True
-        or type(info.returncode) is not int
-        or info.returncode != 1
-        or not isinstance(info.stderr, str)
-        or meta.get("harness_version") != HARNESS_VERSION
-        or meta.get("allowed_tools") != list(runner.DEFAULT_TOOLS)
-        or meta.get("model") not in gateway.MODELS
-    ):
+    if not certificate_fields(info, meta, (HARNESS_VERSION,)) or info.error != "tool_unavailable":
         return False
     result = runner.Completed(info.returncode, raw, info.stderr, bounded_failure=True)
     if runner.session_error(result, runner.DEFAULT_TOOLS) != "tool_unavailable":
         return False
-    gate = gateway_transport.InitGate(meta["model"], runner.DEFAULT_TOOLS)
-    gate.observe(json.dumps(transcript.parse(raw).init))
-    return gate.valid
+    return certificate_profile(raw, meta)
+
+
+def maximum_certificate(info: runner.SessionMeta | None, raw: str, meta: dict) -> bool:
+    maximum = meta.get("max_turns")
+    if (
+        not certificate_fields(info, meta, ("5", HARNESS_VERSION))
+        or info.error not in ("", "error_max_turns")
+        or type(maximum) is not int
+        or maximum <= 0
+    ):
+        return False
+    result = runner.Completed(info.returncode, raw, info.stderr, bounded_failure=True)
+    return (
+        gateway_transport.maximum_turn_failure(result, maximum)
+        and not runner.tool_profile_error(raw, runner.DEFAULT_TOOLS)
+        and certificate_profile(raw, meta)
+    )
+
+
+def trial_status(info: runner.SessionMeta | None, raw: str, meta: dict) -> tuple[str, bool]:
+    tools = meta.get("allowed_tools")
+    if meta.get("harness_version") not in ("5", HARNESS_VERSION):
+        profile_error = "unsupported execution methodology"
+    elif not isinstance(tools, list) or not all(isinstance(tool, str) for tool in tools):
+        profile_error = "invalid declared tool profile"
+    else:
+        profile_error = runner.tool_profile_error(raw, tuple(tools))
+    error = profile_error or (info.error if info else "") or transcript.parse(raw).error
+    if unavailable_certificate(info, raw, meta):
+        return "tool_unavailable", True
+    if error == "tool_unavailable":
+        return "uncertified tool-unavailable failure", False
+    if error == "error_max_turns":
+        if maximum_certificate(info, raw, meta):
+            return error, True
+        return "uncertified maximum-turn failure", False
+    if not error and info is not None and (type(info.returncode) is not int or info.returncode != 0):
+        error = "uncertified CLI execution"
+    return error, False
 
 
 def score_trial(
@@ -309,15 +355,7 @@ def score_trial(
     if path is None or not path.exists():
         return None
     raw = path.read_text()
-    profile_error = (
-        runner.tool_profile_error(raw, tuple(meta["allowed_tools"]))
-        if meta.get("harness_version") == HARNESS_VERSION
-        else ""
-    )
-    error = (info.error if info else "") or profile_error
-    bounded = info.bounded_failure if info else False
-    if error == "tool_unavailable" and not unavailable_certificate(info, raw, meta):
-        error, bounded = "uncertified tool-unavailable failure", False
+    error, bounded = trial_status(info, raw, meta)
     return scoring.score(
         case,
         transcript.parse(raw),

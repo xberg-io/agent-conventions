@@ -128,10 +128,20 @@ class CompletionMetricsTest(unittest.TestCase):
             testkit.make_checkout(out / "context")
             case = cases.load_corpus(testkit.CASES, testkit.domains())[0]
             raw = testkit.transcript_text("error").replace(testkit.RUN_ROOT, str(checkout))
+            raw = raw.replace('"test-model"', '"claude-sonnet-5-5"')
+            events = [json.loads(line) for line in raw.splitlines()]
+            events[-1].update(
+                stop_reason="tool_use",
+                terminal_reason="max_turns",
+                errors=["Reached maximum number of turns (1)"],
+                safety_stops=0,
+                permission_denials=[],
+            )
+            raw = "\n".join(map(json.dumps, events))
             worker = runner.Runner(
                 checkout,
                 out,
-                runner.RunConfig("test-model"),
+                runner.RunConfig("claude-sonnet-5-5", max_turns=1),
                 execute=lambda *_: runner.Completed(1, raw, "", bounded_failure=True),
                 environ={"ANTHROPIC_API_KEY": "OFFLINE_DUMMY"},
             )
@@ -148,6 +158,8 @@ class CompletionMetricsTest(unittest.TestCase):
                     "repeats": 1,
                     "harness_version": harness.HARNESS_VERSION,
                     "allowed_tools": list(runner.DEFAULT_TOOLS),
+                    "model": "claude-sonnet-5-5",
+                    "max_turns": 1,
                 },
             )
             self.assertEqual(harness.score_run(out, testkit.domains()), 0)

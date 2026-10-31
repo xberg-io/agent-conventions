@@ -105,6 +105,27 @@ def native_events() -> list[dict]:
     ]
 
 
+def maximum_events() -> list[dict]:
+    events = native_events()[:3]
+    events[1]["message"]["content"][0]["name"] = "Read"
+    events[2]["message"]["content"][0].update(is_error=False, content="old")
+    events.append(
+        {
+            "type": "result",
+            "subtype": "error_max_turns",
+            "is_error": True,
+            "num_turns": 9,
+            "stop_reason": "tool_use",
+            "terminal_reason": "max_turns",
+            "result": "",
+            "errors": ["Reached maximum number of turns (8)"],
+            "safety_stops": 0,
+            "permission_denials": [],
+        }
+    )
+    return events
+
+
 class RefusalLatchTest(unittest.TestCase):
     def test_validation_only_replacement_cannot_hide_an_oversized_original_request(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -256,6 +277,81 @@ class UnavailableScoringTest(unittest.TestCase):
 
 
 class RescoreProofTest(unittest.TestCase):
+    def test_known_historical_profiles_preserve_genuine_maximum_failures_and_reject_drift(self) -> None:
+        for version in ("5", harness.HARNESS_VERSION):
+            for error in ("", "error_max_turns"):
+                self.assertTrue(
+                    scoring.valid_trial(
+                        self.score(
+                            maximum_events(), stored={"error": error}, run={"max_turns": 8, "harness_version": version}
+                        )
+                    )
+                )
+            success = maximum_events()
+            success[-1] = {"type": "result", "subtype": "success", "is_error": False, "result": "fixture answer"}
+            metadata = {"error": "", "returncode": 0, "bounded_failure": False}
+            self.assertTrue(scoring.valid_trial(self.score(success, stored=metadata, run={"harness_version": version})))
+            success[0]["tools"] = ["Bash"]
+            success[1]["message"]["content"][0]["name"] = "Bash"
+            self.assertFalse(
+                scoring.valid_trial(self.score(success, stored=metadata, run={"harness_version": version}))
+            )
+
+    def test_maximum_turn_zero_requires_typed_metadata_and_the_declared_turn_budget(self) -> None:
+        for change in (
+            {"returncode": True},
+            {"returncode": 0},
+            {"bounded_failure": 1},
+            {"bounded_failure": False},
+            {"stderr": []},
+            {"error": "timeout"},
+        ):
+            with self.subTest(stored=change):
+                self.assertFalse(
+                    scoring.valid_trial(
+                        self.score(maximum_events(), stored={"error": "error_max_turns"} | change, run={"max_turns": 8})
+                    )
+                )
+        for change in (
+            {},
+            {"max_turns": None},
+            {"max_turns": 0},
+            {"max_turns": True},
+            {"max_turns": 7},
+            {"max_turns": 9},
+            {"max_turns": "8"},
+            {"max_turns": 8, "harness_version": "unknown"},
+        ):
+            with self.subTest(run=change):
+                self.assertFalse(
+                    scoring.valid_trial(self.score(maximum_events(), stored={"error": "error_max_turns"}, run=change))
+                )
+
+    def test_maximum_turn_zero_rejects_unknown_terminals_permissions_and_tool_profiles(self) -> None:
+        for terminal in (
+            {"subtype": "unknown-error"},
+            {"num_turns": 8},
+            {"permission_denials": ["Read"]},
+            {"errors": ["unknown error"]},
+            {"terminal_reason": "unknown"},
+        ):
+            broken = maximum_events()
+            broken[-1].update(terminal)
+            self.assertFalse(
+                scoring.valid_trial(self.score(broken, stored={"error": "error_max_turns"}, run={"max_turns": 8}))
+            )
+        broken = maximum_events()
+        broken[1]["message"]["content"][0]["name"] = "Bash"
+        broken[-1]["subtype"] = "unknown-error"
+        for version in ("5", harness.HARNESS_VERSION):
+            self.assertFalse(
+                scoring.valid_trial(
+                    self.score(
+                        broken, stored={"error": "error_max_turns"}, run={"max_turns": 8, "harness_version": version}
+                    )
+                )
+            )
+
     @staticmethod
     def native_mutants() -> list[list[dict]]:
         mutants = [native_events()[:-1], native_events() + [native_events()[-1]]]

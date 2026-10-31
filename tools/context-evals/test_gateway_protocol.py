@@ -18,6 +18,33 @@ from test_gateway_transport import stream_body
 
 
 class ProviderProtocolTest(unittest.TestCase):
+    def test_unmatched_or_permission_tool_history_still_stops_and_retains_safe_policy_evidence(self) -> None:
+        from test_tool_unavailable import edit_stream, refusal_request
+
+        for known_source in (False, True):
+            with tempfile.TemporaryDirectory() as directory:
+                ledger = gateway.Ledger(Path(directory) / "offline.sqlite3", 25)
+                provider = Mock(return_value=("text/event-stream", edit_stream()))
+                request = refusal_request()
+                backend = gateway_transport.Backend(ledger, provider)
+                if known_source:
+                    backend.respond(payload(), MODEL, TOOLS)
+                    request["messages"][-1]["content"][0]["content"] = (
+                        "<tool_use_error>Permission denied</tool_use_error>"
+                    )
+                before = ledger.spent()
+                with self.assertRaises(gateway.GatewayError):
+                    backend.respond(request, MODEL, TOOLS)
+                snapshot = ledger.snapshot()
+                self.assertEqual(snapshot["stop_reason"], "request policy or reservation refused")
+                self.assertEqual(len(snapshot["requests"]), int(known_source))
+                self.assertTrue(all(row["state"] == "settled" for row in snapshot["requests"]))
+                self.assertEqual(ledger.spent(), before)
+                self.assertEqual(snapshot["diagnostics"][0]["data"]["policy_error"], "tool_profile_mismatch")
+                self.assertEqual(snapshot["diagnostics"][0]["data"]["policy_shape"]["tool_use_names"], ["Edit"])
+                self.assertEqual(snapshot["diagnostics"][0]["data"]["policy_shape"]["tool_names"], sorted(TOOLS))
+                self.assertEqual(provider.call_count, int(known_source))
+
     def test_updates_and_message_effort_use_only_the_documented_required_betas(self) -> None:
         request = payload() | {
             "thinking": {"type": "adaptive", "display": "updates"},
@@ -177,7 +204,7 @@ class ProviderProtocolTest(unittest.TestCase):
 
 @unittest.skipUnless(sys.platform == "darwin", "macOS actual CLI fixture")
 class NativePolicyFailureTest(unittest.TestCase):
-    def test_actual_cli_forbidden_tool_followup_retains_allowlisted_policy_evidence(self) -> None:
+    def test_actual_cli_unavailable_write_is_bounded_without_writing_or_stopping_the_round(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "mcp.json").write_text('{"mcpServers":{}}')
@@ -211,8 +238,8 @@ class NativePolicyFailureTest(unittest.TestCase):
             self.assertFalse(result.timed_out)
             self.assertEqual(len(calls), 1)
             self.assertEqual(snapshot["requests"][0]["state"], "settled")
-            self.assertEqual(snapshot["stop_reason"], "request policy or reservation refused")
-            self.assertEqual(snapshot["diagnostics"][0]["data"]["policy_error"], "tool_profile_mismatch")
-            self.assertEqual(snapshot["diagnostics"][0]["data"]["policy_shape"]["tool_use_names"], ["Write"])
-            self.assertEqual(snapshot["diagnostics"][0]["data"]["policy_shape"]["tool_names"], sorted(TOOLS))
+            self.assertTrue(result.bounded_failure)
+            self.assertEqual(runner.session_error(result, TOOLS), "tool_unavailable")
+            self.assertEqual(snapshot["stop_reason"], "")
+            self.assertEqual(snapshot["diagnostics"], [])
             self.assertFalse((root / "never-written.txt").exists())
