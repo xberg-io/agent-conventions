@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.8'
 scope = 'all'
-tree = 'sha256:df3f1e5023d93e25c5fc55e0829bb25c9e576d776dc573a5ab89826dd01295e5'
+tree = 'sha256:5e48adaf56deb85ecda93470fb3acfefba4eb60ad56b9162ffc413e8e29f1247'
 
 [[served]]
 name = 'adr-authoring'
@@ -64,7 +64,7 @@ digest = 'sha256:8f41215233c26441abed2b18f35575ce6b5614f91d9bef4885d550322542d4a
 name = 'document-corpus-handling'
 source = 'modules/document-corpora/skills/document-corpus-handling'
 commit = ''
-digest = 'sha256:149dfb82ad14e4ff8f6014556ba28734985a9439ed4f9576d16bbb4f764dac98'
+digest = 'sha256:79659b01f55466e6f65270ab51b7a5a1b6b92717e69da46f0151c116b168cd35'
 
 [[served]]
 name = 'e2e-generation'
@@ -88,7 +88,7 @@ digest = 'sha256:72ab88042d36374449285381c76935c2032bbd9b5f552d18f4e1c19f120b093
 name = 'gcloud-conventions'
 source = 'modules/infrastructure/skills/gcloud-conventions'
 commit = ''
-digest = 'sha256:276aed60958b6479e146a688351a39e70364b48ba74fd0cf272af8b74c1b6cb4'
+digest = 'sha256:1846207fdcfc0b4de03a309fcb11702d6ec056f1af2e46bf53db13650cb79097'
 
 [[served]]
 name = 'github-workflow-conventions'
@@ -190,31 +190,31 @@ digest = 'sha256:bb47380b8076f98da183aa2c2179c27acf304423f8a63417947b705a349af9a
 kind = 'local-include'
 id = 'public-bindings'
 path = 'modules/bindings'
-digest = 'sha256:3fa45fe6fdc8ba694de701aa7e60eaee22c4ca98796d66203367fea374e78531'
+digest = 'sha256:0623b9904116139f9a85c6825d91461e82ef8abc44bdfb22fdd78f6799826168'
 
 [[item]]
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:1336b173094464f47d3857ef77f8ac0a2b6ba576d41f2a8c3ff5c825be3097f3'
+digest = 'sha256:2766e42933e167100be4746364da13174dbad7072fa2d88a2dde0466b32b558b'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:257f66ec744ef841729c38e041c894b37e4f4af1d6d289f7c07a64f36c2a2713'
+digest = 'sha256:d99936bab2107eb18b024bf7913bbcc217036750507ea86f9904afa9899dffa7'
 
 [[item]]
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:0434b61bd88b2cd86e6bfb78dd1be09dce327345dfbbff8272f7e6e453c12cac'
+digest = 'sha256:cd7442a35a8e23c15a96829e526452181ee402e7ee41f7c7c0adc920153a61cf'
 
 [[item]]
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:b9ab62b52bd3e9d0815fe69106f7c24a83aa31d2b9f1b250a7489ed77db0c0d8'
+digest = 'sha256:6bc17ca3866ab33a47267a734693892ebfec4e41b93e2fbd68e4cd822c121cc2'
 
 [[item]]
 kind = 'skill'
