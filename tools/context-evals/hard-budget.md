@@ -213,3 +213,25 @@ retained uncertainty. Producing or validating this plan never authorizes a recov
 
 The lost refusal might have reflected model behavior. Its unknown outcome is a limitation of the replacement
 method, even though the replacement is declared without seeing or selecting an earlier answer.
+
+
+Version-2 collection admission additionally requires explicit operational-receipt initialization after the
+reviewed financial epoch has been admitted. `initialize_collection_receipts(plan)` creates only the two
+nonfinancial append-only tables `context_collection_owners` and `context_collection_receipts`; it refuses to
+bootstrap over already executed requests. Read-only drafting permits a fully absent schema. Live collection
+and reporting require its exact tables, uniqueness constraints and immutability triggers; missing or malformed
+objects never mean an empty history and are never repaired automatically.
+
+Ownership binds the epoch and consumer to one manifest, sealed output and actor, with an actor usable by only
+one consumer. Every fresh slot has a durable intent before forwarding and a completion receipt before the paid
+result returns. Transactions commit before provider execution. Each subsequent call reconciles the entire
+serialized prefix across both consumers, the owned financial request IDs, raw stdout hashes and metadata
+semantics. Loss of either file or the whole output, changed answers or substantive metadata, a new actor, or
+resealing the same epoch under another manifest is refused before another model request. All collection slots
+must finish before paid judging. Reports include every durable collection actor.
+
+Only Runner's post-return `seconds` diagnostic is excluded from the metadata semantic hash; it must still be
+finite and nonnegative. Elapsed time is not a baseline score or billing input. No claim is made that every
+metadata byte is attested. All outcome, profile, return-code, bounded-failure, collection, root and stderr-tail
+semantics, and all raw stdout bytes, remain bound to the completion receipt. Ordinary certified max-turn zeros
+remain valid. Pending or uncertified completion never permits automatic replay or another consumer to advance.

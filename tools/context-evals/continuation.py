@@ -916,6 +916,9 @@ def load_extension(
 ) -> Plan:
     validate_header(data, ledger)
     validate_financial(data, ledger, before_recovery=before_recovery, allow_stopped=allow_stopped)
+    from continuation_runtime import collection_schema_at
+
+    collection_schema_at(ledger, optional=before_recovery)
     anchor = require_keys(data["ancestor"], {"path", "sha256"})
     source = require_keys(data["extension_source"], {"root", "files"})
     attempt = require_keys(

@@ -646,6 +646,10 @@ def require_execution_policy(args: argparse.Namespace) -> None:
         ):
             raise HarnessError("continuation requires its approved primary and secondary judge models")
         plan.verify_run(args.run_dir, load_domains(args.domains))
+        if plan.data["version"] == 2:
+            from continuation_runtime import verify_collection_receipts
+
+            verify_collection_receipts(plan, complete=True)
 
 
 def budget_round(args: argparse.Namespace) -> dict | None:

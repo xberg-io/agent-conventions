@@ -330,6 +330,9 @@ class ExtensionRuntimeTest(ExtensionFixture, unittest.TestCase):
 
         self.plan = self.load_extension()
         test_continuation.RuntimePlanTest.advance(self, self.plan)
+        import continuation_runtime
+
+        continuation_runtime.initialize_collection_receipts(self.plan)
         return self.plan
 
     def test_complete_extension_collects_only_sealed_remainder_and_reports_every_attempt(self) -> None:
@@ -367,6 +370,9 @@ class ExtensionRuntimeTest(ExtensionFixture, unittest.TestCase):
         self.assertEqual(combined["methodology"]["cohort_agent_execution_attempts"], 10)
         self.assertEqual(combined["methodology"]["unknown_technical_attempts"], 1)
         self.assertEqual(combined["methodology"]["declared_replacements"], 1)
+        self.assertEqual(set(combined["methodology"]["collection_actors"]), {"xberg", "sceptre"})
+        self.assertEqual(len(set(combined["methodology"]["collection_actors"].values())), 2)
+        self.assertEqual(combined["methodology"]["durably_completed_collection_slots"], 6)
         self.assertEqual(combined["methodology"]["unknown_attempt"]["request_ids"], [4, 5, 6, 7, 8])
         self.assertTrue(combined["summary"]["overall"]["all_trials"]["execution_valid"])
         self.assertEqual({p: p.read_bytes() for p in before_sources}, before_sources)
@@ -461,7 +467,7 @@ class ExtensionRuntimeTest(ExtensionFixture, unittest.TestCase):
         self.assertEqual(result, 2)
         self.assertEqual(len(self.calls) - before, 1)
         state = continuation.ledger_state(self.ledger_path)
-        self.assertEqual(state["stops"][2], "declared technical replacement failed")
+        self.assertEqual(state["stops"][2], "collection result could not be certified by its durable receipt")
         meta = json.loads((Path(self.outputs["xberg"]) / "transcripts" / f"{self.extra.id}.r0.meta.json").read_text())
         self.assertEqual(meta["returncode"], 1)
         self.assertFalse(meta["bounded_failure"])
