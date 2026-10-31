@@ -1,3 +1,3 @@
 # Subdirectories
 
-* [context-improvement](context-improvement/index.md)
+- [context-improvement](context-improvement/index.md)
