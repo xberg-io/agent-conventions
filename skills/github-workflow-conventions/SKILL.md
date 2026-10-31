@@ -1,7 +1,7 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:63119887156587d864719f226c95b3d4dc9607417461015fbadd497c8876c490
+# Content-Hash: blake3:aa4c7c44b271c5fabe1a312c93d0e200e3bbfb5e4a27b8b871f51b0a2fc955b8
 ---
 
 # GitHub workflow conventions
@@ -44,9 +44,11 @@ A release may call a deployment workflow after its publication and verification 
 - Cancel superseded validation runs when safe. Do not cancel publication or deployment midway through
   irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
   renaming; review behavior changes separately.
-- Pin every `uses:` reference to the action's shortest major tag (`@v4`), not a full SHA or a minor
-  tag (the full version tag when the action publishes no major tag); convert SHA pins when you touch
-  a workflow.
+- Pin every `uses:` reference to the action's latest bare major tag (`@v4`); the full version tag
+  only where the upstream publishes no major; never a SHA or branch (org ADR-0008). gau
+  (gh-actions-updater) owns the updates: the `gh-actions-updater-lint-pins` poly hook gates them and
+  xberg-io/actions `reusable-actions-bump.yml` moves them. Renovate and Dependabot never manage
+  github-actions (org ADR-0019).
 <!-- ~keep org ADR-0015 runs ai-rulez at latest on purpose. -->
 <!-- ai-rulez-lint-ignore: AR021 ~keep -->
 - Tasks run `npx -y ai-rulez@latest`: ai-rulez is never pinned (org ADR-0015). Workflows use

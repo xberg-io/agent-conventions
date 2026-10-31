@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.9.8'
 scope = 'all'
-tree = 'sha256:7f80c9dcddf81088b9ca0a7a83bf71f9e9e34832aa695cbf0ac928624ec575f5'
+tree = 'sha256:df3f1e5023d93e25c5fc55e0829bb25c9e576d776dc573a5ab89826dd01295e5'
 
 [[served]]
 name = 'adr-authoring'
@@ -94,7 +94,7 @@ digest = 'sha256:276aed60958b6479e146a688351a39e70364b48ba74fd0cf272af8b74c1b6cb
 name = 'github-workflow-conventions'
 source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:a0ae86e372033aacc75a08d3f9967a2740d09e141f48a0dd5724600c6efc4022'
+digest = 'sha256:00579d27b9634903646544322fd750732cde114e6fdd5699dbe275444c40f7b6'
 
 [[served]]
 name = 'incremental-approach'
@@ -196,13 +196,13 @@ digest = 'sha256:3fa45fe6fdc8ba694de701aa7e60eaee22c4ca98796d66203367fea374e7853
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:27dde8ff43bc9d3a5d0cc2298e5d48c0b1ad7d35145d1cc0559dd1eb4f9d0d7e'
+digest = 'sha256:1336b173094464f47d3857ef77f8ac0a2b6ba576d41f2a8c3ff5c825be3097f3'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:37e5016f376e883dacebfa3ed559c9354756210108e4c948eaf2e59c4fa0e3dc'
+digest = 'sha256:257f66ec744ef841729c38e041c894b37e4f4af1d6d289f7c07a64f36c2a2713'
 
 [[item]]
 kind = 'local-include'
