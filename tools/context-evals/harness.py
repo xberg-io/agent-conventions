@@ -276,6 +276,27 @@ def recorded_continuation(run_dir: Path, domains: dict) -> continuation.Plan | N
     )
 
 
+def unavailable_certificate(info: runner.SessionMeta | None, raw: str, meta: dict) -> bool:
+    if (
+        info is None
+        or info.error != "tool_unavailable"
+        or info.bounded_failure is not True
+        or type(info.returncode) is not int
+        or info.returncode != 1
+        or not isinstance(info.stderr, str)
+        or meta.get("harness_version") != HARNESS_VERSION
+        or meta.get("allowed_tools") != list(runner.DEFAULT_TOOLS)
+        or meta.get("model") not in gateway.MODELS
+    ):
+        return False
+    result = runner.Completed(info.returncode, raw, info.stderr, bounded_failure=True)
+    if runner.session_error(result, runner.DEFAULT_TOOLS) != "tool_unavailable":
+        return False
+    gate = gateway_transport.InitGate(meta["model"], runner.DEFAULT_TOOLS)
+    gate.observe(json.dumps(transcript.parse(raw).init))
+    return gate.valid
+
+
 def score_trial(
     run_dir: Path, case: Case, repeat: int, meta: dict, domains: dict, plan: continuation.Plan | None
 ) -> records.SessionRecord | None:
@@ -293,6 +314,10 @@ def score_trial(
         if meta.get("harness_version") == HARNESS_VERSION
         else ""
     )
+    error = (info.error if info else "") or profile_error
+    bounded = info.bounded_failure if info else False
+    if error == "tool_unavailable" and not unavailable_certificate(info, raw, meta):
+        error, bounded = "uncertified tool-unavailable failure", False
     return scoring.score(
         case,
         transcript.parse(raw),
@@ -301,9 +326,9 @@ def score_trial(
         run_id=meta["run_id"],
         repeat=repeat,
         run_dir=str(run_dir.resolve()),
-        error=(info.error if info else "") or profile_error,
+        error=error,
         root=info.root if info else None,
-        bounded_failure=info.bounded_failure if info else False,
+        bounded_failure=bounded,
         provenance=provenance,
     )
 

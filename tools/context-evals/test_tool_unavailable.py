@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -17,6 +18,7 @@ import cases
 import continuation
 import gateway
 import gateway_transport
+import harness
 import runner
 import scoring
 import testkit
@@ -251,6 +253,75 @@ class UnavailableScoringTest(unittest.TestCase):
             continuation.validate_raw(
                 raw, meta | {"bounded_failure": False}, case, identity, workspace, allow_tool_unavailable=True
             )
+
+
+class RescoreProofTest(unittest.TestCase):
+    @staticmethod
+    def native_mutants() -> list[list[dict]]:
+        mutants = [native_events()[:-1], native_events() + [native_events()[-1]]]
+        for location, key, value in ((1, "name", "Bash"), (2, "content", "permission denied")):
+            broken = native_events()
+            broken[location]["message"]["content"][0][key] = value
+            mutants.append(broken)
+        broken = native_events()
+        broken[0]["model"] = broken[1]["message"]["model"] = "claude-sonnet-5"
+        mutants.append(broken)
+        broken = native_events()
+        broken[0]["mcp_servers"] = [{"name": "unexpected"}]
+        mutants.append(broken)
+        broken = native_events()
+        broken[1]["message"]["content"] = [{"type": "text", "text": json.dumps(broken[1]["message"]["content"])}]
+        mutants.append(broken)
+        return mutants
+
+    def score(self, events: list[dict], stored: dict | None = None, run: dict | None = None):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            testkit.make_checkout(out / "context")
+            (out / "transcripts").mkdir()
+            case = cases.load_corpus(testkit.CASES, testkit.domains())[0]
+            name = runner.session_name(case.id, 0)
+            (out / "transcripts" / f"{name}.jsonl").write_text("\n".join(map(json.dumps, events)))
+            info = runner.SessionMeta(
+                case.id, 0, str(out / "context"), 1, 0, error="tool_unavailable", bounded_failure=True
+            )
+            (out / "transcripts" / f"{name}.meta.json").write_text(json.dumps(asdict(info) | (stored or {})))
+            meta = {
+                "run_id": "offline",
+                "repo": case.repo,
+                "model": MODEL,
+                "allowed_tools": list(runner.DEFAULT_TOOLS),
+                "harness_version": harness.HARNESS_VERSION,
+            } | (run or {})
+            return harness.score_trial(out, case, 0, meta, testkit.domains(), None)
+
+    def test_rescoring_revalidates_the_native_certificate_instead_of_trusting_stored_error(self) -> None:
+        self.assertTrue(scoring.valid_trial(self.score(native_events())))
+        for change in (
+            {"returncode": True},
+            {"returncode": 0},
+            {"returncode": -1},
+            {"bounded_failure": 1},
+            {"bounded_failure": "true"},
+            {"bounded_failure": False},
+            {"stderr": []},
+            {"error": "timeout"},
+        ):
+            with self.subTest(stored=change):
+                self.assertFalse(scoring.valid_trial(self.score(native_events(), stored=change)))
+        for change in (
+            {"harness_version": "5"},
+            {"harness_version": "unknown"},
+            {"harness_version": None},
+            {"allowed_tools": ["Read", "Bash"]},
+            {"model": "claude-sonnet-5"},
+        ):
+            with self.subTest(run=change):
+                self.assertFalse(scoring.valid_trial(self.score(native_events(), run=change)))
+        for broken in self.native_mutants():
+            self.assertFalse(scoring.valid_trial(self.score(broken)))
+        with self.assertRaises(TypeError):
+            self.score(native_events(), stored={"timed_out": True})
 
 
 class EvidenceTest(unittest.TestCase):
