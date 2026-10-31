@@ -90,3 +90,8 @@ blake3 = "2d1436abcaf68da741553f1d952ecdf7f970f6fd877ed75b264d3881db4b810f"
 number = 17
 status = "accepted"
 blake3 = "eb2a57fee8ac2432dc7ce6d9db16fbae41d320eb8634895926e987930c44edf6"
+
+[adrs."adrs/0019-gh-actions-updater-owns-action-pin-updates.md"]
+number = 19
+status = "accepted"
+blake3 = "33ffe7fc49771003702c410126879b9c28d1ec35a15b4e51ce26543f1ea7c390"
