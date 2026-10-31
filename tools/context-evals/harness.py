@@ -289,20 +289,72 @@ def certificate_fields(info: runner.SessionMeta | None, meta: dict, versions: tu
     )
 
 
-def certificate_profile(raw: str, meta: dict) -> bool:
-    initializations = []
+def completion_events(raw: str) -> list[dict]:
+    """Project native JSON events while preserving the parser's existing text-diagnostic tolerance."""
+    events = []
     for line in raw.splitlines():
+        if not line.strip():
+            continue
         try:
             event = json.loads(line)
         except ValueError:
             continue
-        if isinstance(event, dict) and event.get("type") == "system" and event.get("subtype") == "init":
-            initializations.append(event)
+        if isinstance(event, dict):
+            events.append(event)
+    return events
+
+
+def completion_terminal(raw: str) -> dict | None:
+    events = completion_events(raw)
+    if not events:
+        return None
+    try:
+        return gateway_transport.terminal_event("\n".join(json.dumps(event, allow_nan=False) for event in events))
+    except (ValueError, TypeError):
+        return None
+
+
+def certificate_profile(raw: str, meta: dict) -> bool:
+    events = completion_events(raw)
+    if not events:
+        return False
+    initializations = [event for event in events if event.get("type") == "system" and event.get("subtype") == "init"]
     if len(initializations) != 1:
         return False
     gate = gateway_transport.InitGate(meta["model"], runner.DEFAULT_TOOLS)
     gate.observe(json.dumps(initializations[0]))
     return gate.valid
+
+
+def controller_metadata(info: runner.SessionMeta | None) -> bool:
+    return (
+        info is not None
+        and type(info.returncode) is int
+        and type(info.bounded_failure) is bool
+        and isinstance(info.error, str)
+        and isinstance(info.stderr, str)
+    )
+
+
+def ordinary_completion(info: runner.SessionMeta, terminal: dict) -> bool:
+    return (
+        info.returncode == 0
+        and info.error == ""
+        and info.bounded_failure is False
+        and terminal.get("subtype") == "success"
+        and terminal.get("is_error") is False
+        and terminal.get("errors", []) == []
+        and terminal.get("permission_denials", []) == []
+        and type(terminal.get("safety_stops", 0)) is int
+        and terminal.get("safety_stops", 0) == 0
+    )
+
+
+def completion_error(terminal: dict) -> str:
+    subtype = terminal.get("subtype")
+    if subtype == "success" and terminal.get("is_error") is False:
+        return ""
+    return subtype if isinstance(subtype, str) and subtype else "invalid native result"
 
 
 def unavailable_certificate(info: runner.SessionMeta | None, raw: str, meta: dict) -> bool:
@@ -345,7 +397,12 @@ def agent_profile_error(raw: str, meta: dict) -> str:
 
 def trial_status(info: runner.SessionMeta | None, raw: str, meta: dict) -> tuple[str, bool]:
     profile_error = agent_profile_error(raw, meta)
-    error = profile_error or (info.error if info else "") or transcript.parse(raw).error
+    terminal = completion_terminal(raw)
+    if terminal is None:
+        return profile_error or "invalid native completion", False
+    if not controller_metadata(info):
+        return profile_error or "invalid controller metadata", False
+    error = profile_error or info.error or completion_error(terminal)
     if unavailable_certificate(info, raw, meta):
         return "tool_unavailable", True
     if error == "tool_unavailable":
@@ -354,9 +411,9 @@ def trial_status(info: runner.SessionMeta | None, raw: str, meta: dict) -> tuple
         if maximum_certificate(info, raw, meta):
             return error, True
         return "uncertified maximum-turn failure", False
-    if not error and info is not None and (type(info.returncode) is not int or info.returncode != 0):
-        error = "uncertified CLI execution"
-    return error, False
+    if not error and ordinary_completion(info, terminal):
+        return "", False
+    return error or "uncertified CLI execution", False
 
 
 def score_trial(

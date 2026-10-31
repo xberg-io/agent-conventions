@@ -277,6 +277,51 @@ class UnavailableScoringTest(unittest.TestCase):
 
 
 class RescoreProofTest(unittest.TestCase):
+    def test_every_completion_requires_one_final_native_result_and_typed_controller_metadata(self) -> None:
+        ordinary = maximum_events()
+        ordinary[-1] = {"type": "result", "subtype": "success", "is_error": False, "result": "fixture answer"}
+        scenarios = [
+            (ordinary, {"error": "", "returncode": 0, "bounded_failure": False}),
+            (maximum_events(), {"error": "", "returncode": 1, "bounded_failure": True}),
+            (native_events(), {"error": "tool_unavailable", "returncode": 1, "bounded_failure": True}),
+        ]
+        for events, metadata in scenarios:
+            self.assertTrue(scoring.valid_trial(self.score(events, stored=metadata, run={"max_turns": 8})))
+            for change in (
+                {"omit_metadata": True},
+                {"returncode": True},
+                {"returncode": "0"},
+                {"bounded_failure": 1},
+                {"bounded_failure": None},
+                {"stderr": []},
+                {"error": None},
+            ):
+                with self.subTest(metadata=change, kind=events[-1]["subtype"]):
+                    self.assertFalse(
+                        scoring.valid_trial(self.score(events, stored=metadata | change, run={"max_turns": 8}))
+                    )
+            for broken in ([*events, dict(events[-1])], [*events, {"type": "status"}], events[:-1]):
+                self.assertFalse(scoring.valid_trial(self.score(broken, stored=metadata, run={"max_turns": 8})))
+        for key, value in (
+            ("is_error", None),
+            ("is_error", 0),
+            ("subtype", None),
+            ("permission_denials", ["Read"]),
+            ("safety_stops", 1),
+            ("errors", ["unknown error"]),
+        ):
+            broken = copy.deepcopy(ordinary)
+            if value is None:
+                broken[-1].pop(key)
+            else:
+                broken[-1][key] = value
+            self.assertFalse(scoring.valid_trial(self.score(broken, stored=scenarios[0][1])))
+        self.assertFalse(scoring.valid_trial(self.score(ordinary, stored=scenarios[0][1] | {"bounded_failure": True})))
+        for maximum in (None, True, 7):
+            self.assertFalse(
+                scoring.valid_trial(self.score(maximum_events(), stored=scenarios[1][1], run={"max_turns": maximum}))
+            )
+
     def test_ordinary_success_binds_the_requested_model_empty_mcp_and_canonical_agent_tools(self) -> None:
         metadata = {"error": "", "returncode": 0, "bounded_failure": False}
         for version in ("5", harness.HARNESS_VERSION):
@@ -409,7 +454,9 @@ class RescoreProofTest(unittest.TestCase):
             info = runner.SessionMeta(
                 case.id, 0, str(out / "context"), 1, 0, error="tool_unavailable", bounded_failure=True
             )
-            (out / "transcripts" / f"{name}.meta.json").write_text(json.dumps(asdict(info) | (stored or {})))
+            metadata = asdict(info) | (stored or {})
+            if metadata.pop("omit_metadata", False) is not True:
+                (out / "transcripts" / f"{name}.meta.json").write_text(json.dumps(metadata))
             meta = {
                 "run_id": "offline",
                 "repo": case.repo,
