@@ -27,10 +27,4 @@ permissions:
 
 jobs:
   check-toolchain:
-    name: Toolchain baseline
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: xberg-io/actions/check-toolchain@v1
-      - name: Install from the lock
-        uses: xberg-io/actions/setup-mise@v1
+    uses: xberg-io/actions/.github/workflows/reusable-toolchain.yml@v1
