@@ -123,6 +123,10 @@ domains = []
 [repos.docs-theme]
 domains = []
 
+# Company documents (pitch, product plans, market research) describe the commercial product.
+[repos.internal-docs]
+domains = ["xberg", "enterprise", "document-corpora"]
+
 [repos.infra]
 domains = ["infrastructure", "enterprise"]
 
