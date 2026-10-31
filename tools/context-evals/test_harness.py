@@ -221,10 +221,10 @@ class HarnessTest(unittest.TestCase):
         out = self.run_harness("legacy-profile")
         path = out / "run.json"
         current = json.loads(path.read_text())
-        self.assertEqual(current["harness_version"], "5")
-        legacy = {**current, "harness_version": "4"}
+        self.assertEqual(current["harness_version"], "6")
+        legacy = {**current, "harness_version": "5"}
         path.write_text(json.dumps(legacy))
-        self.assertIn("harness_version: '4' != '5'", harness.comparable(legacy, current))
+        self.assertIn("harness_version: '5' != '6'", harness.comparable(legacy, current))
         code, _, err = self.main(
             "run",
             "--repo",

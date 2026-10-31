@@ -261,9 +261,12 @@ def prior_metadata(root: Path, hashes: dict, selected: list, ref: str, identity:
     return meta
 
 
-def validate_raw(raw: str, meta: dict, case, identity: dict, workspace: Path) -> str | None:
+def validate_raw(
+    raw: str, meta: dict, case, identity: dict, workspace: Path, *, allow_tool_unavailable: bool = False
+) -> str | None:
     import gateway_transport
     import runner
+    import tool_unavailable
     import transcript
 
     worktree = Path(meta["root"])
@@ -277,12 +280,22 @@ def validate_raw(raw: str, meta: dict, case, identity: dict, workspace: Path) ->
     if len(init) != 1:
         raise ContinuationError("original transcript must have exactly one initialization")
     gate.observe(json.dumps(init[0]))
+    unavailable = (
+        allow_tool_unavailable
+        and meta.get("bounded_failure") is True
+        and meta.get("error") == "tool_unavailable"
+        and type(meta.get("returncode")) is int
+        and meta["returncode"] == 1
+        and tool_unavailable.native_evidence(raw, runner.DEFAULT_TOOLS) is not None
+    )
     if (
         not gate.valid
         or init[0].get("cwd") != str(worktree / case.cwd)
-        or runner.tool_profile_error(raw, runner.DEFAULT_TOOLS)
+        or (runner.tool_profile_error(raw, runner.DEFAULT_TOOLS) and not unavailable)
     ):
         raise ContinuationError("original initialization, anchored cwd or tool profile differs")
+    if unavailable:
+        return "certified-tool-unavailable"
     if meta.get("error") or type(meta["returncode"]) is not int:
         raise ContinuationError("original session contains an unclassified infrastructure failure")
     parsed = transcript.parse(raw)
@@ -599,23 +612,57 @@ def validate_header(data: object, ledger: Path, *, historical: bool = False) -> 
     return read_bound_json(controlled_path(item["path"], ledger), item["sha256"])
 
 
-def verify_historical_source(ref: str, manifest: dict) -> None:
-    import subprocess
+def historical_inventory(source: bytes) -> tuple[str, list[str]]:
+    import ast
 
     import gateway
 
-    files = gateway.manifest()["source_files"]
-    if manifest.get("source_files") != files or not re.fullmatch(r"[0-9a-f]{40}", ref):
-        raise ContinuationError("historical controller source inventory or ref changed")
     try:
-        content = b"".join(
-            subprocess.check_output(
-                ["git", "show", f"{ref}:tools/context-evals/{name}"],
-                cwd=Path(__file__).parents[2],
-                stderr=subprocess.DEVNULL,
-            )
-            for name in files
+        function = next(
+            node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == "manifest"
         )
+        files = [
+            node.value
+            for node in function.body
+            if isinstance(node, ast.Assign)
+            and any(isinstance(target, ast.Name) and target.id == "files" for target in node.targets)
+        ]
+        result = next(node.value for node in function.body if isinstance(node, ast.Return))
+        protocol = next(
+            ast.literal_eval(value)
+            for key, value in zip(result.keys, result.values, strict=True)
+            if isinstance(key, ast.Constant) and key.value == "protocol"
+        )
+        inventory = list(ast.literal_eval(files[0])) if len(files) == 1 else []
+    except (SyntaxError, ValueError, TypeError, AttributeError, StopIteration) as exc:
+        raise ContinuationError("historical controller has no static bound inventory") from exc
+    supported = gateway.manifest()["source_files"]
+    if protocol == "hard-gateway-4":
+        supported = [name for name in supported if name != "tool_unavailable.py"]
+    if protocol not in ("hard-gateway-4", "hard-gateway-5") or inventory != supported:
+        raise ContinuationError("historical source declares an unsupported controller inventory")
+    return protocol, inventory
+
+
+def verify_historical_source(ref: str, manifest: dict) -> None:
+    import subprocess
+
+    if not re.fullmatch(r"[0-9a-f]{40}", ref):
+        raise ContinuationError("historical controller source inventory or ref changed")
+
+    def source(name: str) -> bytes:
+        return subprocess.check_output(
+            ["git", "show", f"{ref}:tools/context-evals/{name}"],
+            cwd=Path(__file__).parents[2],
+            stderr=subprocess.DEVNULL,
+        )
+
+    try:
+        first = source("gateway.py")
+        protocol, files = historical_inventory(first)
+        if manifest.get("source_files") != files or manifest.get("protocol") != protocol:
+            raise ContinuationError("historical manifest differs from its source-declared inventory")
+        content = b"".join(first if name == "gateway.py" else source(name) for name in files)
     except subprocess.CalledProcessError as exc:
         raise ContinuationError("historical controller source is unavailable") from exc
     if hashlib.sha256(content).hexdigest() != manifest.get("source_sha256"):

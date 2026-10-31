@@ -17,6 +17,7 @@ from pathlib import Path
 
 import exposure
 import stats
+import tool_unavailable
 import transcript
 from cases import Case
 from records import RECORD_VERSION, Loaded, SessionRecord, Usage
@@ -101,6 +102,14 @@ def start_tokens(t: Transcript, context: Path) -> int:
     return int(exposure.claude(context).summary()["start_tokens"])
 
 
+def classified_outcome(t: Transcript, error: str, certified: bool, contaminated: list) -> tuple[str, str, bool]:
+    error = error or t.error or ("contaminated" if contaminated else "")
+    unavailable = certified is True and error == "tool_unavailable" and t.answer == tool_unavailable.API_ERROR
+    answer = "" if unavailable else t.answer
+    bounded = certified is True and error in ("error_max_turns", "tool_unavailable") and not contaminated and not answer
+    return error, answer, bounded
+
+
 def score(
     case: Case,
     t: Transcript,
@@ -120,7 +129,7 @@ def score(
     loaded = transcript.inventory(t, context, case.cwd, root)
     used = list(dict.fromkeys(name for name, _ in t.skills_used()))
     contaminated = transcript.contaminated(t, root, run_dir)
-    error = error or t.error or ("contaminated" if contaminated else "")
+    error, answer, bounded = classified_outcome(t, error, bounded_failure, contaminated)
     return SessionRecord(
         run_id=run_id,
         case_id=case.id,
@@ -129,24 +138,24 @@ def score(
         repeat=repeat,
         split=case.split,
         behaviour=case.behaviour,
-        asked=transcript.asked(t.answer),
+        asked=transcript.asked(answer),
         loaded=loaded,
         skills_used=used,
         must_use_hit=[s for s in case.must_use if s in used],
         must_use_missed=[s for s in case.must_use if s not in used],
         must_not_use_hit=[s for s in case.must_not_use if s in used],
         leaked_artifacts=leaked_artifacts(loaded, case, domains, context),
-        answer_leaks=answer_leaks(t.answer, case, domains),
-        expect_pass=all(re.search(p, t.answer) for p in case.expect) if case.expect and not error else None,
+        answer_leaks=answer_leaks(answer, case, domains),
+        expect_pass=all(re.search(p, answer) for p in case.expect) if case.expect and not error else None,
         criteria={c.id: None for c in case.criteria},
-        answer=t.answer,
+        answer=answer,
         start_tokens=start_tokens(t, context),
         usage=t.usage if t.usage != Usage() else (t.first_usage or Usage()),
         cost_usd=t.cost_usd,
         turns=t.turns or t.assistant_turns,
         error=error,
         contaminated=contaminated,
-        bounded_failure=bounded_failure is True and error == "error_max_turns" and not contaminated and not t.answer,
+        bounded_failure=bounded,
         expect_applicable=bool(case.expect),
         provenance=provenance or {},
     )
@@ -198,7 +207,9 @@ def valid_trial(record: SessionRecord) -> bool:
         return False
     if not record.error:
         return not record.bounded_failure
-    return record.error == "error_max_turns" and record.bounded_failure is True and not record.answer
+    return (
+        record.error in ("error_max_turns", "tool_unavailable") and record.bounded_failure is True and not record.answer
+    )
 
 
 def trial_rate(rows: list[SessionRecord], value: Callable[[SessionRecord], float | None]) -> dict:

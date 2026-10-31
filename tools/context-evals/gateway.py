@@ -107,11 +107,12 @@ def manifest() -> dict:
         "continuation.py",
         "continuation_compat.py",
         "continuation_runtime.py",
+        "tool_unavailable.py",
     )
     source = b"".join((Path(__file__).parent / name).read_bytes() for name in files)
     return {
         "version": POLICY_VERSION,
-        "protocol": "hard-gateway-4",
+        "protocol": "hard-gateway-5",
         "source_sha256": hashlib.sha256(source).hexdigest(),
         "source_files": list(files),
         "context_tokens": CONTEXT_TOKENS,

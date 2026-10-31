@@ -32,16 +32,41 @@ class PreviousMetadata(ast.NodeTransformer):
         return self.generic_visit(node)
 
 
-def sources() -> tuple[dict, dict]:
-    current = {
+def live_sources() -> dict:
+    return {
         name: (Path(__file__).parent / name).read_text()
         for name in ("gateway.py", "gateway_transport.py", "runner.py", "judge.py")
     }
+
+
+def legacy_sources() -> dict:
+    current = live_sources()
+    fixture = ast.parse((Path(__file__).parent / "testdata" / "protocol4-collection.txt").read_text())
+    for file, name in (
+        ("gateway_transport.py", "Backend"),
+        ("gateway_transport.py", "HardExecute.__call__"),
+        ("runner.py", "Runner.session"),
+    ):
+        tree = ast.parse(current[file])
+        parent = tree if "." not in name else continuation_compat.symbol_node(tree, name.rsplit(".", 1)[0])
+        original = continuation_compat.symbol_node(tree, name)
+        parent.body[parent.body.index(original)] = copy.deepcopy(continuation_compat.symbol_node(fixture, name))
+        current[file] = ast.unparse(tree)
+    return current
+
+
+def sources() -> tuple[dict, dict]:
+    current = legacy_sources()
     previous = {name: ast.unparse(PreviousMetadata().visit(ast.parse(value))) for name, value in current.items()}
     return previous, current
 
 
 class CompatibilityProofTest(unittest.TestCase):
+    def test_new_session_refusal_behavior_is_not_an_old_metadata_only_transition(self) -> None:
+        previous, _current = sources()
+        with self.assertRaises(continuation.ContinuationError):
+            continuation_compat.check_sources(previous, live_sources())
+
     def test_declared_post_execution_classification_and_metadata_do_not_change_model_inputs(self) -> None:
         previous, current = sources()
         proof = continuation_compat.check_sources(previous, current)
@@ -106,14 +131,16 @@ class PreviousObservability(ast.NodeTransformer):
 
 class ExtensionCompatibilityTest(unittest.TestCase):
     def fixtures(self):
-        current = {
-            name: (Path(__file__).parent / name).read_text()
-            for name in ("gateway.py", "gateway_transport.py", "runner.py", "judge.py")
-        }
+        current = legacy_sources()
         previous = {
             name: ast.unparse(PreviousObservability().visit(ast.parse(value))) for name, value in current.items()
         }
         return previous, current
+
+    def test_new_session_refusal_behavior_is_not_an_old_observability_only_extension(self) -> None:
+        previous, _current = self.fixtures()
+        with self.assertRaises(continuation.ContinuationError):
+            continuation_compat.extension_check_sources(previous, live_sources())
 
     def test_exact_reviewed_observability_exceptions_preserve_normal_model_execution(self) -> None:
         previous, current = self.fixtures()

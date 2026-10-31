@@ -44,7 +44,7 @@ import transcript
 from cases import Case, Criterion, Reference
 
 HERE = Path(__file__).parent
-HARNESS_VERSION = "5"
+HARNESS_VERSION = "6"
 VERSION_KEYS = (
     "judge_prompt_version",
     "rubric_version",

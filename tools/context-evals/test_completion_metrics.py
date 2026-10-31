@@ -54,8 +54,8 @@ class CompletionMetricsTest(unittest.TestCase):
         for payload in [missing, *[value | {"version": version} for version in (True, "2", 2.0, None, 99)]]:
             with self.subTest(version=payload.get("version")), self.assertRaises(ValueError):
                 SessionRecord.from_dict(payload)
-        self.assertEqual(SessionRecord.from_dict(value).version, 2)
-        self.assertEqual(record(0).version, 2)
+        self.assertEqual(SessionRecord.from_dict(value).version, 3)
+        self.assertEqual(record(0).version, 3)
         legacy = SessionRecord.from_dict(value | {"version": 1})
         self.assertFalse(scoring.summarise([legacy])["all_trials"]["execution_valid"])
 

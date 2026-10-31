@@ -112,8 +112,15 @@ class HistoricalSourceTest(unittest.TestCase):
         import gateway
 
         inventory = gateway.manifest()["source_files"]
-        manifest = gateway.manifest() | {"source_sha256": hashlib.sha256(b"offline" * len(inventory)).hexdigest()}
-        with patch("subprocess.check_output", return_value=b"offline") as git_source:
+        first = Path(gateway.__file__).read_bytes()
+        manifest = gateway.manifest() | {
+            "source_sha256": hashlib.sha256(first + b"offline" * (len(inventory) - 1)).hexdigest()
+        }
+
+        def source(argv: list[str], **_options: object) -> bytes:
+            return first if argv[-1].endswith("/gateway.py") else b"offline"
+
+        with patch("subprocess.check_output", side_effect=source) as git_source:
             continuation.verify_historical_source("f" * 40, manifest)
             self.assertEqual(git_source.call_count, len(inventory))
             with self.assertRaises(continuation.ContinuationError):
@@ -163,6 +170,8 @@ class StudyDimensionTest(unittest.TestCase):
 class ExtensionFixture(CollectionFixture):
     def setUp(self) -> None:
         super().setUp()
+        # This fixture represents protocol4 history, independent of the live harness version.
+        self.enterContext(patch("harness.HARNESS_VERSION", "5"))
         self.prepare_corpus()
         self.prepare_collection()
         self.capture_lost_source()

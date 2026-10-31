@@ -182,8 +182,8 @@ def resolve_local(plan: Plan, repo: str, case_id: str, repeat: int, out: Path) -
     ids = collection["request_ids"]
     raw = raw_path.read_text()
     case = next(case for case in plan.selected[repo] if case.id == case_id)
-    bounded = validate_raw(raw, asdict(info), case, plan.identities[repo], plan.workspace)
-    if info.bounded_failure != (bounded == "certified-max-turns"):
+    bounded = validate_raw(raw, asdict(info), case, plan.identities[repo], plan.workspace, allow_tool_unavailable=True)
+    if info.bounded_failure != (bounded in ("certified-max-turns", "certified-tool-unavailable")):
         raise ContinuationError("fresh bounded failure lacks its controller certificate")
     messages = model_response_ids(raw)
     if len(messages) != len(ids):
@@ -779,16 +779,9 @@ def claim_collection_slot(plan: Plan, ledger, repo: str, argv: list, cwd: Path) 
 
 
 def model_response_ids(raw: str) -> set[str]:
-    import gateway_transport
+    import tool_unavailable
 
-    events = [gateway_transport.decode_json(line.encode()) for line in raw.splitlines() if line.strip()]
-    return {
-        value["message"]["id"]
-        for value in events
-        if value.get("type") == "assistant"
-        and isinstance(value.get("message"), dict)
-        and isinstance(value["message"].get("id"), str)
-    }
+    return set(tool_unavailable.native_response_ids(raw))
 
 
 def completion_payload(plan: Plan, key: tuple, cwd: Path, result) -> dict:
@@ -803,15 +796,7 @@ def completion_payload(plan: Plan, key: tuple, cwd: Path, result) -> dict:
     root = next((path for path in (cwd, *cwd.parents) if path.parent == parent), None)
     if root is None:
         raise ContinuationError("completion root is outside its frozen worktree template")
-    error = (
-        "timeout"
-        if result.timed_out
-        else (
-            f"exit {result.returncode}"
-            if result.returncode and not result.stdout.strip()
-            else runner.tool_profile_error(result.stdout, runner.DEFAULT_TOOLS)
-        )
-    )
+    error = runner.session_error(result, runner.DEFAULT_TOOLS)
     meta = runner.SessionMeta(
         key[1],
         key[2],
@@ -825,9 +810,11 @@ def completion_payload(plan: Plan, key: tuple, cwd: Path, result) -> dict:
     )
     valid = True
     try:
-        bounded = validate_raw(result.stdout, asdict(meta), case, plan.identities[key[0]], plan.workspace)
+        bounded = validate_raw(
+            result.stdout, asdict(meta), case, plan.identities[key[0]], plan.workspace, allow_tool_unavailable=True
+        )
         valid = (
-            result.bounded_failure == (bounded == "certified-max-turns")
+            result.bounded_failure == (bounded in ("certified-max-turns", "certified-tool-unavailable"))
             and not result.timed_out
             and len(model_response_ids(result.stdout)) == len(result.collection["request_ids"])
         )

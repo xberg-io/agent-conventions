@@ -1,6 +1,6 @@
 # Bounded evaluation egress
 
-Harness 5 adds `--hard-budget` for `run`, `judge` and `judge-validate`. It reserves the worst-case documented
+Harness 6 retains `--hard-budget` for `run`, `judge` and `judge-validate`. It reserves the worst-case documented
 standard API charge in one SQLite ledger **before** forwarding each Messages request. This protocol caps each
 request at 4,096 output tokens; it is a new study protocol, not a comparable continuation of older runs.
 The historical soft-budget attempt stays invalid.
@@ -82,7 +82,7 @@ Use the **same** ledger for Sceptre, primary judging and independent judge valid
 `--allow-soft-budget` are mutually exclusive. The legacy `probe.py` interface is outside this hard-budget
 execution path; do not charge probes to this round through its soft-budget interface.
 
-`run.json` records harness 5, the price/output policy, and a digest of the gateway implementation. A separate
+`run.json` records harness 6, the price/output policy, and a digest of the gateway implementation. A separate
 `budget_round` records the ledger's immutable UUID, total ceiling and canonical path. Both repositories share
 that identity; resume and paid judging reject any attempt to switch to a new ledger. Verdicts and validity
 reports must match the same round. Different independently approved rounds can still be compared when their
@@ -134,6 +134,32 @@ Criteria rates remain ungraded when applicable completed trials lack validated v
 eligibility alone does not satisfy the separate complete-corpus and judge-validity gates. Old records default to
 uncertified, and legacy record schemas cannot claim a valid primary baseline; the error string alone cannot
 certify a failed trial.
+
+### Native unavailable-tool task failures
+
+Protocol `hard-gateway-5`, harness 6 and record schema 3 distinguish `tool_unavailable` from a maximum-turn
+failure. The available tools remain exactly Read, Glob, Grep and Skill; judge tools remain empty. A model can
+request an unavailable tool, but the CLI must reject it locally. The gateway never forwards that rejected
+history and never makes the tool available.
+
+A per-session gateway lock latches the first source-bound refusal. Certification requires the tool ID, name
+and input to match an already settled model response, the exact native unavailable-tool error for that ID,
+and the exact local HTTP 400 terminal without permission denials, safety stops or additional errors. Ordered
+native response IDs must match every settled response in that session's exact owned request slice, including
+prior calls. The gateway validates a neutralized copy of only the matched call/result to detect any other
+invalid option; that copy is never forwarded. Every later request is refused by the latch. Unmatched history,
+unknown terminals, malformed events, policy violations or uncertain billing still stop the financial round.
+
+The controller retains the original raw transcript and records `tool_unavailable` plus its bounded-failure
+certificate. Only this certified category receives a zero; the local API error text is not an answer or a
+judge task. Missing certificates remain invalid. Schemas 1 and 2 remain readable but cannot claim current
+execution validity. Historical raw validation does not enable this new category; only fresh controller-bound
+completion receipts can admit it. Existing continuation compatibility checks do not treat this new gateway
+behavior as an observability-only change: a new reviewed transition is required before any continuation.
+
+This is an offline protocol change, not a reclassification or recovery of the stopped 444-request round.
+Its existing charges, raw artifacts and failed trials remain unchanged. Passing mock-provider/native-CLI
+controls authorizes no new paid request, recovery or continuation manifest.
 
 
 ## Immutable continuation of a reviewed collection

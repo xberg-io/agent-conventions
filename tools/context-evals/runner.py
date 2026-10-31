@@ -26,6 +26,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+import tool_unavailable
 import transcript
 from cases import Case
 
@@ -229,6 +230,16 @@ def tool_profile_error(stdout: str, expected: tuple[str, ...]) -> str:
     return ""
 
 
+def session_error(result: Completed, tools: tuple[str, ...]) -> str:
+    if result.timed_out:
+        return "timeout"
+    if result.returncode != 0 and not result.stdout.strip():
+        return f"exit {result.returncode}"
+    if result.bounded_failure and result.returncode == 1 and tool_unavailable.native_evidence(result.stdout, tools):
+        return "tool_unavailable"
+    return tool_profile_error(result.stdout, tools)
+
+
 @dataclass
 class RunConfig:
     model: str
@@ -341,12 +352,7 @@ class Runner:
             meta.returncode, meta.stderr = done.returncode, done.stderr[-STDERR_TAIL:]
             meta.bounded_failure = done.bounded_failure
             meta.collection = done.collection
-            if done.timed_out:
-                meta.error = "timeout"
-            elif done.returncode != 0 and not done.stdout.strip():
-                meta.error = f"exit {done.returncode}"
-            else:
-                meta.error = tool_profile_error(done.stdout, self.config.allowed_tools)
+            meta.error = session_error(done, self.config.allowed_tools)
             (transcripts / f"{name}.jsonl").write_text(done.stdout)
         (transcripts / f"{name}.meta.json").write_text(json.dumps(asdict(meta), indent=2) + "\n")
         return meta

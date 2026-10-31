@@ -15,6 +15,7 @@ from typing import BinaryIO, Self
 
 import gateway
 import runner
+import tool_unavailable
 
 RESPONSE_BYTES = 16 * 1024 * 1024
 CHUNK_BYTES = 64 * 1024
@@ -128,18 +129,48 @@ def policy_diagnostic(payload: dict, exception: Exception) -> dict:
     return {"category": "policy", "policy_error": code, "policy_shape": gateway.safe_policy_shape(shape)}
 
 
+class SessionToolRefused(gateway.GatewayError):
+    """Local session latch; certification is deferred until the exact native terminal is retained."""
+
+
 class Backend:
     def __init__(self, ledger: gateway.Ledger, provider: Provider) -> None:
         self.ledger, self.provider = ledger, provider
+        self.lock = threading.Lock()
+        self.sources: list[tool_unavailable.Evidence] = []
+        self.refusal: tool_unavailable.Evidence | None = None
+        self.requests: list[int] = []
+        self.responses: list[str] = []
+        self.before = set(self.actor_requests())
 
     def respond(self, payload: dict, model: str, tools: tuple[str, ...]) -> tuple[str, bytes]:
+        with self.lock:
+            return self.respond_locked(payload, model, tools)
+
+    def prepare(self, payload: dict, model: str, tools: tuple[str, ...]) -> dict:
+        if len(json.dumps(payload, allow_nan=False).encode()) > gateway.BODY_BYTES:
+            raise gateway.GatewayError("request body too large")
+        refusal = (
+            tool_unavailable.request_refusal(payload, tools, self.sources) if tools == runner.DEFAULT_TOOLS else None
+        )
+        request = gateway.Policy().prepare(refusal[1] if refusal else payload, tools)
+        if request["model"] != model:
+            raise gateway.GatewayError("CLI/request model mismatch")
+        if refusal:
+            if self.refusal is not None and refusal[0] != self.refusal:
+                raise gateway.GatewayError("unavailable-tool refusal identity changed")
+            self.refusal = refusal[0]
+        if self.refusal is not None:
+            raise SessionToolRefused("session stopped after a source-bound unavailable tool")
+        return request
+
+    def respond_locked(self, payload: dict, model: str, tools: tuple[str, ...]) -> tuple[str, bytes]:
         reservation, stage, metadata = None, "policy", {}
         try:
-            request = gateway.Policy().prepare(payload, tools)
-            if request["model"] != model:
-                raise gateway.GatewayError("CLI/request model mismatch")
+            request = self.prepare(payload, model, tools)
             stage = "reservation"
             reservation = self.ledger.reserve(model, request["max_tokens"])
+            self.requests.append(reservation)
             stage = "transport"
             response = self.provider(request)
             content_type, data = response
@@ -150,7 +181,11 @@ class Backend:
             cost = response_cost(content_type, data, model, request["max_tokens"], request.get("stream", False))
             stage = "settlement"
             self.ledger.settle(reservation, cost)
+            self.responses.append(tool_unavailable.response_message_id(content_type, data))
+            self.sources.extend(tool_unavailable.response_sources(content_type, data))
             return content_type, data
+        except SessionToolRefused:
+            raise
         except Exception as exc:
             diagnostic = exc.diagnostic if isinstance(exc, ProviderFailure) else metadata | {"category": stage}
             if stage == "policy":
@@ -160,6 +195,34 @@ class Backend:
             else:
                 self.ledger.uncertain(reservation, "provider request could not be safely settled", diagnostic)
             raise gateway.GatewayError("provider request refused or billing uncertain; round stopped") from exc
+
+    def actor_requests(self) -> dict[int, str]:
+        with self.ledger.connection() as db:
+            return dict(
+                db.execute(
+                    "SELECT r.id,r.state FROM hard_requests r JOIN hard_request_epochs e ON e.request=r.id "
+                    "WHERE e.epoch=? AND e.actor=?",
+                    (self.ledger.epochs.epoch, self.ledger.epochs.actor),
+                ).fetchall()
+            )
+
+    def certifies_tool_failure(self, result: runner.Completed, tools: tuple[str, ...]) -> bool:
+        current = self.actor_requests()
+        return (
+            tools == runner.DEFAULT_TOOLS
+            and result.returncode == 1
+            and not result.timed_out
+            and self.refusal is not None
+            and tool_unavailable.native_evidence(result.stdout, tools) == self.refusal
+            and len(self.responses) == len(self.requests)
+            and all(self.responses)
+            and len(set(self.responses)) == len(self.responses)
+            and tool_unavailable.native_response_ids(result.stdout) == self.responses
+            and bool(self.requests)
+            and set(current) - self.before == set(self.requests)
+            and all(current.get(ticket) == "settled" for ticket in self.requests)
+            and self.ledger.actor_requests_settled()
+        )
 
 
 class LocalGateway:
@@ -627,8 +690,13 @@ def bounded_task_failure(result: runner.Completed, argv: list[str], ledger: gate
 
 
 def certify_cli_result(
-    result: runner.Completed, argv: list[str], gate: InitGate, tools: tuple[str, ...], ledger: gateway.Ledger
+    result: runner.Completed,
+    argv: list[str],
+    gate: InitGate,
+    tools: tuple[str, ...],
+    backend: Backend,
 ) -> runner.Completed:
+    ledger = backend.ledger
     terminal = terminal_event(result.stdout)
     successful = (
         result.returncode == 0
@@ -636,8 +704,13 @@ def certify_cli_result(
         and terminal.get("subtype") == "success"
         and terminal.get("is_error") is False
     )
-    invalid = result.timed_out or not gate.valid or bool(runner.tool_profile_error(result.stdout, tools))
-    bounded = not invalid and bool(result.returncode) and bounded_task_failure(result, argv, ledger)
+    unavailable = gate.valid and backend.certifies_tool_failure(result, tools)
+    invalid = (
+        result.timed_out
+        or not gate.valid
+        or (bool(runner.tool_profile_error(result.stdout, tools)) and not unavailable)
+    )
+    bounded = not invalid and bool(result.returncode) and (unavailable or bounded_task_failure(result, argv, ledger))
     if invalid or not (successful or bounded):
         ledger.stop("CLI execution did not complete with the verified tool profile")
     return replace(result, bounded_failure=bounded)
@@ -691,7 +764,7 @@ class HardExecute:
                 except BaseException:
                     self.ledger.stop("isolated CLI interrupted or failed")
                     raise
-            return certify_cli_result(result, argv, gate, tools, self.ledger)
+            return certify_cli_result(result, argv, gate, tools, backend)
 
     @staticmethod
     def profile(argv: list[str]) -> tuple[str, tuple[str, ...]]:

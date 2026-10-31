@@ -11,7 +11,7 @@ import json
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
-RECORD_VERSION = 2
+RECORD_VERSION = 3
 BEHAVIOURS = ("answer", "ask", "either")
 
 
@@ -99,7 +99,7 @@ class SessionRecord:
         if unknown:
             raise ValueError(f"unknown session record fields: {sorted(unknown)}")
         data = dict(data)
-        if type(data.get("version")) is not int or data["version"] not in (1, RECORD_VERSION):
+        if type(data.get("version")) is not int or data["version"] not in (1, 2, RECORD_VERSION):
             raise ValueError("serialized session requires an explicit supported integer version")
         data["usage"] = Usage(**data.get("usage", {}))
         data["loaded"] = [Loaded(**item) for item in data.get("loaded", [])]
