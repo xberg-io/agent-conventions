@@ -19,7 +19,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check ai-rulez hook version
+    - name: Check hook source pins
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
