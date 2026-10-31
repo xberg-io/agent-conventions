@@ -277,6 +277,34 @@ class UnavailableScoringTest(unittest.TestCase):
 
 
 class RescoreProofTest(unittest.TestCase):
+    def test_ordinary_success_binds_the_requested_model_empty_mcp_and_canonical_agent_tools(self) -> None:
+        metadata = {"error": "", "returncode": 0, "bounded_failure": False}
+        for version in ("5", harness.HARNESS_VERSION):
+            success = maximum_events()
+            success[-1] = {"type": "result", "subtype": "success", "is_error": False, "result": "fixture answer"}
+            run = {"harness_version": version}
+            self.assertTrue(scoring.valid_trial(self.score(success, stored=metadata, run=run)))
+            generic = copy.deepcopy(success)
+            generic[0]["model"] = generic[1]["message"]["model"] = "offline-generic-model"
+            self.assertTrue(
+                scoring.valid_trial(self.score(generic, stored=metadata, run=run | {"model": "offline-generic-model"}))
+            )
+            wrong_model = copy.deepcopy(success)
+            wrong_model[0]["model"] = "claude-sonnet-5"
+            wrong_mcp = copy.deepcopy(success)
+            wrong_mcp[0]["mcp_servers"] = [{"name": "unexpected"}]
+            wrong_tools = copy.deepcopy(success)
+            wrong_tools[0]["tools"] = ["Bash"]
+            wrong_tools[1]["message"]["content"][0]["name"] = "Bash"
+            for broken, declaration in (
+                (wrong_model, run),
+                (wrong_mcp, run),
+                (wrong_tools, run | {"allowed_tools": ["Bash"]}),
+                ([success[0], *success], run),
+            ):
+                with self.subTest(version=version, declaration=declaration):
+                    self.assertFalse(scoring.valid_trial(self.score(broken, stored=metadata, run=declaration)))
+
     def test_known_historical_profiles_preserve_genuine_maximum_failures_and_reject_drift(self) -> None:
         for version in ("5", harness.HARNESS_VERSION):
             for error in ("", "error_max_turns"):

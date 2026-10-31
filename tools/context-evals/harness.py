@@ -290,8 +290,18 @@ def certificate_fields(info: runner.SessionMeta | None, meta: dict, versions: tu
 
 
 def certificate_profile(raw: str, meta: dict) -> bool:
+    initializations = []
+    for line in raw.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(event, dict) and event.get("type") == "system" and event.get("subtype") == "init":
+            initializations.append(event)
+    if len(initializations) != 1:
+        return False
     gate = gateway_transport.InitGate(meta["model"], runner.DEFAULT_TOOLS)
-    gate.observe(json.dumps(transcript.parse(raw).init))
+    gate.observe(json.dumps(initializations[0]))
     return gate.valid
 
 
@@ -321,14 +331,20 @@ def maximum_certificate(info: runner.SessionMeta | None, raw: str, meta: dict) -
     )
 
 
-def trial_status(info: runner.SessionMeta | None, raw: str, meta: dict) -> tuple[str, bool]:
-    tools = meta.get("allowed_tools")
+def agent_profile_error(raw: str, meta: dict) -> str:
     if meta.get("harness_version") not in ("5", HARNESS_VERSION):
-        profile_error = "unsupported execution methodology"
-    elif not isinstance(tools, list) or not all(isinstance(tool, str) for tool in tools):
-        profile_error = "invalid declared tool profile"
-    else:
-        profile_error = runner.tool_profile_error(raw, tuple(tools))
+        return "unsupported execution methodology"
+    if meta.get("allowed_tools") != list(runner.DEFAULT_TOOLS):
+        return "invalid declared agent tool profile"
+    if not isinstance(meta.get("model"), str) or not meta["model"]:
+        return "invalid declared model"
+    if not certificate_profile(raw, meta):
+        return "tool profile mismatch"
+    return runner.tool_profile_error(raw, runner.DEFAULT_TOOLS)
+
+
+def trial_status(info: runner.SessionMeta | None, raw: str, meta: dict) -> tuple[str, bool]:
+    profile_error = agent_profile_error(raw, meta)
     error = profile_error or (info.error if info else "") or transcript.parse(raw).error
     if unavailable_certificate(info, raw, meta):
         return "tool_unavailable", True

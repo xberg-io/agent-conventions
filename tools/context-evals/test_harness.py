@@ -36,6 +36,8 @@ def agent(script: dict[str, str]) -> runner.Execute:
     def execute(argv: list[str], cwd: Path, env: Mapping[str, str], timeout: float) -> runner.Completed:
         root = next(p for p in [cwd, *cwd.parents] if (p / ".git").exists())
         text = testkit.transcript_text(script[argv[2]]).replace(testkit.RUN_ROOT, str(root))
+        model = argv[argv.index("--model") + 1]
+        text = text.replace('"model": "test-model"', f'"model": {json.dumps(model)}')
         return runner.Completed(0, text, "")
 
     return execute
