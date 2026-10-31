@@ -1,0 +1,26 @@
+name: Windows hook transport probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-transport:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: xberg-io/actions/setup-mise@v1
+        with:
+          install-args: python github:Goldziher/poly
+      - name: Compare direct and Poly transports
+        shell: pwsh
+        run: >-
+          mise exec -- python tools/windows_transport_probe.py
+          --report-dir "$env:RUNNER_TEMP\windows-transport-probe"
+      - name: Retain native transport evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-transport-probe
+          path: ${{ runner.temp }}/windows-transport-probe
+          if-no-files-found: error
