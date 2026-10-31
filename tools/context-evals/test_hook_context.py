@@ -15,6 +15,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).parent))
 
 import hook_context
+import hook_fixture_commands as commands
 import hook_runtime
 import test_hook_runtime_poly as fixtures
 
@@ -71,11 +72,11 @@ pass_filenames=false
 [[hooks.paths]]
 channel="system"
 check="command -v python3"
-run='python3 "$POLY_HOOK_SOURCE_ROOT/capture.py" system'
+run={json.dumps(commands.producer_python("capture.py") + " system")}
 [[hooks.paths]]
 channel="npm"
 check="command -v python3"
-run='python3 "$POLY_HOOK_SOURCE_ROOT/capture.py" npm'
+run={json.dumps(commands.producer_python("capture.py") + " npm")}
 '''
         for name in ("context", "index")
     )
@@ -83,7 +84,7 @@ run='python3 "$POLY_HOOK_SOURCE_ROOT/capture.py" npm'
 
 def setup(root: Path) -> dict[str, str]:
     environment = fixtures.sandbox(root, ["system"], {})
-    (root / "bin/python3").symlink_to(sys.executable)
+    commands.forward(root / "bin/python3", sys.executable)
     (root / "producer/capture.py").write_text(CAPTURE)
     (root / "producer/poly-hooks.toml").write_text(catalogues())
     path = root / "poly.toml"
@@ -171,8 +172,8 @@ class HookContextTest(unittest.TestCase):
             fixtures.initialize(main, environment)
             commit(poly, main, environment)
             git(main, environment, "worktree", "add", "-b", "fixture-linked", str(linked))
-            (linked / "producer").symlink_to(main / "producer", target_is_directory=True)
-            (linked / "bin").symlink_to(main / "bin", target_is_directory=True)
+            commands.directory(main / "producer", linked / "producer")
+            commands.directory(main / "bin", linked / "bin")
             for local in (False, True):
                 with self.subTest(local_override=local):
                     if local:

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import subprocess
 
+import hook_fixture_commands as commands
 import test_hook_context as context_fixtures
 import test_hook_runtime_poly as poly_fixtures
 
@@ -26,29 +27,39 @@ LATEST = "5.9.8"
 OLD = "5.9.2"
 VALID_CONFIG = 'version="5.0"\nname="fixture"\npresets=["claude"]\nbuiltins=[]\n'
 
-ADAPTER = """import io, json, os, sys, urllib.request
+ADAPTER = """import io,json,os,runpy,sys,urllib.request
 from pathlib import Path
 from urllib.error import URLError
-if Path(sys.argv[0]).name == "hook_preflight.py":
-    record = {"actor": "preflight", "cwd": str(Path.cwd()), "argv": sys.argv[1:],
-              "source_root": os.environ.get("POLY_HOOK_SOURCE_ROOT"),
-              "git_dir": os.environ.get("GIT_DIR"), "index": os.environ.get("GIT_INDEX_FILE"),
-              "snapshot_config": Path("poly.toml").read_text(),
-              "probe": Path("probe.txt").read_text()}
-    with open(os.environ["PREFLIGHT_TRACE"], "a") as trace:
-        trace.write(json.dumps(record) + "\\n")
-    def reference(url, timeout):
-        if url == os.environ["CATALOGUE_URL"]:
+
+def observe_preflight():
+    record = {"actor":"preflight","cwd":str(Path.cwd()),"argv":sys.argv[1:],
+              "source_root":os.environ.get("POLY_HOOK_SOURCE_ROOT"),
+              "git_dir":os.environ.get("GIT_DIR"),"index":os.environ.get("GIT_INDEX_FILE"),
+              "snapshot_config":Path("poly.toml").read_text(),"probe":Path("probe.txt").read_text()}
+    with open(os.environ["PREFLIGHT_TRACE"],"a") as trace:
+        trace.write(json.dumps(record)+"\\n")
+    def reference(url,timeout):
+        if url==os.environ["CATALOGUE_URL"]:
             return io.BytesIO(Path(os.environ["CATALOGUE_FILE"]).read_bytes())
-        if url == "https://registry.npmjs.org/ai-rulez/latest":
+        if url=="https://registry.npmjs.org/ai-rulez/latest":
             return io.BytesIO(b'{"name":"ai-rulez","version":"5.9.8"}')
-        raise URLError("unexpected fixture reference: " + str(url))
-    urllib.request.urlopen = reference
+        raise URLError("unexpected fixture reference: "+str(url))
+    urllib.request.urlopen=reference
+
+original_run_path=runpy.run_path
+def observed_run_path(path,*args,**kwargs):
+    if Path(path).name=="hook_preflight.py":
+        observe_preflight()
+    return original_run_path(path,*args,**kwargs)
+runpy.run_path=observed_run_path
+if Path(sys.argv[0]).name=="hook_preflight.py":
+    observe_preflight()
 """
+
 
 PROVIDER = """import json, os, subprocess, sys, tomllib
 from pathlib import Path
-provider = Path(sys.argv[0]).name
+provider = Path(sys.argv[0]).stem if Path(sys.argv[0]).suffix.lower() == ".exe" else Path(sys.argv[0]).name
 args = sys.argv[1:]
 if provider == "npx":
     if args[:2] != ["-y", "ai-rulez@latest"]:
@@ -112,7 +123,7 @@ def gate_producer(root: Path, environment: dict[str, str]) -> tuple[Path, str]:
     modules.mkdir(parents=True)
     for name in ("hook_context.py", "hook_runtime.py", "hook_preflight.py"):
         shutil.copyfile(MODULES / name, modules / name)
-    shutil.copyfile(MODULES / "runtime-gate-producer.toml", producer / "poly-hooks.toml")
+    shutil.copyfile(MODULES.resolve().parents[1] / "poly-hooks.toml", producer / "poly-hooks.toml")
     return producer, producer_commit(root, producer, environment)
 
 
@@ -129,11 +140,10 @@ def configure_sources(root: Path, producer: Path, revision: str, *, worktree: bo
 
 
 def providers(root: Path, environment: dict[str, str], stale: bool) -> None:
-    (root / "bin/python3").symlink_to(sys.executable)
+    commands.forward(root / "bin/python3", sys.executable)
     for name in ("ai-rulez", "npx"):
         command = root / "bin" / name
-        command.write_text(f"#!{sys.executable}\n" + PROVIDER)
-        command.chmod(0o755)
+        commands.script(command, PROVIDER)
     environment.update({"AI_VERSION_ai-rulez": OLD if stale else LATEST, "AI_VERSION_npx": LATEST})
     system = os.environ.get("PREFLIGHT_NATIVE_OLD" if stale else "PREFLIGHT_NATIVE_CURRENT")
     npm = os.environ.get("PREFLIGHT_NATIVE_CURRENT")
@@ -191,7 +201,7 @@ def commit(root: Path, environment: dict[str, str], label: str) -> tuple[subproc
     receipt = {
         "case": label,
         "consumer_root": str(root.resolve()),
-        "poly_executable": str((root / "bin/poly").resolve()),
+        "poly_executable": str(commands.command_path(root / "bin/poly").resolve()),
         "python_executable": sys.executable,
         "exit": result.returncode,
         "events": events,

@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import hook_fixture_commands as commands
 import hook_preflight_fixtures as fixtures
 
 
@@ -75,7 +76,7 @@ class DistributedPreflightTest(unittest.TestCase):
             first, _ = fixtures.commit(main, environment, "linked-main")
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             fixtures.git(main, environment, "worktree", "add", "-b", "linked", str(linked))
-            (linked / "bin").symlink_to(main / "bin", target_is_directory=True)
+            commands.directory(main / "bin", linked / "bin")
             environment["AI_VERSION_ai-rulez"] = fixtures.OLD
             if os.environ.get("PREFLIGHT_NATIVE_OLD"):
                 environment["NATIVE_AI_SYSTEM"] = os.environ["PREFLIGHT_NATIVE_OLD"]
@@ -195,7 +196,7 @@ class WorktreePreflightTest(unittest.TestCase):
             first, _ = fixtures.commit(main, environment, "worktree-linked-main")
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             fixtures.git(main, environment, "worktree", "add", "-b", "linked", str(linked))
-            (linked / "bin").symlink_to(main / "bin", target_is_directory=True)
+            commands.directory(main / "bin", linked / "bin")
             environment["AI_VERSION_ai-rulez"] = fixtures.OLD
             if os.environ.get("PREFLIGHT_NATIVE_OLD"):
                 environment["NATIVE_AI_SYSTEM"] = os.environ["PREFLIGHT_NATIVE_OLD"]

@@ -4,6 +4,7 @@ lockfile = true
 lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64", "windows-x64"]
 
 [tools]
+node = "26.12.1"
 python = "3.13.18"
 uv = "0.13.6"
 "github:Goldziher/poly" = "0.31.2"
@@ -17,6 +18,11 @@ run = ["mise install", { task = "governance:hooks:install" }]
 [tasks."context:test"]
 description = "Unit-test the context harness"
 run = "uv run --no-project --with pyyaml==6.0.2 python -m unittest discover tools/context-evals"
+
+[tasks."context:hooks"]
+description = "Qualify the optional AI runtime hooks without evaluation discovery"
+env = { PYTHONWARNINGS = "error::ResourceWarning", UV_PYTHON_PREFERENCE = "only-system" }
+run = "uv run --no-project --with pyyaml==6.0.2 python tools/context-evals/run_hook_tests.py"
 
 [tasks."context:cases"]
 description = "Validate the eval cases (mise run context:cases -- --repo-root ../xberg --repo xberg)"

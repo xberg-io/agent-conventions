@@ -29,13 +29,13 @@ Chosen option: "Add an independent producer preflight bound to the original cons
 reject the overall commit without replacing the canonical AI source, changing its pin policy or rewriting machine
 preferences. This is a candidate contract, not authorization to install the hook in consumers.
 
-`tools/context-evals/runtime-gate-producer.toml` is a candidate manifest, not this repository's production
-`poly-hooks.toml`. The fixtures materialize it in a real Git producer and let Poly check out its resolved commit.
-The entry point finds its standard-library Python helpers beside itself through the producer's
-`POLY_HOOK_SOURCE_ROOT`; that variable identifies the producer, never the consumer. A later distribution change
-would promote the manifest to the conventions producer root, publish a reviewed immutable release, and explicitly
-add a versioned source and resolved lock to consumers. That source identity and release pin require review before
-rollout; existing canonical ai-rulez declarations remain executable and unchanged.
+The root `poly-hooks.toml` distributes two optional hooks. Declaring this catalog does not enable either hook in
+consumers. The fixtures copy the exact shipping manifest and standard-library Python helpers into a real Git
+producer, and let Poly check out its resolved commit. The entry point finds those helpers beside itself through
+`POLY_HOOK_SOURCE_ROOT`; that variable identifies the producer, never the consumer. Release and consumer wiring
+remain separate: publish a reviewed immutable release, then explicitly add a versioned source and resolved lock
+to each eligible consumer. That source identity and release pin require review before rollout; existing canonical
+ai-rulez declarations remain executable and unchanged.
 
 The default snapshot bootstrap uses Poly's exported absolute `GIT_DIR` to enumerate registered worktrees. It accepts exactly one
 candidate whose real top-level and Git directory match, using child-scoped sanitized Git queries. It does not infer
@@ -57,7 +57,7 @@ automatically falling back to this mode.
 The preflight measures the selected allowlisted command before asking npm for its official stable latest reference.
 The selected version must equal that reference: an older, different newer or unpublished local version cannot
 replace it. A failed or unmeasured runtime also rejects the overall commit. System fallback remains available when current; owners
-retain their channel preferences and global installations. The candidate offers matching system/npm bootstrap
+retain their channel preferences and global installations. The optional producer offers matching system/npm bootstrap
 paths and additionally requires Python 3.11 or newer. It always runs when selected, including commits where the
 canonical validator's existing path filter has no work.
 
@@ -75,7 +75,7 @@ read-only validation. Validator failure must also remain fatal after a successfu
 * Bad, because arbitrary catalogs and cwd overrides remain unsupported rather than being interpreted approximately.
 * Bad, because an unassociated separate Git directory or a missing default-mode context export cannot prove consumer identity and
   is refused. A future explicit Poly context API could remove this boundary.
-* Neutral, because production distribution, consumer wiring and acceptance remain separate follow-up work.
+* Neutral, because catalog availability is optional; release, consumer wiring and acceptance remain follow-up work.
 
 ### Confirmation
 
@@ -94,3 +94,7 @@ The existing runtime and context controls in `test_hook_runtime.py`, `test_hook_
 `test_hook_context.py` remain required. Before acceptance or rollout, review the real distributed producer bytes,
 rerun these controls, and prove a normal commit in each supported consumer topology with its actual execution
 root. No paid evaluations, model requests or evaluation artifacts are involved in this confirmation.
+
+The shipping-byte regression and focused `context:hooks` task qualify this catalog without discovering evaluation
+tests. CI requires separate Linux, macOS and Windows baseline legs; adding those jobs is not proof that they pass.
+ADR acceptance remains pending actual supported-platform evidence and the reviewed immutable producer release.

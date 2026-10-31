@@ -18,6 +18,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import hook_fixture_commands as commands
 import hook_runtime
 import test_hook_runtime as fixtures
 
@@ -25,6 +26,7 @@ PROBE = """import sys
 from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0, sys.argv[1])
+import hook_fixture_commands as commands
 import hook_runtime
 import test_hook_runtime as fixtures
 with patch("urllib.request.urlopen", side_effect=fixtures.network):
@@ -53,13 +55,23 @@ def sandbox(root: Path, channels: list[str], versions: dict[str, str]) -> dict[s
         target = shutil.which(name)
         if target is None:
             raise AssertionError(f"Poly integration requires {name}")
-        (binary / name).symlink_to(target)
+        commands.forward(binary / name, target)
     for name, version in versions.items():
         command = binary / name
-        command.write_text(
-            f'#!/bin/sh\nprintf "%s|%s\\n" "{name}" "$*" >> "$PROVIDER_TRACE"\nprintf "ai-rulez version {version}\\n"\n'
+        body = (
+            "import os,sys\nfrom pathlib import Path\n"
+            "with Path(os.environ['PROVIDER_TRACE']).open('a') as trace:\n"
+            f" trace.write({name!r}+'|'+' '.join(sys.argv[1:])+'\\n')\n"
+            f"sys.stdout.write({('ai-rulez version ' + version + chr(10))!r})\n"
         )
-        command.chmod(0o755)
+        commands.script(
+            command,
+            body,
+            posix=(
+                f'#!/bin/sh\nprintf "%s|%s\\n" "{name}" "$*" >> "$PROVIDER_TRACE"\n'
+                f'printf "ai-rulez version {version}\\n"\n'
+            ),
+        )
     producer = root / "producer"
     producer.mkdir()
     (producer / "poly-hooks.toml").write_text(fixtures.CATALOGUE)
@@ -69,15 +81,17 @@ def sandbox(root: Path, channels: list[str], versions: dict[str, str]) -> dict[s
     )
     (root / "poly.local.toml").write_text(f"[hook_preferences]\nchannels={json.dumps(channels)}\n")
     (root / "probe.txt").write_text("real tracked fixture\n")
-    return {
-        "PATH": str(binary),
-        "HOME": str(root / "home"),
-        "XDG_CACHE_HOME": str(root / "cache"),
-        "XDG_CONFIG_HOME": str(root / "config"),
-        "PROVIDER_TRACE": str(root / "trace"),
-        "GIT_CONFIG_NOSYSTEM": "1",
-        "GIT_CONFIG_GLOBAL": os.devnull,
-    }
+    return commands.environment(
+        {
+            "PATH": str(binary),
+            "HOME": str(root / "home"),
+            "XDG_CACHE_HOME": str(root / "cache"),
+            "XDG_CONFIG_HOME": str(root / "config"),
+            "PROVIDER_TRACE": str(root / "trace"),
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+        }
+    )
 
 
 def execute_hook(poly: str, root: Path, environment: dict[str, str], *, commit: bool) -> subprocess.CompletedProcess:
@@ -154,7 +168,7 @@ class RealPolyProviderTest(unittest.TestCase):
             environment = sandbox(root, ["system"], {"ai-rulez": "5.9.8"})
             initialize(root, environment)
             for name in ("git", "sh", "ai-rulez"):
-                (root / name).symlink_to(root / "bin" / name)
+                commands.forward(root / name, commands.command_path(root / "bin" / name))
             environment["PATH"] = ""
             actual = execute_hook(poly, root, environment, commit=False)
             self.assertEqual(actual.returncode, 0, actual.stdout + actual.stderr)
@@ -266,10 +280,12 @@ class RealPolyProviderTest(unittest.TestCase):
             consumer.mkdir()
             reviewer.mkdir()
             environment = sandbox(consumer, ["system"], {"ai-rulez": "5.9.8"})
-            (consumer / "bin/ai-rulez").write_text(
-                "#!/bin/sh\nversion=5.9.8\nif [ -f probe.txt ]; then version=5.9.6; fi\n"
+            commands.cwd_provider(
+                consumer / "bin/ai-rulez",
+                "Path('probe.txt').is_file()",
+                posix="#!/bin/sh\nversion=5.9.8\nif [ -f probe.txt ]; then version=5.9.6; fi\n"
                 'printf "%s|%s|%s\\n" "$PWD" "$*" "$version" >> "$PROVIDER_TRACE"\n'
-                'printf "ai-rulez version %s\\n" "$version"\n'
+                'printf "ai-rulez version %s\\n" "$version"\n',
             )
             initialize(consumer, environment)
             actual = execute_hook(poly, consumer, environment, commit=True)
@@ -303,11 +319,13 @@ class RealPolyProviderTest(unittest.TestCase):
                 config.write_text(config.read_text().replace("[hooks]\n", "[hooks]\nisolate=false\n"))
                 (reviewer / "bin").mkdir()
                 command = consumer / "bin/ai-rulez"
-                command.write_text(
-                    "#!/bin/sh\nversion=5.9.8\n"
+                commands.cwd_provider(
+                    command,
+                    "Path.cwd()==Path(" + repr(str(consumer.resolve())) + ")",
+                    posix="#!/bin/sh\nversion=5.9.8\n"
                     f'if [ "$PWD" = {shlex.quote(str(consumer.resolve()))} ]; then version=5.9.6; fi\n'
                     'printf "%s|%s|%s\\n" "$PWD" "$*" "$version" >> "$PROVIDER_TRACE"\n'
-                    'printf "ai-rulez version %s\\n" "$version"\n'
+                    'printf "ai-rulez version %s\\n" "$version"\n',
                 )
                 if relative:
                     environment["PATH"] = "bin"

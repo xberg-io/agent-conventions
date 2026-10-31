@@ -1,0 +1,77 @@
+# Consumer hooks are opt-in; declaring this catalog does not enable them. ~keep
+version = 1
+
+[[hooks]]
+id = "ai-runtime-freshness"
+stages = ["pre-commit"]
+workspace = true
+always_run = true
+pass_filenames = false
+
+[[hooks.paths]]
+channel = "system"
+check = """\
+python3 -c "\
+import tomllib,shutil,sys; \
+sys.exit(shutil.which('ai-rulez') is None)"\
+"""
+run = """\
+python3 -c "\
+import os,runpy,sys; \
+p=os.path.join(os.environ['POLY_HOOK_SOURCE_ROOT'],'tools/context-evals/hook_preflight.py'); \
+sys.path.insert(0,os.path.dirname(p)); sys.argv[0]=p; \
+runpy.run_path(p,run_name='__main__')"\
+"""
+
+[[hooks.paths]]
+channel = "npm"
+check = """\
+python3 -c "\
+import tomllib,shutil,sys; \
+sys.exit(shutil.which('npx') is None)"\
+"""
+run = """\
+python3 -c "\
+import os,runpy,sys; \
+p=os.path.join(os.environ['POLY_HOOK_SOURCE_ROOT'],'tools/context-evals/hook_preflight.py'); \
+sys.path.insert(0,os.path.dirname(p)); sys.argv[0]=p; \
+runpy.run_path(p,run_name='__main__')"\
+"""
+
+[[hooks]]
+id = "ai-runtime-freshness-worktree"
+stages = ["pre-commit"]
+args = ["--worktree"]
+workspace = true
+always_run = true
+pass_filenames = false
+
+[[hooks.paths]]
+channel = "system"
+check = """\
+python3 -c "\
+import tomllib,shutil,sys; \
+sys.exit(shutil.which('ai-rulez') is None)"\
+"""
+run = """\
+python3 -c "\
+import os,runpy,sys; \
+p=os.path.join(os.environ['POLY_HOOK_SOURCE_ROOT'],'tools/context-evals/hook_preflight.py'); \
+sys.path.insert(0,os.path.dirname(p)); sys.argv[0]=p; \
+runpy.run_path(p,run_name='__main__')"\
+"""
+
+[[hooks.paths]]
+channel = "npm"
+check = """\
+python3 -c "\
+import tomllib,shutil,sys; \
+sys.exit(shutil.which('npx') is None)"\
+"""
+run = """\
+python3 -c "\
+import os,runpy,sys; \
+p=os.path.join(os.environ['POLY_HOOK_SOURCE_ROOT'],'tools/context-evals/hook_preflight.py'); \
+sys.path.insert(0,os.path.dirname(p)); sys.argv[0]=p; \
+runpy.run_path(p,run_name='__main__')"\
+"""

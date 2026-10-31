@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import hook_fixture_commands as commands
 import hook_pins
 import hook_runtime
 
@@ -54,8 +55,14 @@ def configure(root: Path, channels: str = '["system"]') -> None:
 
 def executable(path: Path, version: str, trace: Path | None = None) -> None:
     record = f'printf "%s %s\\n" "{path.name}" "$*" >> {shlex.quote(str(trace))}\n' if trace else ""
-    path.write_text(f'#!/bin/sh\n{record}printf "ai-rulez version {version}\\n"\n')
-    path.chmod(0o755)
+    body = "import sys\nfrom pathlib import Path\n"
+    if trace:
+        body += (
+            f"with Path({str(trace)!r}).open('a') as trace:\n"
+            f" trace.write({path.name!r}+' '+' '.join(sys.argv[1:])+'\\n')\n"
+        )
+    body += f"sys.stdout.write({('ai-rulez version ' + version + chr(10))!r})\n"
+    commands.script(path, body, posix=f'#!/bin/sh\n{record}printf "ai-rulez version {version}\\n"\n')
 
 
 def invalid_locks(body: str) -> list[tuple[str, str]]:
@@ -90,7 +97,7 @@ class RuntimeGateTest(unittest.TestCase):
             root = Path(directory)
             executable(root / "ai-rulez", "5.9.8")
             with (
-                patch.dict(os.environ, {}, clear=True),
+                patch.dict(os.environ, commands.environment({}), clear=True),
                 patch.object(os, "defpath", str(root)),
                 self.assertRaisesRegex(ValueError, "PATH is unset"),
             ):
@@ -102,7 +109,7 @@ class RuntimeGateTest(unittest.TestCase):
             configure(root)
             executable(root / "ai-rulez", "5.9.8")
             with (
-                patch.dict(os.environ, {}, clear=True),
+                patch.dict(os.environ, commands.environment({}), clear=True),
                 patch.object(os, "defpath", str(root)),
                 patch.object(sys, "argv", ["hook_pins.py", "--consumer", str(root), "--runtime"]),
                 patch("urllib.request.urlopen", side_effect=network),
@@ -122,7 +129,7 @@ class RuntimeGateTest(unittest.TestCase):
             body = body.replace(f'path="cache://fixture/{COMMIT}"', 'path="not-an-execution-selector"')
             path.write_text(body + "future_source=123\n")
             with (
-                patch.dict(os.environ, {"PATH": str(root)}, clear=True),
+                patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
                 patch("urllib.request.urlopen", side_effect=network),
             ):
                 self.assertEqual([result.version for result in hook_runtime.verify(root)], ["5.9.8"])
@@ -136,7 +143,7 @@ class RuntimeGateTest(unittest.TestCase):
             output, errors = io.StringIO(), io.StringIO()
             with (
                 patch.object(sys, "argv", arguments),
-                patch.dict(os.environ, {"PATH": str(root)}, clear=True),
+                patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
                 patch("urllib.request.urlopen", side_effect=network),
                 contextlib.redirect_stdout(output),
                 contextlib.redirect_stderr(errors),
@@ -153,7 +160,7 @@ class RuntimeGateTest(unittest.TestCase):
             executable(root / "ai-rulez", "5.9.8")
             before = {path.name: path.read_bytes() for path in root.iterdir()}
             with (
-                patch.dict(os.environ, {"PATH": str(root)}, clear=True),
+                patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
                 patch("urllib.request.urlopen", side_effect=network),
             ):
                 measured = hook_runtime.verify(root)
@@ -179,7 +186,7 @@ class RuntimeGateTest(unittest.TestCase):
                 return network(request, **kwargs)
 
             with (
-                patch.dict(os.environ, {"PATH": str(root)}, clear=True),
+                patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
                 patch("urllib.request.urlopen", side_effect=reference),
                 self.assertRaisesRegex(ValueError, "selected system ai-rulez 5.9.6, npm latest is 5.9.8"),
             ):
@@ -215,7 +222,10 @@ class RuntimeGateTest(unittest.TestCase):
         producer = tomllib.loads(CATALOGUE)
         with self.assertRaisesRegex(ValueError, "zero hooks"):
             hook_runtime.select([], producer, ["system"])
-        with patch.dict(os.environ, {"PATH": ""}, clear=True), self.assertRaisesRegex(ValueError, "no eligible"):
+        with (
+            patch.dict(os.environ, commands.environment({"PATH": ""}), clear=True),
+            self.assertRaisesRegex(ValueError, "no eligible"),
+        ):
             hook_runtime.select(["ai-rulez-validate"], producer, ["npm", "system"])
 
     def test_zero_configured_hooks_are_rejected_before_network_access(self) -> None:
@@ -236,7 +246,7 @@ class RuntimeGateTest(unittest.TestCase):
             configure(root)
             (root / "poly.local.toml").unlink()
             with (
-                patch.dict(os.environ, {"PATH": ""}, clear=True),
+                patch.dict(os.environ, commands.environment({"PATH": ""}), clear=True),
                 patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")),
                 self.assertRaisesRegex(ValueError, "no provider"),
             ):
@@ -251,7 +261,10 @@ class RuntimeGateTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "channel"):
                         hook_runtime.preferences(root)
             (root / "poly.local.toml").unlink()
-            with patch.dict(os.environ, {"PATH": ""}, clear=True), self.assertRaisesRegex(ValueError, "no provider"):
+            with (
+                patch.dict(os.environ, commands.environment({"PATH": ""}), clear=True),
+                self.assertRaisesRegex(ValueError, "no provider"),
+            ):
                 hook_runtime.preferences(root)
 
     def test_malformed_nonstable_or_failed_version_output_is_rejected(self) -> None:
@@ -261,10 +274,10 @@ class RuntimeGateTest(unittest.TestCase):
                 with self.subTest(version=version):
                     executable(command, version)
                     with self.assertRaisesRegex(ValueError, "stable version"):
-                        hook_runtime.measure((str(command),))
-            command.write_text("#!/bin/sh\nexit 9\n")
+                        hook_runtime.measure((str(commands.command_path(command)),))
+            commands.script(command, "import sys\nsys.exit(9)\n", posix="#!/bin/sh\nexit 9\n")
             with self.assertRaisesRegex(ValueError, "exited 9"):
-                hook_runtime.measure((str(command),))
+                hook_runtime.measure((str(commands.command_path(command)),))
 
     def test_registry_errors_and_unstable_references_fail_closed(self) -> None:
         for body in ({"name": "other", "version": "5.9.8"}, {"name": "ai-rulez", "version": "5.9.9-rc.1"}):
@@ -314,12 +327,18 @@ class RuntimeGateTest(unittest.TestCase):
             linked.mkdir()
             (main / "poly.local.toml").write_text('[hook_preferences]\nchannels=["npm", "system"]\n')
             git = root / "git"
-            git.write_text(
-                '#!/bin/sh\ncase "$*" in *"--porcelain -z") '
-                f'printf "%s\\0" {shlex.quote("worktree " + str(main))} "HEAD fixture" "";; *) exit 2;; esac\n'
+            registration = ("worktree " + str(main) + "\0HEAD fixture\0\0").encode()
+            commands.script(
+                git,
+                "import sys\n"
+                "if sys.argv[-2:] != ['--porcelain', '-z']: sys.exit(2)\n"
+                f"sys.stdout.buffer.write({registration!r})\n",
+                posix=(
+                    '#!/bin/sh\ncase "$*" in *"--porcelain -z") '
+                    f'printf "%s\\0" {shlex.quote("worktree " + str(main))} "HEAD fixture" "";; *) exit 2;; esac\n'
+                ),
             )
-            git.chmod(0o755)
-            with patch.dict(os.environ, {"PATH": str(root)}, clear=True):
+            with patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True):
                 self.assertEqual(hook_runtime.preferences(linked), ["npm", "system"])
                 (linked / "poly.local.toml").write_text('[hook_preferences]\nchannels=["system"]\n')
                 self.assertEqual(hook_runtime.preferences(linked), ["system"])
@@ -337,7 +356,7 @@ class RuntimeGateTest(unittest.TestCase):
                     path = root / filename
                     path.write_text(path.read_text() + addition)
                     with (
-                        patch.dict(os.environ, {"PATH": str(root)}, clear=True),
+                        patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
                         patch("urllib.request.urlopen", side_effect=network),
                         self.assertRaisesRegex(ValueError, "unknown .*field"),
                     ):
