@@ -37,15 +37,26 @@ would promote the manifest to the conventions producer root, publish a reviewed 
 add a versioned source and resolved lock to consumers. That source identity and release pin require review before
 rollout; existing canonical ai-rulez declarations remain executable and unchanged.
 
-The bootstrap uses Poly's exported absolute `GIT_DIR` to enumerate registered worktrees. It accepts exactly one
+The default snapshot bootstrap uses Poly's exported absolute `GIT_DIR` to enumerate registered worktrees. It accepts exactly one
 candidate whose real top-level and Git directory match, using child-scoped sanitized Git queries. It does not infer
 identity from cache paths, branches, HEAD values or proximity. The actual hook cwd is passed separately as the
 execution root. Preferences and source selection come from the original consumer, while relative PATH entries and
 `--version` execute in the same staged cwd as the canonical validator. The original index, including an explicitly
 selected alternate index, stays in effect; staged configuration is not substituted for worktree selection policy.
 
-The preflight measures the selected allowlisted command before asking npm for its stable latest reference. A stale,
-failed or unmeasured runtime rejects the overall commit. System fallback remains available when current; owners
+An intentionally nonisolated consumer instead selects `ai-runtime-freshness-worktree`, which passes the explicit
+`--worktree` flag. Independent sanitized Git queries must prove that the actual cwd is exactly a registered
+consumer top-level; a nested directory or staged snapshot cannot infer its parent repository. Conflicting
+`GIT_DIR`, `GIT_WORK_TREE` and `GIT_COMMON_DIR` exports are refused. Both the worktree `poly.toml` and the selected
+active-index `poly.toml` must explicitly declare `hooks.isolate=false`. HEAD is not the policy authority: the initial
+adoption commit may introduce that setting. Relative active-index paths are resolved only against the verified
+execution root, and the selected index is deliberately retained for the policy read after identity queries sanitize
+Git context. No parent environment or cwd changes. Default snapshot mode still refuses missing exports rather than
+automatically falling back to this mode.
+
+The preflight measures the selected allowlisted command before asking npm for its official stable latest reference.
+The selected version must equal that reference: an older, different newer or unpublished local version cannot
+replace it. A failed or unmeasured runtime also rejects the overall commit. System fallback remains available when current; owners
 retain their channel preferences and global installations. The candidate offers matching system/npm bootstrap
 paths and additionally requires Python 3.11 or newer. It always runs when selected, including commits where the
 canonical validator's existing path filter has no work.
@@ -62,7 +73,7 @@ read-only validation. Validator failure must also remain fatal after a successfu
 * Bad, because the independent preflight needs Python and public catalog/npm metadata at commit time, including
   commits where the canonical validator has no matching files; unavailable references fail closed.
 * Bad, because arbitrary catalogs and cwd overrides remain unsupported rather than being interpreted approximately.
-* Bad, because an unassociated separate Git directory or missing context export cannot prove consumer identity and
+* Bad, because an unassociated separate Git directory or a missing default-mode context export cannot prove consumer identity and
   is refused. A future explicit Poly context API could remove this boundary.
 * Neutral, because production distribution, consumer wiring and acceptance remain separate follow-up work.
 
@@ -72,7 +83,10 @@ read-only validation. Validator failure must also remain fatal after a successfu
 control first demonstrated a successful older validator and successful commit with a no-op preflight; enabling
 `hook_context.bind` and `hook_runtime.verify` rejects that commit. The controls also require current-runtime success,
 independently fatal validator failures, failed version probes, linked preference overrides and main fallback,
-partial staging with an alternate index, and unsupported-topology refusal. External reference transport is
+partial staging with an alternate index, and unsupported-topology refusal.
+Explicit nonisolated controls also cover an initial index without HEAD, conflicting exports, exact-root and
+registration ambiguity, literal policy values, and opposing normal/alternate-index policies. Default-mode controls
+remain collected and unchanged. External reference transport is
 controlled offline; the local proof also uses existing native CLI binaries, without installing or
 changing a machine tool. Protocol-mode doubles keep the fixture suite portable.
 

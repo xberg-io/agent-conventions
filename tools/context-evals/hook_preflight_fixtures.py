@@ -17,7 +17,11 @@ import test_hook_context as context_fixtures
 import test_hook_runtime_poly as poly_fixtures
 
 MODULES = Path(__file__).parent
-REPORTS = MODULES.resolve().parents[2] / "reports/conventions-preflight-2026-10-31"
+REPORTS = (
+    Path(os.environ["CONVENTIONS_TEST_REPORTS_ROOT"]) / "preflight"
+    if os.environ.get("CONVENTIONS_TEST_REPORTS_ROOT")
+    else MODULES.resolve().parents[2] / "reports/conventions-preflight-2026-10-31"
+)
 LATEST = "5.9.8"
 OLD = "5.9.2"
 VALID_CONFIG = 'version="5.0"\nname="fixture"\npresets=["claude"]\nbuiltins=[]\n'
@@ -26,7 +30,7 @@ ADAPTER = """import io, json, os, sys, urllib.request
 from pathlib import Path
 from urllib.error import URLError
 if Path(sys.argv[0]).name == "hook_preflight.py":
-    record = {"actor": "preflight", "cwd": str(Path.cwd()),
+    record = {"actor": "preflight", "cwd": str(Path.cwd()), "argv": sys.argv[1:],
               "source_root": os.environ.get("POLY_HOOK_SOURCE_ROOT"),
               "git_dir": os.environ.get("GIT_DIR"), "index": os.environ.get("GIT_INDEX_FILE"),
               "snapshot_config": Path("poly.toml").read_text(),
@@ -112,13 +116,15 @@ def gate_producer(root: Path, environment: dict[str, str]) -> tuple[Path, str]:
     return producer, producer_commit(root, producer, environment)
 
 
-def configure_sources(root: Path, producer: Path, revision: str) -> None:
+def configure_sources(root: Path, producer: Path, revision: str, *, worktree: bool = False) -> None:
+    mode = "isolate=false\n" if worktree else ""
+    hook = "ai-runtime-freshness-worktree" if worktree else "ai-runtime-freshness"
     (root / "poly.toml").write_text(
-        '[hooks]\nstages=["pre-commit"]\n[hooks.builtin]\nlint=false\nfmt=false\n'
+        f'[hooks]\nstages=["pre-commit"]\n{mode}[hooks.builtin]\nlint=false\nfmt=false\n'
         '[[hooks.sources]]\nid="ai-rulez"\ngit="https://github.com/Goldziher/ai-rulez.git"\n'
         'revision="v5"\nhooks=["ai-rulez-validate"]\n'
         f'[[hooks.sources]]\nid="gauv-preflight"\ngit={json.dumps(producer.as_uri())}\n'
-        f'revision="{revision}"\nhooks=["ai-runtime-freshness"]\n'
+        f'revision="{revision}"\nhooks=["{hook}"]\n'
     )
 
 
@@ -154,7 +160,7 @@ def network_adapter(root: Path, environment: dict[str, str], revision: str) -> N
     )
 
 
-def setup(root: Path, *, stale: bool = False, separate: Path | None = None) -> dict[str, str]:
+def setup(root: Path, *, stale: bool = False, separate: Path | None = None, worktree: bool = False) -> dict[str, str]:
     environment = poly_fixtures.sandbox(root, ["system"], {})
     providers(root, environment, stale)
     catalogue = poly_fixtures.fixtures.CATALOGUE.replace(
@@ -164,7 +170,7 @@ def setup(root: Path, *, stale: bool = False, separate: Path | None = None) -> d
     revision = poly_fixtures.git_producer(root, environment)
     git(root, environment, "-C", str(root / "producer"), "tag", "v5")
     producer, gate_revision = gate_producer(root, environment)
-    configure_sources(root, producer, gate_revision)
+    configure_sources(root, producer, gate_revision, worktree=worktree)
     network_adapter(root, environment, revision)
     init = ["init", "-q"] + (["--separate-git-dir", str(separate)] if separate else [])
     git(root, environment, *init)
@@ -184,6 +190,9 @@ def commit(root: Path, environment: dict[str, str], label: str) -> tuple[subproc
     events = [json.loads(line) for line in trace.read_text().splitlines()] if trace.exists() else []
     receipt = {
         "case": label,
+        "consumer_root": str(root.resolve()),
+        "poly_executable": str((root / "bin/poly").resolve()),
+        "python_executable": sys.executable,
         "exit": result.returncode,
         "events": events,
         "stdout": result.stdout,
@@ -191,6 +200,15 @@ def commit(root: Path, environment: dict[str, str], label: str) -> tuple[subproc
     }
     (REPORTS / f"receipt-{label}-{uuid.uuid4().hex}.json").write_text(json.dumps(receipt, indent=2) + "\n")
     return result, events
+
+
+def index_policy(root: Path, environment: dict[str, str], *, isolated: bool) -> None:
+    body = (root / "poly.toml").read_text()
+    selected = body.replace("isolate=false", "isolate=true") if isolated else body
+    temporary = root / "index policy input.toml"
+    temporary.write_text(selected)
+    blob = git(root, environment, "hash-object", "-w", "--", str(temporary))
+    git(root, environment, "update-index", "--cacheinfo", "100644", blob, "poly.toml")
 
 
 def captured(events: list[dict]) -> tuple[list[dict], list[dict]]:

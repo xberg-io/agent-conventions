@@ -146,3 +146,126 @@ class DistributedPreflightTest(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("requires an exported absolute GIT_DIR directory", result.stderr)
+
+
+class WorktreePreflightTest(unittest.TestCase):
+    def test_explicit_worktree_mode_commits_without_an_inferred_context_export(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            root = Path(directory)
+            environment = fixtures.setup(root, worktree=True)
+            result, events = fixtures.commit(root, environment, "worktree-current")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual(len(gates), 1, result.stdout + result.stderr)
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertEqual(gates[0]["argv"], ["--worktree"])
+            self.assertEqual(gates[0]["cwd"], str(root.resolve()))
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_stale_worktree_runtime_rejects_commit_while_validator_still_passes(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            root = Path(directory)
+            environment = fixtures.setup(root, worktree=True, stale=True)
+            result, events = fixtures.commit(root, environment, "worktree-stale")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual(len(gates), 1)
+            self.assertEqual(gates[0]["argv"], ["--worktree"])
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("npm latest is 5.9.8", result.stdout + result.stderr)
+
+    def test_a_reported_newer_worktree_runtime_does_not_replace_official_latest(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            root = Path(directory)
+            environment = fixtures.setup(root, worktree=True)
+            environment.pop("NATIVE_AI_SYSTEM", None)
+            environment["AI_VERSION_ai-rulez"] = "99.0.0"
+            result, events = fixtures.commit(root, environment, "worktree-newer-local")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual(len(gates), 1)
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("selected system ai-rulez 99.0.0, npm latest is 5.9.8", result.stdout + result.stderr)
+
+    def test_worktree_linked_override_and_main_fallback_measure_the_selected_provider(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            base = Path(directory)
+            main, linked = base / "main worktree", base / "linked worktree"
+            main.mkdir()
+            environment = fixtures.setup(main, worktree=True)
+            first, _ = fixtures.commit(main, environment, "worktree-linked-main")
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            fixtures.git(main, environment, "worktree", "add", "-b", "linked", str(linked))
+            (linked / "bin").symlink_to(main / "bin", target_is_directory=True)
+            environment["AI_VERSION_ai-rulez"] = fixtures.OLD
+            if os.environ.get("PREFLIGHT_NATIVE_OLD"):
+                environment["NATIVE_AI_SYSTEM"] = os.environ["PREFLIGHT_NATIVE_OLD"]
+            for local in (False, True):
+                with self.subTest(local_override=local):
+                    if local:
+                        (linked / "poly.local.toml").write_text('[hook_preferences]\nchannels=["npm", "system"]\n')
+                    (linked / ".ai-rulez/config.toml").write_text(fixtures.VALID_CONFIG + f'description="{local}"\n')
+                    fixtures.git(linked, environment, "add", ".ai-rulez/config.toml")
+                    result, events = fixtures.commit(linked, environment, f"worktree-linked-{local}")
+                    gates, validators = fixtures.captured(events)
+                    self.assertEqual(len(gates), 1)
+                    self.assertEqual(gates[0]["cwd"], str(linked.resolve()))
+                    self.assertEqual([v["provider"] for v in validators], ["npx" if local else "ai-rulez"])
+                    self.assertEqual([v["status"] for v in validators], [0])
+                    self.assertEqual(result.returncode == 0, local, result.stdout + result.stderr)
+
+    def test_worktree_active_index_policy_cannot_be_replaced_by_the_normal_index(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            root = Path(directory)
+            environment = fixtures.setup(root, worktree=True)
+            alternate = {**environment, "GIT_INDEX_FILE": str(root / "alternate index")}
+            fixtures.git(root, alternate, "read-tree", "--empty")
+            fixtures.git(root, alternate, "add", "poly.toml", "poly-hooks.lock", "probe.txt", ".ai-rulez/config.toml")
+            fixtures.index_policy(root, alternate, isolated=True)
+            self.assertIn("isolate=true", fixtures.git(root, alternate, "show", ":poly.toml"))
+            self.assertIn("isolate=false", fixtures.git(root, environment, "show", ":poly.toml"))
+            rejected, events = fixtures.commit(root, alternate, "worktree-alternate-reject")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertEqual(len(gates), 1)
+            self.assertEqual(gates[0]["index"], alternate["GIT_INDEX_FILE"])
+            self.assertNotEqual(rejected.returncode, 0, rejected.stdout + rejected.stderr)
+            self.assertIn(
+                "active-index policy requires explicit hooks.isolate=false", rejected.stdout + rejected.stderr
+            )
+            fixtures.index_policy(root, alternate, isolated=False)
+            fixtures.index_policy(root, environment, isolated=True)
+            self.assertIn("isolate=false", fixtures.git(root, alternate, "show", ":poly.toml"))
+            self.assertIn("isolate=true", fixtures.git(root, environment, "show", ":poly.toml"))
+            accepted, events = fixtures.commit(root, alternate, "worktree-alternate-accept")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertEqual(gates[0]["cwd"], str(root.resolve()))
+            self.assertIn("isolate=false", (root / "poly.toml").read_text())
+
+    def test_worktree_entry_cannot_treat_an_isolated_snapshot_as_the_consumer(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            root = Path(directory)
+            environment = fixtures.setup(root, worktree=True)
+            path = root / "poly.toml"
+            path.write_text(path.read_text().replace("isolate=false", "isolate=true"))
+            result, events = fixtures.commit(root, environment, "worktree-wrong-snapshot")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual(len(gates), 1)
+            self.assertNotEqual(gates[0]["cwd"], str(root.resolve()))
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("exact Git top-level", result.stdout + result.stderr)
+
+    def test_explicit_worktree_mode_still_refuses_an_unassociated_separate_git_dir(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixtures.fixture_parent()) as directory:
+            base = Path(directory)
+            root = base / "consumer"
+            root.mkdir()
+            environment = fixtures.setup(root, separate=base / "metadata.git", worktree=True)
+            result, events = fixtures.commit(root, environment, "worktree-separate-git-dir")
+            gates, validators = fixtures.captured(events)
+            self.assertEqual(len(gates), 1)
+            self.assertEqual([v["status"] for v in validators], [0])
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("exactly one registered worktree, found 0", result.stdout + result.stderr)

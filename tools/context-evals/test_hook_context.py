@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -42,7 +43,9 @@ with open(os.environ["CONTEXT_TRACE"], "a") as trace:
 
 
 def fixture_parent() -> Path:
-    parent = Path(__file__).resolve().parents[3] / "reports/conventions-hook-context-2026-10-31/fixtures"
+    selected = os.environ.get("CONVENTIONS_TEST_REPORTS_ROOT")
+    base = Path(selected) if selected else Path(__file__).resolve().parents[3] / "reports"
+    parent = base / "conventions-hook-context-2026-10-31/fixtures"
     parent.mkdir(parents=True, exist_ok=True)
     return parent
 
@@ -321,6 +324,108 @@ class HookContextTest(unittest.TestCase):
             self.assertEqual(context["git_dir"], str((root / ".git").resolve()))
             self.assertEqual(context["exported"]["GIT_WORK_TREE"], None)
             self.assertEqual(context["exported"]["GIT_OPTIONAL_LOCKS"], "0")
+
+
+def worktree_policy_fixture(root: Path) -> dict[str, str]:
+    environment = setup(root)
+    path = root / "poly.toml"
+    path.write_text(path.read_text().replace("[hooks]\n", "[hooks]\nisolate=false\n"))
+    fixtures.initialize(root, environment)
+    return environment
+
+
+class WorktreeBindingTest(unittest.TestCase):
+    def test_initial_index_without_head_binds_exact_root_without_parent_mutation(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixture_parent()) as directory:
+            root = Path(directory)
+            environment = worktree_policy_fixture(root)
+            head = fixtures.run([str(root / "bin/git"), "rev-parse", "--verify", "HEAD"], root, environment)
+            self.assertNotEqual(head.returncode, 0)
+            before, cwd = dict(environment), Path.cwd()
+            context = hook_context.bind_worktree(root, environment)
+            self.assertEqual(context.consumer, root.resolve())
+            self.assertEqual(context.execution_root, root.resolve())
+            self.assertEqual(context.git_dir, (root / ".git").resolve())
+            self.assertEqual(context.index_file, root / ".git/index")
+            self.assertEqual(environment, before)
+            self.assertEqual(Path.cwd(), cwd)
+
+    def test_subdirectory_does_not_infer_the_nearest_repository(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixture_parent()) as directory:
+            root = Path(directory)
+            environment = worktree_policy_fixture(root)
+            nested = root / "nested"
+            nested.mkdir()
+            (nested / "poly.toml").write_text("[hooks]\nisolate=false\n")
+            with self.assertRaisesRegex(ValueError, "exact Git top-level"):
+                hook_context.bind_worktree(nested, environment)
+
+    def test_worktree_policy_requires_literal_false_instead_of_absent_or_false_like_values(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixture_parent()) as directory:
+            root = Path(directory)
+            environment = worktree_policy_fixture(root)
+            for value in (None, "true", "0", '"false"'):
+                with self.subTest(value=value):
+                    body = "[hooks]\n" + (f"isolate={value}\n" if value is not None else "")
+                    (root / "poly.toml").write_text(body)
+                    with self.assertRaisesRegex(ValueError, "worktree policy requires explicit hooks.isolate=false"):
+                        hook_context.bind_worktree(root, environment)
+
+    def test_conflicting_exports_are_rejected_after_independent_identity_resolution(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixture_parent()) as directory:
+            root = Path(directory)
+            environment = worktree_policy_fixture(root)
+            other = root / "other repository"
+            other.mkdir()
+            git(root, environment, "-C", str(other), "init", "-q")
+            for key, value in {
+                "GIT_DIR": other / ".git",
+                "GIT_WORK_TREE": other,
+                "GIT_COMMON_DIR": other / ".git",
+            }.items():
+                with self.subTest(export=key):
+                    selected = {**environment, key: str(value)}
+                    before = dict(selected)
+                    with self.assertRaisesRegex(ValueError, f"conflicting {key}"):
+                        hook_context.bind_worktree(root, selected)
+                    self.assertEqual(selected, before)
+
+    def test_matching_exports_and_relative_alternate_index_are_preserved(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixture_parent()) as directory:
+            root = Path(directory)
+            environment = worktree_policy_fixture(root)
+            selected = {**environment, "GIT_INDEX_FILE": "alternate index"}
+            git(root, selected, "read-tree", "--empty")
+            git(root, selected, "add", "poly.toml", "probe.txt")
+            selected.update(
+                {"GIT_DIR": str(root / ".git"), "GIT_WORK_TREE": str(root), "GIT_COMMON_DIR": str(root / ".git")}
+            )
+            before = dict(selected)
+            context = hook_context.bind_worktree(root, selected)
+            self.assertEqual(context.index_file, root / "alternate index")
+            self.assertEqual(context.consumer, root.resolve())
+            self.assertEqual(selected, before)
+
+    def test_ambiguous_registration_does_not_become_an_implicit_worktree_fallback(self) -> None:
+        with tempfile.TemporaryDirectory(dir=fixture_parent()) as directory:
+            root = Path(directory)
+            environment = worktree_policy_fixture(root)
+            original = hook_context.subprocess.run
+            duplicated = []
+
+            def duplicate(*args, **kwargs) -> subprocess.CompletedProcess[bytes]:
+                result = original(*args, **kwargs)
+                if "worktree" in args[0] and "list" in args[0]:
+                    duplicated.append(True)
+                    result.stdout *= 2
+                return result
+
+            with (
+                patch("hook_context.subprocess.run", side_effect=duplicate),
+                self.assertRaisesRegex(ValueError, "exactly one registered worktree, found 2"),
+            ):
+                hook_context.bind_worktree(root, environment)
+            self.assertEqual(duplicated, [True])
 
 
 if __name__ == "__main__":

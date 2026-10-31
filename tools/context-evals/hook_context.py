@@ -1,10 +1,11 @@
-"""Bind an isolated Poly hook to an explicitly exported consumer Git directory."""
+"""Bind a Poly hook to verified original-consumer identity in its explicitly selected mode."""
 
 from __future__ import annotations
 
 import os
 import shutil
 import subprocess
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -117,3 +118,62 @@ def bind(execution_root: Path, environment: Mapping[str, str] | None = None) -> 
     if len(matches) != 1:
         raise ValueError(f"consumer identity requires exactly one registered worktree, found {len(matches)}")
     return HookContext(matches[0], root, git_dir, Path(index) if index else None)
+
+
+def common_git_dir(executable: str, root: Path, environment: dict[str, str]) -> Path:
+    output = query(executable, ["rev-parse", "--path-format=absolute", "--git-common-dir"], root, environment)
+    lines = output.splitlines()
+    if len(lines) != 1 or not Path(os.fsdecode(lines[0])).is_absolute():
+        raise ValueError("explicit worktree mode requires an absolute common Git directory")
+    return Path(os.fsdecode(lines[0])).resolve()
+
+
+def check_worktree_exports(root: Path, git_dir: Path, common_dir: Path, environment: Mapping[str, str]) -> None:
+    for key, expected in {"GIT_DIR": git_dir, "GIT_WORK_TREE": root, "GIT_COMMON_DIR": common_dir}.items():
+        value = environment.get(key)
+        if value is not None and (not value or (root / value).resolve() != expected):
+            raise ValueError(f"conflicting {key} in explicit worktree mode")
+
+
+def worktree_index(root: Path, git_dir: Path, environment: Mapping[str, str]) -> Path:
+    selected = environment.get("GIT_INDEX_FILE")
+    if selected == "":
+        raise ValueError("explicit worktree mode requires a nonempty selected index")
+    index = root / selected if selected is not None else git_dir / "index"
+    if not index.is_file():
+        raise ValueError("explicit worktree mode requires an existing selected index")
+    return index
+
+
+def require_worktree_policy(content: str, owner: str) -> None:
+    document = tomllib.loads(content)
+    hooks = document.get("hooks")
+    if not isinstance(hooks, dict) or hooks.get("isolate") is not False:
+        raise ValueError(f"{owner} policy requires explicit hooks.isolate=false")
+
+
+def bind_worktree(execution_root: Path, environment: Mapping[str, str] | None = None) -> HookContext:
+    environment = os.environ if environment is None else environment
+    root = execution_root.resolve()
+    executable = git_binary(root, environment)
+    clean = child_environment(environment)
+    git_dir = candidate_git_dir(executable, root, clean)
+    if git_dir is None:
+        raise ValueError("explicit worktree mode requires cwd to be an exact Git top-level")
+    common_dir = common_git_dir(executable, root, clean)
+    check_worktree_exports(root, git_dir, common_dir, environment)
+    index = worktree_index(root, git_dir, environment)
+    verified = {**clean, "GIT_DIR": str(git_dir), "GIT_INDEX_FILE": str(index)}
+    context = bind(root, verified)
+    if context.consumer != root:
+        raise ValueError(
+            "explicit worktree mode requires cwd to be an exact Git top-level; registered consumer differs from cwd"
+        )
+    require_worktree_policy((root / "poly.toml").read_text(encoding="utf-8"), "worktree")
+    # Identity queries remove inherited index state; this policy read intentionally uses the selected index.
+    active = {**clean, "GIT_INDEX_FILE": str(index)}
+    policy = query(
+        executable, ["--git-dir", str(git_dir), "--work-tree", str(root), "show", ":poly.toml"], root, active
+    )
+    require_worktree_policy(policy.decode("utf-8"), "active-index")
+    return context

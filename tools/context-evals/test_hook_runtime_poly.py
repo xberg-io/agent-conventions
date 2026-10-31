@@ -41,6 +41,11 @@ def run(arguments: list[str], root: Path, environment: dict[str, str]) -> subpro
     return subprocess.run(arguments, cwd=root, env=environment, capture_output=True, text=True, timeout=30, check=False)
 
 
+def reports_root() -> Path:
+    selected = os.environ.get("CONVENTIONS_TEST_REPORTS_ROOT")
+    return Path(selected) if selected else Path(__file__).resolve().parents[3] / "reports"
+
+
 def sandbox(root: Path, channels: list[str], versions: dict[str, str]) -> dict[str, str]:
     binary = root / "bin"
     binary.mkdir()
@@ -130,7 +135,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_actual_poly_reaches_no_provider_with_git_available_but_no_ai_cli(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         with tempfile.TemporaryDirectory(dir=reports) as directory:
             root = Path(directory)
             environment = sandbox(root, ["system"], {})
@@ -143,7 +148,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_empty_path_preserves_current_directory_provider_selection(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         with tempfile.TemporaryDirectory(dir=reports) as directory:
             root = Path(directory)
             environment = sandbox(root, ["system"], {"ai-rulez": "5.9.8"})
@@ -163,7 +168,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_git_lock_path_is_descriptive_and_unknown_lock_fields_are_accepted(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         with tempfile.TemporaryDirectory(dir=reports) as directory:
             root = Path(directory)
             environment = sandbox(root, ["system"], {"ai-rulez": "5.9.8"})
@@ -194,7 +199,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_malformed_locks_fail_in_actual_poly_and_the_public_runtime_cli(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         with tempfile.TemporaryDirectory(dir=reports) as directory:
             root = Path(directory)
             environment = sandbox(root, ["system"], {"ai-rulez": "5.9.8"})
@@ -222,7 +227,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_malformed_metadata_is_rejected_by_poly_and_the_probe(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         for kind in ("bool-version", "source-field", "preference-field"):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory(dir=reports) as directory:
                 root = Path(directory)
@@ -254,7 +259,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_default_isolated_normal_hook_uses_its_observed_snapshot_root(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         with tempfile.TemporaryDirectory(dir=reports) as directory:
             root = Path(directory)
             consumer, reviewer = root / "consumer", root / "reviewer"
@@ -286,7 +291,7 @@ class RealPolyProviderTest(unittest.TestCase):
     def test_normal_hook_and_probe_share_cwd_and_relative_path_resolution(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         for relative in (False, True):
             with self.subTest(relative_path=relative), tempfile.TemporaryDirectory(dir=reports) as directory:
                 root = Path(directory)
@@ -334,7 +339,7 @@ class RealPolyProviderTest(unittest.TestCase):
     ) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly, "install the committed mise Poly tool before running integration tests")
-        reports = Path(__file__).resolve().parents[3] / "reports"
+        reports = reports_root()
         reports.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="hook-runtime-poly-", dir=reports) as directory:
             root = Path(directory)
@@ -344,6 +349,8 @@ class RealPolyProviderTest(unittest.TestCase):
             ]
             identity = run([poly, "--version"], root, environment)
             self.assertEqual(identity.returncode, 0, identity.stderr)
+            expected = os.environ.get("CONVENTIONS_TEST_POLY_VERSION", expected)
+            self.assertRegex(expected, r"^[0-9]+\.[0-9]+\.[0-9]+$")
             self.assertEqual(identity.stdout.split()[:2], ["poly", expected])
             initialize(root, environment)
             result = execute_hook(poly, root, environment, commit=commit)
