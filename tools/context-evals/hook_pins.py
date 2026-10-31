@@ -4,6 +4,7 @@
 A floating source (`vN`, org ADR-0015) must name the bare major; its tag moves on every release, so the lock may hold
 any commit it resolved to and the gate checks only that the lock holds a resolved commit. An exact source (`vN.N.N`)
 must name that tag. A required source must be declared; the others are checked where a consumer declares them.
+Use --runtime to additionally measure the selected AI hook command against npm's newest stable release.
 """
 
 from __future__ import annotations
@@ -14,6 +15,8 @@ import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+import hook_runtime
 
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 FLOATING = re.compile(r"^v[0-9]+$")
@@ -112,11 +115,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--consumer", type=Path, default=Path.cwd())
     parser.add_argument("--conventions", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument("--runtime", action="store_true", help="Also verify the selected ai-rulez runtime")
+    parser.add_argument(
+        "--execution-root",
+        type=Path,
+        help="Actual Poly execution root (worktree or staged snapshot); defaults to the consumer directory",
+    )
     args = parser.parse_args()
     policy: dict[str, Pin] = {}
     try:
         policy = load_policy(args.conventions / POLICY)
         errors = check(args.consumer, policy)
+        if args.runtime and not errors:
+            measured = hook_runtime.verify(args.consumer, args.execution_root)
+            for runtime in measured:
+                print(f"checked AI runtime: {runtime.hook} {runtime.channel} {runtime.version} ({runtime.command[0]})")
     except (OSError, ValueError) as exc:
         errors = [str(exc)]
     for error in errors:
