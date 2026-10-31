@@ -73,7 +73,7 @@ if version_probe and os.environ.get("FAIL_VERSION") == "1":
 elif native:
     status = subprocess.run([native, *args], check=False).returncode
 elif version_probe:
-    print("ai-rulez version " + os.environ["AI_VERSION_" + provider])
+    print("ai-rulez version " + os.environ["AI_VERSION_NPM" if provider == "npx" else "AI_VERSION_SYSTEM"])
     status = 0
 else:
     try:
@@ -144,7 +144,7 @@ def providers(root: Path, environment: dict[str, str], stale: bool) -> None:
     for name in ("ai-rulez", "npx"):
         command = root / "bin" / name
         commands.script(command, PROVIDER)
-    environment.update({"AI_VERSION_ai-rulez": OLD if stale else LATEST, "AI_VERSION_npx": LATEST})
+    environment.update({"AI_VERSION_SYSTEM": OLD if stale else LATEST, "AI_VERSION_NPM": LATEST})
     system = os.environ.get("PREFLIGHT_NATIVE_OLD" if stale else "PREFLIGHT_NATIVE_CURRENT")
     npm = os.environ.get("PREFLIGHT_NATIVE_CURRENT")
     if system:

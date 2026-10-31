@@ -77,7 +77,7 @@ class DistributedPreflightTest(unittest.TestCase):
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             fixtures.git(main, environment, "worktree", "add", "-b", "linked", str(linked))
             commands.directory(main / "bin", linked / "bin")
-            environment["AI_VERSION_ai-rulez"] = fixtures.OLD
+            environment["AI_VERSION_SYSTEM"] = fixtures.OLD
             if os.environ.get("PREFLIGHT_NATIVE_OLD"):
                 environment["NATIVE_AI_SYSTEM"] = os.environ["PREFLIGHT_NATIVE_OLD"]
             for local in (False, True):
@@ -179,7 +179,7 @@ class WorktreePreflightTest(unittest.TestCase):
             root = Path(directory)
             environment = fixtures.setup(root, worktree=True)
             environment.pop("NATIVE_AI_SYSTEM", None)
-            environment["AI_VERSION_ai-rulez"] = "99.0.0"
+            environment["AI_VERSION_SYSTEM"] = "99.0.0"
             result, events = fixtures.commit(root, environment, "worktree-newer-local")
             gates, validators = fixtures.captured(events)
             self.assertEqual(len(gates), 1)
@@ -197,7 +197,7 @@ class WorktreePreflightTest(unittest.TestCase):
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             fixtures.git(main, environment, "worktree", "add", "-b", "linked", str(linked))
             commands.directory(main / "bin", linked / "bin")
-            environment["AI_VERSION_ai-rulez"] = fixtures.OLD
+            environment["AI_VERSION_SYSTEM"] = fixtures.OLD
             if os.environ.get("PREFLIGHT_NATIVE_OLD"):
                 environment["NATIVE_AI_SYSTEM"] = os.environ["PREFLIGHT_NATIVE_OLD"]
             for local in (False, True):
