@@ -171,6 +171,16 @@ class RealPolyProviderTest(unittest.TestCase):
                 commands.forward(root / name, commands.command_path(root / "bin" / name))
             environment["PATH"] = ""
             actual = execute_hook(poly, root, environment, commit=False)
+            if os.name == "nt":
+                # Windows lookup drops empty PATH entries, so neither Poly nor the probe may use the cwd.
+                self.assertNotEqual(actual.returncode, 0, actual.stdout + actual.stderr)
+                self.assertFalse((root / "trace").exists())
+                with (
+                    patch.dict(os.environ, environment, clear=True),
+                    self.assertRaisesRegex(ValueError, "no eligible AI runtime provider"),
+                ):
+                    hook_runtime.select(["ai-rulez-validate"], tomllib.loads(fixtures.CATALOGUE), ["system"], root)
+                return
             self.assertEqual(actual.returncode, 0, actual.stdout + actual.stderr)
             self.assertEqual((root / "trace").read_text().splitlines(), ["ai-rulez|validate --no-local"])
             with patch.dict(os.environ, environment, clear=True):

@@ -103,6 +103,24 @@ class RuntimeGateTest(unittest.TestCase):
             ):
                 hook_runtime.select(["ai-rulez-validate"], tomllib.loads(CATALOGUE), ["system"], root)
 
+    def test_empty_path_entries_follow_the_platform_lookup_poly_uses(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            bin_dir = root / "bin"
+            for name, separator, path, expected in [
+                ("posix", ":", "", str(root)),
+                ("posix", ":", f"{bin_dir}::", f"{bin_dir}:{root}:{root}"),
+                ("nt", ";", "", ""),
+                ("nt", ";", f"{bin_dir};;", str(bin_dir)),
+            ]:
+                with (
+                    self.subTest(os_name=name, path=path),
+                    patch.object(os, "name", name),
+                    patch.object(os, "pathsep", separator),
+                    patch.dict(os.environ, {"PATH": path}),
+                ):
+                    self.assertEqual(hook_runtime.search_path(root), expected)
+
     def test_public_runtime_cli_refuses_unset_path_even_with_a_default_provider(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

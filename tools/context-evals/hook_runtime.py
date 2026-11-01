@@ -178,6 +178,9 @@ def search_path(execution_root: Path) -> str:
     if "PATH" not in os.environ:
         raise ValueError("PATH is unset; no AI runtime provider was checked")
     entries = os.environ["PATH"].split(os.pathsep)
+    if os.name == "nt":
+        # Poly resolves with the which crate, which drops empty Windows entries instead of reading the cwd.
+        entries = [entry for entry in entries if entry]
     return os.pathsep.join(str((execution_root / entry).resolve()) for entry in entries)
 
 
