@@ -11,5 +11,5 @@ x-ai-rulez:
     priority: high
 ---
 
-- R 4.1+, styler and lintr, roxygen2 docs with `@examples` on exports, testthat.
+- R 4.4+, styler and lintr, roxygen2 docs with `@examples` on exports, testthat.
 - `R CMD check --as-cran` is clean.
