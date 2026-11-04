@@ -239,7 +239,8 @@ class HookContextTest(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 records = [json.loads(line) for line in Path(environment["CONTEXT_TRACE"]).read_text().splitlines()]
                 self.assertEqual(len(records), 1)
-                self.assertEqual(records[0]["git_dir"], str(metadata.resolve()))
+                # Git exports GIT_DIR with forward slashes on Windows; compare paths, not spellings.
+                self.assertEqual(Path(records[0]["git_dir"]).resolve(), metadata.resolve())
                 self.assertIn("exactly one registered worktree, found 0", records[0]["error"])
 
     def test_child_git_identity_queries_strip_inherited_snapshot_context(self) -> None:
