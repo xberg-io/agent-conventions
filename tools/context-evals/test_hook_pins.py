@@ -22,6 +22,11 @@ POLICY = {
 }
 EXACT = {**POLICY, "fixture-exact": hook_pins.Pin("fixture-exact", "v1.2.3")}
 COMMIT = "8dd59ae052ee9ffbcc371dc0ee1d14e1e9a0a515"
+# poly.lock exactly as `poly lock` wrote it (Goldziher/poly c7edb93). Its schema is PolyLock in
+# crates/poly-cli/src/polylock.rs: `version = 1`, and [[hook_sources]] entries of id, source, revision and path,
+# with deny_unknown_fields; poly reads no other lock once this file exists.
+POLY_LOCK = (Path(__file__).parent / "testdata/poly-lock-c7edb93.toml").read_text()
+LOCKED_COMMIT = "96942fd51a8840bb796ed9ba117d18b5d2d011d0"
 
 
 def consumer(repo: Path, pins: dict[str, str], locked: list[str] | None = None) -> Path:
@@ -41,7 +46,7 @@ class HookPinsTest(unittest.TestCase):
         events = config.get("on", config.get(True))
         for event in ("push", "pull_request"):
             patterns = events[event]["paths"]
-            for filename in ("poly.toml", "poly-hooks.lock", "tools/context-evals/hook-pins.toml"):
+            for filename in ("poly.toml", "poly.lock", "poly-hooks.lock", "tools/context-evals/hook-pins.toml"):
                 with self.subTest(event=event, filename=filename):
                     self.assertTrue(any(fnmatch.fnmatchcase(filename, pattern) for pattern in patterns))
             self.assertFalse(any(fnmatch.fnmatchcase("unrelated.txt", pattern) for pattern in patterns))
@@ -164,13 +169,26 @@ class HookPinsTest(unittest.TestCase):
             self.assertIn("poly.toml", errors[0])
 
     def test_reads_hook_sources_from_the_unified_poly_lock(self) -> None:
-        # poly lock replaces poly-hooks.lock with poly.lock, which keys the same entries as [[hook_sources]].
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
             (repo / "poly.toml").write_text('[[hooks.sources]]\nid="ai-rulez"\nrevision="v5"\n')
-            (repo / "poly.lock").write_text(f'version=1\n[[hook_sources]]\nid="ai-rulez"\nrevision="{COMMIT}"\n')
+            (repo / "poly.lock").write_text(POLY_LOCK)
             self.assertEqual(hook_pins.check(repo, POLICY), [])
-            (repo / "poly.lock").write_text('version=1\n[[hook_sources]]\nid="ai-rulez"\nrevision="v5"\n')
+            (repo / "poly.lock").write_text(POLY_LOCK.replace(LOCKED_COMMIT, "v5", 1))
+            self.assertEqual(
+                hook_pins.check(repo, POLICY),
+                [f"{repo / 'poly.lock'}: ai-rulez revision 'v5' is not a resolved commit"],
+            )
+
+    def test_poly_lock_wins_and_the_legacy_lock_is_not_read(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "poly.toml").write_text('[[hooks.sources]]\nid="ai-rulez"\nrevision="v5"\n')
+            (repo / "poly.lock").write_text(POLY_LOCK)
+            (repo / "poly-hooks.lock").write_text("not toml [")
+            self.assertEqual(hook_pins.check(repo, POLICY), [])
+            (repo / "poly.lock").write_text(POLY_LOCK.replace(LOCKED_COMMIT, "v5", 1))
+            (repo / "poly-hooks.lock").write_text(f'version=1\n[[sources]]\nid="ai-rulez"\nrevision="{COMMIT}"\n')
             self.assertEqual(
                 hook_pins.check(repo, POLICY),
                 [f"{repo / 'poly.lock'}: ai-rulez revision 'v5' is not a resolved commit"],
@@ -179,7 +197,7 @@ class HookPinsTest(unittest.TestCase):
     def test_a_lone_unified_lock_still_needs_poly_toml(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
-            (repo / "poly.lock").write_text(f'version=1\n[[hook_sources]]\nid="ai-rulez"\nrevision="{COMMIT}"\n')
+            (repo / "poly.lock").write_text(POLY_LOCK)
             errors = hook_pins.check(repo, POLICY)
             self.assertEqual(len(errors), 1)
             self.assertIn("poly.toml", errors[0])

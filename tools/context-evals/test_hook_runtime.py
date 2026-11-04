@@ -382,19 +382,32 @@ class RuntimeGateTest(unittest.TestCase):
 
 
 class UnifiedLockTest(unittest.TestCase):
+    # poly.lock as `poly lock` wrote it (Goldziher/poly c7edb93; schema PolyLock in crates/poly-cli/src/polylock.rs).
+    POLY_LOCK = (Path(__file__).parent / "testdata/poly-lock-c7edb93.toml").read_text()
+
+    def verify(self, root: Path) -> list[str]:
+        executable(root / "ai-rulez", "5.9.8")
+        with (
+            patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
+            patch("urllib.request.urlopen", side_effect=network),
+        ):
+            return [result.version for result in hook_runtime.verify(root)]
+
     def test_reads_the_catalogue_commit_from_the_unified_poly_lock(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             configure(root)
-            executable(root / "ai-rulez", "5.9.8")
-            legacy = root / "poly-hooks.lock"
-            (root / "poly.lock").write_text(legacy.read_text().replace("[[sources]]", "[[hook_sources]]"))
-            legacy.unlink()
-            with (
-                patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
-                patch("urllib.request.urlopen", side_effect=network),
-            ):
-                self.assertEqual([result.version for result in hook_runtime.verify(root)], ["5.9.8"])
+            (root / "poly-hooks.lock").unlink()
+            (root / "poly.lock").write_text(self.POLY_LOCK)
+            self.assertEqual(self.verify(root), ["5.9.8"])
+
+    def test_poly_lock_wins_and_the_legacy_lock_is_not_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            configure(root)
+            (root / "poly-hooks.lock").write_text("not toml [")
+            (root / "poly.lock").write_text(self.POLY_LOCK)
+            self.assertEqual(self.verify(root), ["5.9.8"])
 
 
 if __name__ == "__main__":
