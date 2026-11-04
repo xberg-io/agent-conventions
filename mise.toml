@@ -6,8 +6,8 @@ lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64", "windows-x64"]
 [tools]
 node = "26.13.0"
 python = "3.15.2"
-uv = "0.13.6"
-"github:Goldziher/poly" = "0.32.2"
+uv = "0.13.7"
+"github:Goldziher/poly" = "0.32.5"
 "github:Goldziher/adrlint" = "0.4.1"
 
 # Subrepository tasks; the polyrepo root's tasks are inherited but refuse to run here. ~keep
