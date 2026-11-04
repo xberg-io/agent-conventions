@@ -163,6 +163,27 @@ class HookPinsTest(unittest.TestCase):
             self.assertEqual(len(errors), 2)
             self.assertIn("poly.toml", errors[0])
 
+    def test_reads_hook_sources_from_the_unified_poly_lock(self) -> None:
+        # poly lock replaces poly-hooks.lock with poly.lock, which keys the same entries as [[hook_sources]].
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "poly.toml").write_text('[[hooks.sources]]\nid="ai-rulez"\nrevision="v5"\n')
+            (repo / "poly.lock").write_text(f'version=1\n[[hook_sources]]\nid="ai-rulez"\nrevision="{COMMIT}"\n')
+            self.assertEqual(hook_pins.check(repo, POLICY), [])
+            (repo / "poly.lock").write_text('version=1\n[[hook_sources]]\nid="ai-rulez"\nrevision="v5"\n')
+            self.assertEqual(
+                hook_pins.check(repo, POLICY),
+                [f"{repo / 'poly.lock'}: ai-rulez revision 'v5' is not a resolved commit"],
+            )
+
+    def test_a_lone_unified_lock_still_needs_poly_toml(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "poly.lock").write_text(f'version=1\n[[hook_sources]]\nid="ai-rulez"\nrevision="{COMMIT}"\n')
+            errors = hook_pins.check(repo, POLICY)
+            self.assertEqual(len(errors), 1)
+            self.assertIn("poly.toml", errors[0])
+
     def test_rejects_missing_and_file_consumer_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

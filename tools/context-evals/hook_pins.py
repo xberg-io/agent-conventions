@@ -37,7 +37,7 @@ class Pin:
 
 def sources(path: Path, table: str) -> list[dict]:
     data = tomllib.loads(path.read_text())
-    return data.get("hooks", {}).get("sources", []) if table == "hooks" else data.get("sources", [])
+    return data.get("hooks", {}).get("sources", []) if table == "hooks" else data.get(table, [])
 
 
 def source(path: Path, table: str, source_id: str = "ai-rulez") -> dict:
@@ -62,8 +62,8 @@ def load_policy(path: Path) -> dict[str, Pin]:
 
 
 def has_hooks(consumer: Path) -> bool:
-    """A consumer without poly.toml or poly-hooks.lock runs no poly hooks, so it has no hook source to pin."""
-    return (consumer / "poly.toml").exists() or (consumer / "poly-hooks.lock").exists()
+    """A consumer without poly.toml or a hook-source lock runs no poly hooks, so it has no hook source to pin."""
+    return (consumer / "poly.toml").exists() or any((consumer / name).exists() for name, _ in hook_runtime.LOCKS)
 
 
 def declared(path: Path, table: str, errors: list[str]) -> list[dict] | None:
@@ -92,9 +92,10 @@ def check(consumer: Path, policy: dict[str, Pin]) -> list[str]:
     errors: list[str] = []
     if not has_hooks(consumer):
         return errors
-    config_path, lock_path = consumer / "poly.toml", consumer / "poly-hooks.lock"
+    config_path = consumer / "poly.toml"
+    lock_path, lock_table = hook_runtime.hook_lock(consumer)
     config = declared(config_path, "hooks", errors)
-    lock = declared(lock_path, "sources", errors)
+    lock = declared(lock_path, lock_table, errors)
     for pin in in_use(policy, config, lock):
         if config is not None:
             try:
@@ -103,7 +104,7 @@ def check(consumer: Path, policy: dict[str, Pin]) -> list[str]:
                 errors.append(str(exc))
         if lock is not None:
             try:
-                locked = source(lock_path, "sources", pin.id).get("revision")
+                locked = source(lock_path, lock_table, pin.id).get("revision")
                 if not isinstance(locked, str) or not COMMIT.match(locked):
                     errors.append(f"{lock_path}: {pin.id} revision {locked!r} is not a resolved commit")
             except ValueError as exc:
@@ -135,7 +136,7 @@ def main() -> int:
     for error in errors:
         print(f"error: {error}", file=sys.stderr)
     if not errors and not has_hooks(args.consumer):
-        print("checked 0 consumers: no poly.toml or poly-hooks.lock, so no poly hooks")
+        print("checked 0 consumers: no poly.toml or hook-source lock, so no poly hooks")
     elif not errors:
         checked = in_use(policy, sources(args.consumer / "poly.toml", "hooks"))
         print(f"checked 1 consumer, {len(checked)} hook sources: " + ", ".join(f"{p.id} {p.revision}" for p in checked))

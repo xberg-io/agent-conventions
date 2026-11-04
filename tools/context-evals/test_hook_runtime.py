@@ -381,5 +381,21 @@ class RuntimeGateTest(unittest.TestCase):
                         hook_runtime.verify(root)
 
 
+class UnifiedLockTest(unittest.TestCase):
+    def test_reads_the_catalogue_commit_from_the_unified_poly_lock(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            configure(root)
+            executable(root / "ai-rulez", "5.9.8")
+            legacy = root / "poly-hooks.lock"
+            (root / "poly.lock").write_text(legacy.read_text().replace("[[sources]]", "[[hook_sources]]"))
+            legacy.unlink()
+            with (
+                patch.dict(os.environ, commands.environment({"PATH": str(root)}), clear=True),
+                patch("urllib.request.urlopen", side_effect=network),
+            ):
+                self.assertEqual([result.version for result in hook_runtime.verify(root)], ["5.9.8"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -62,11 +62,23 @@ def fetch(url: str) -> bytes:
     return content
 
 
-def locked_sources(path: Path) -> list[dict]:
+# poly lock merges poly-hooks.lock ([[sources]]) into poly.lock ([[hook_sources]]); a consumer has one or the other.
+LOCKS = (("poly.lock", "hook_sources"), ("poly-hooks.lock", "sources"))
+
+
+def hook_lock(consumer: Path) -> tuple[Path, str]:
+    """The consumer's hook-source lock and the table that lists its sources: poly.lock when present."""
+    for name, table in LOCKS:
+        if (consumer / name).exists():
+            return consumer / name, table
+    return consumer / LOCKS[-1][0], LOCKS[-1][1]
+
+
+def locked_sources(path: Path, table: str = "sources") -> list[dict]:
     document = read_toml(path)
     if type(document.get("version")) is not int or document["version"] != 1:
         raise ValueError(f"{path}: lock version must be integer 1")
-    entries = document.get("sources")
+    entries = document.get(table)
     if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
         raise ValueError(f"{path}: lock requires a sources list")
     for entry in entries:
@@ -80,7 +92,7 @@ def catalogue(consumer: Path) -> tuple[list[str], dict]:
     configured = unique_ai_source(read_toml(consumer / "poly.toml").get("hooks", {}).get("sources", []))
     if configured.keys() - SOURCE_FIELDS:
         raise ValueError("unknown configured hook source field")
-    locked = unique_ai_source(locked_sources(consumer / "poly-hooks.lock"))
+    locked = unique_ai_source(locked_sources(*hook_lock(consumer)))
     if configured.get("git") != SOURCE or locked.get("source") != SOURCE or "path" in configured:
         raise ValueError("AI runtime probe requires the canonical Goldziher/ai-rulez Git source")
     revision = locked.get("revision", "")
