@@ -109,7 +109,8 @@ class RuntimeGateTest(unittest.TestCase):
             bin_dir = root / "bin"
             for name, separator, path, expected in [
                 ("posix", ":", "", str(root)),
-                ("posix", ":", f"{bin_dir}::", f"{bin_dir}:{root}:{root}"),
+                # Relative, since an absolute Windows host path carries a drive colon that POSIX splits on.
+                ("posix", ":", "bin::", f"{bin_dir}:{root}:{root}"),
                 ("nt", ";", "", ""),
                 ("nt", ";", f"{bin_dir};;", str(bin_dir)),
             ]:
