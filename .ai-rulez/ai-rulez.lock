@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.9.8'
+ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:5e48adaf56deb85ecda93470fb3acfefba4eb60ad56b9162ffc413e8e29f1247'
+tree = 'sha256:66ba8574489846f98cc81ce9a2c828308bba51bfb4db7347a90c8e6d3000b6dd'
 
 [[served]]
 name = 'adr-authoring'
@@ -214,7 +214,7 @@ digest = 'sha256:cd7442a35a8e23c15a96829e526452181ee402e7ee41f7c7c0adc920153a61c
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:6bc17ca3866ab33a47267a734693892ebfec4e41b93e2fbd68e4cd822c121cc2'
+digest = 'sha256:7790c3b3d045a5c0aaf9ea8b4ce51b4e9e1c2c9d2a746394ea2a76f17f08a192'
 
 [[item]]
 kind = 'skill'
