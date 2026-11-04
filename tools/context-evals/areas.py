@@ -43,22 +43,12 @@ def main() -> int:
     parser.add_argument("--repo", required=True, help="Name the repository is listed under in domains.toml")
     parser.add_argument("--domains", type=Path, default=DOMAINS)
     parser.add_argument("--out", type=Path, help="Write the map here instead of standard output")
-    parser.add_argument("--check", action="store_true", help="Fail when --out differs from the rendered map")
     args = parser.parse_args()
     try:
         rendered = render(tomllib.loads(args.domains.read_text()), args.repo)
     except (OSError, ValueError, tomllib.TOMLDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    if args.check:
-        if args.out is None:
-            print("error: --check needs --out", file=sys.stderr)
-            return 1
-        current = args.out.read_text() if args.out.exists() else ""
-        if current != rendered:
-            print(f"error: {args.out} is stale; rerun areas.py --repo {args.repo} --out {args.out}", file=sys.stderr)
-            return 1
-        return 0
     if args.out is None:
         sys.stdout.write(rendered)
     else:

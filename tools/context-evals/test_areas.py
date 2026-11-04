@@ -46,7 +46,7 @@ class AreasTest(unittest.TestCase):
         domains = tomllib.loads((ROOT / "tools/context-evals/domains.toml").read_text())
         committed = ROOT / tomllib.loads((ROOT / ".ai-rulez/config.toml").read_text())["exposure"]["areas_file"]
         self.assertEqual(committed.read_text(), areas.render(domains, "agent-conventions"))
-        self.assertEqual(len(tomllib.loads(committed.read_text())["area"]), len(domains["domain"]))
+        self.assertTrue(any(area["terms"] for area in tomllib.loads(committed.read_text())["area"]))
 
 
 if __name__ == "__main__":

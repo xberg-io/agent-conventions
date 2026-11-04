@@ -39,7 +39,7 @@ server and predate the current outputs.
 ## What runs natively now
 
 agent-conventions carries an `[exposure]` table: `areas_file = "tools/context-evals/exposure-areas.toml"` (rendered by
-`areas.py --repo agent-conventions`, kept current by `test_areas.py`) and `start_budget = 4400`, about 5% above the
-4,180 measured, as tight as the legacy `claude=5350` input. `validate` therefore runs `AR9W0`, `AR9W3`, `AR9W5` and
+`areas.py --repo agent-conventions`, kept current by `test_areas.py`) and `start_budget = 4400` against a measured
+start of 4,180 tokens: 5% headroom, about the legacy gate's 4% (5,145 measured against `claude=5350`). `validate` therefore runs `AR9W0`, `AR9W3`, `AR9W5` and
 the `AR964` skill-listing row in this repository's CI. Controls: `start_budget = 4000` fails `AR9W3` (4,180, 180
 over); adding `worktree` to an area fails `AR9W0` on the `agent-coordination` listing.
