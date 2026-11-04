@@ -73,3 +73,9 @@ include = ["skills"]
 name = "public-docs-sites"
 source = "modules/docs-sites"
 include = ["skills"]
+
+# Native session-exposure checks (AR9W0, AR9W3, AR964). The map is rendered from domains.toml by areas.py; exposure.py
+# stays the gate for Codex, CLAUDE.md imports and domains.toml's accepts until ai-rulez covers them. ~keep
+[exposure]
+areas_file = "tools/context-evals/exposure-areas.toml"
+start_budget = 4400

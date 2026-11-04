@@ -118,3 +118,7 @@ generated with `npx -y ai-rulez@latest generate` (5.6.3).
 
 [`after-mcp-2026-10-26.md`](after-mcp-2026-10-26.md): with the ai-rulez MCP server measured, before and after
 restricting it to `find_skill` and `load_skill`.
+
+[`native-exposure-2026-11-04.md`](native-exposure-2026-11-04.md): ai-rulez 5.10.0's native `exposure` commands against
+exposure.py, and the gaps that keep exposure.py as the gate. `areas.py --repo NAME` renders a repository's
+`[exposure] areas_file` from `domains.toml`.
