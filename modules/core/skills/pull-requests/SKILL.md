@@ -11,6 +11,11 @@ x-ai-rulez:
 
 # Pull requests
 
+## Before you start
+
+Get maintainer agreement in an issue before a change that adds a large subsystem or a development dependency,
+rewrites stored customer data, or reverses a documented rule.
+
 ## Claims
 
 - Make every claim in the title, body, commits, changelog and comments exactly as wide as the head commit.
