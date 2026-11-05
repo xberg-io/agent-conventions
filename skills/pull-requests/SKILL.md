@@ -1,7 +1,7 @@
 ---
 name: pull-requests
-description: "Pull request scope and text: claims as wide as the head commit, Closes only for a full fix, one change per PR, acceptance items, follow-up issues. Use when opening, writing or readying a PR."
-# Content-Hash: blake3:09c012573ae675993467016d628487ef3a3f0520c3b58881394f3c39cd0d7364
+description: "Pull request scope and text: title and description, claims as wide as the head commit, Closes only for a full fix, one change per PR, acceptance items, follow-up issues. Use when opening, writing or readying a PR."
+# Content-Hash: blake3:d34447f7722544d217f17d16f0219a10849c4e04343735bf315336c1124c9de4
 ---
 
 # Pull requests
@@ -12,6 +12,14 @@ description: "Pull request scope and text: claims as wide as the head commit, Cl
 - Take each number from one measured run. Name the exact stage where a behaviour happens. Check a third-party fact
   at its source.
 - Read the title and body again after every push, and correct each claim the push changed.
+
+## Title and description
+
+- The title follows the commit-messages rule: a conventional-commit type and scope, under 72 characters, imperative
+  mood. It describes the whole change, not the last commit.
+- The description says what changed and why, links the issue, and lists what the change does not cover.
+- Describe the change in prose. Do not walk through the diff file by file, and do not list internal symbol names
+  where a sentence says the same.
 
 ## Issue links
 
