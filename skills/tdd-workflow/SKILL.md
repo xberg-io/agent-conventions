@@ -1,7 +1,7 @@
 ---
 name: tdd-workflow
 description: "Test-driven workflow: red, green, refactor; restart if code came first; reproduce a bug as a failing test; integration, unit or property test by change type. Use before a feature or bug fix or when choosing a test type."
-# Content-Hash: blake3:3dcbeae9388478a9e99a7a79aadacf53b9f58822f7f9a0d8b6bb6fc884210b09
+# Content-Hash: blake3:ecf350b5c9dcc181dd75d0c09e2292639a2eb0366f35e4274af05c32c1dc3ebd
 ---
 
 # TDD workflow
@@ -17,6 +17,7 @@ description: "Test-driven workflow: red, green, refactor; restart if code came f
 
 - A regression test fails with the fix reverted. Revert the fix locally once and watch the test fail. A test that
   passes either way is a guard: name it as one, and do not count it as the regression test.
+- Name each test, task and filter for what its body does. Read the body before you name it.
 - Drive the test through the production entry point, on the route the change claims, with the default
   configuration.
 - Cover every behaviour path the change touches: failure, resume, legacy state, boundary, rollback, and each case a
@@ -32,6 +33,13 @@ description: "Test-driven workflow: red, green, refactor; restart if code came f
 - Keep fixture names distinct on file systems that ignore case.
 - A new test runs in CI, not skips: CI provisions the models, services, fixtures and tool versions it needs. Commit
   each fixture with its provenance.
+- Run a local check or test through the command, locked build and install path that CI and a real install use.
+
+## Test layout
+
+- Keep testable logic in a library, so a test reaches it without a binary or a service.
+- Put test files where the build does not make them separate targets. Keep test-only dependencies out of the runtime
+  set.
 
 ## Keeping tests
 
