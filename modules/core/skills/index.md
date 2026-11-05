@@ -3,6 +3,7 @@
 - [adr-authoring](adr-authoring/index.md)
 - [agent-coordination](agent-coordination/index.md)
 - [basemind-tools](basemind-tools/index.md)
+- [correctness-review](correctness-review/index.md)
 - [mise-tasks](mise-tasks/index.md)
 - [mise-toolchains](mise-toolchains/index.md)
 - [poly-lint-format](poly-lint-format/index.md)
