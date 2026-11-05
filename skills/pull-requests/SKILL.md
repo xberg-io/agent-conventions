@@ -1,10 +1,15 @@
 ---
 name: pull-requests
 description: "Pull request scope and text: title and description, claims as wide as the head commit, Closes only for a full fix, one change per PR, acceptance items, follow-up issues. Use when opening, writing or readying a PR."
-# Content-Hash: blake3:d34447f7722544d217f17d16f0219a10849c4e04343735bf315336c1124c9de4
+# Content-Hash: blake3:a5feb18975553327811b11d5405426242f7b09b8468b594ab065d5fd8ac3fcd7
 ---
 
 # Pull requests
+
+## Before you start
+
+Get maintainer agreement in an issue before a change that adds a large subsystem or a development dependency,
+rewrites stored customer data, or reverses a documented rule.
 
 ## Claims
 

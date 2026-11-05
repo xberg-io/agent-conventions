@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:ee60bd6698f503fcf479791764ddc8f9fbbf9d71c5491995ce1aa526dc2595b4'
+tree = 'sha256:b8fda9d10352ec1dd9fe9970132e2b3b7c7be3ef56151ef16a149e910d60ace8'
 
 [[served]]
 name = 'adr-authoring'
@@ -142,7 +142,7 @@ digest = 'sha256:772854a122a129565f974e6c5ae84ef1169f7bc4f3a2068bfdc56b548c16169
 name = 'pull-requests'
 source = 'include:public-core/skills/pull-requests/SKILL.md'
 commit = ''
-digest = 'sha256:c19f3b5535ec6db5738c19ff1faad5e01ea63a8a33da156c418cf81108753776'
+digest = 'sha256:6656581eb3d9804be647631530e15f54805546700d1cc9d8ba7e775d1c1e55c3'
 
 [[served]]
 name = 'release-workflow'
@@ -208,7 +208,7 @@ digest = 'sha256:2766e42933e167100be4746364da13174dbad7072fa2d88a2dde0466b32b558
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:ac25986bf79386f28fb46988caab8713329413e53b0bba1007a2b1c35378b70d'
+digest = 'sha256:d98634e52552685fd87f03d070a572896a437ffc9fb6933a6ed53ab5417d4da0'
 
 [[item]]
 kind = 'local-include'
