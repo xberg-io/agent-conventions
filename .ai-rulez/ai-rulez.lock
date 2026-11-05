@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:220d3cb173d666cefa2ad8d23e0130dd0be302e94cdbb4744b90e8efabe1cf87'
+tree = 'sha256:8cabac27beb70ff7ee0117b5125235e64584b04cdf2c91bbdc4f9b062c9ed3dc'
 
 [[served]]
 name = 'adr-authoring'
@@ -172,7 +172,7 @@ digest = 'sha256:7ab2b543dc6608f204c957fedfc55ae902d22fda9dc8a52252330ff9b1406ff
 name = 'tdd-workflow'
 source = 'include:public-core/skills/tdd-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:8651ec0982657585e697dd493effee488ec008a92362636b2262db859ab30afc'
+digest = 'sha256:7eff50bf8734b363dfe92fc8fd7ddd8de94f911bc8969316608d4150c833fb80'
 
 [[served]]
 name = 'tracing-conventions'
@@ -184,7 +184,7 @@ digest = 'sha256:6b41c52c1e88c3251b6c85f5196b0cd536a41f63ad5ba0862485d569259457e
 name = 'verification-harness'
 source = 'include:public-core/skills/verification-harness/SKILL.md'
 commit = ''
-digest = 'sha256:52ffa5fdd63293f4d0325b3f51a187d07eba9b69e2341da62c4603e2798dd948'
+digest = 'sha256:517c67f45363ed00d4a5ff0b04b8271cb48e0771d2c11b374dec0fad11f403e7'
 
 [[served]]
 name = 'xberg-brand-and-docs'
@@ -214,7 +214,7 @@ digest = 'sha256:2766e42933e167100be4746364da13174dbad7072fa2d88a2dde0466b32b558
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:58bb7789cd1293a8466de1ec22b79e1e550f27b21de90e8e7f9eee5c247505bb'
+digest = 'sha256:99d49aad1ac0bdad6a2da819ec64e6d0b7dee092964d235a6991089310e099b3'
 
 [[item]]
 kind = 'local-include'

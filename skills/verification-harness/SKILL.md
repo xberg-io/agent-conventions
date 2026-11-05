@@ -1,7 +1,7 @@
 ---
 name: verification-harness
 description: "Zero-work passes seen in practice and how to guard a harness against them: xargs limits, empty path variables, wrong-reason negative controls, job-count assertions. Use when writing or trusting a sweep, gate or check script."
-# Content-Hash: blake3:67ce8160819ed89e39684b2ecac61b30005d4c133341285e35ba449ff59c946f
+# Content-Hash: blake3:2c68d5049f3933b26667c95f9e39b1136308453371c456cf4ed08a57992a23ab
 ---
 
 # Verification harness
@@ -29,3 +29,5 @@ exited `0` and rendered identically to success.
 - Prefer absolute paths in any harness whose working directory is not guaranteed.
 - Smoke-test a new harness against an input whose answer is already known.
 - Make the assertion fail once on purpose, and check that it failed for the reason it exists.
+- Make a gate evaluate the invariant it protects (parse the expression, compute the property), never match one
+  spelling of it.

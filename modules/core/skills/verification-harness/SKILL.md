@@ -34,3 +34,5 @@ exited `0` and rendered identically to success.
 - Prefer absolute paths in any harness whose working directory is not guaranteed.
 - Smoke-test a new harness against an input whose answer is already known.
 - Make the assertion fail once on purpose, and check that it failed for the reason it exists.
+- Make a gate evaluate the invariant it protects (parse the expression, compute the property), never match one
+  spelling of it.
