@@ -1,7 +1,7 @@
 ---
 name: mise-toolchains
 description: "mise procedures: locked install, adding a tool, moving to a new baseline, matrix version legs, lock and rate-limit failures. Use when installing or changing a tool version."
-# Content-Hash: blake3:dc0ba51a83ff8d327d80bc82decd5d2b5fc943046a78a9733a173d40686f0c8f
+# Content-Hash: blake3:26afee84a0dd8947688b33c672b96efa1502c2bc177f36c0fcb248b1b58b63b9
 ---
 
 # Mise toolchains
@@ -15,7 +15,8 @@ mise trust          # once per checkout or worktree; mise ignores an untrusted m
 mise install --locked
 ```
 
-`--locked` installs only what `mise.lock` pins for this platform, as CI does.
+`--locked` installs only what `mise.lock` pins for this platform, as CI does. A check task first verifies that each
+tool it needs exists and matches its pin and the lock, then prints the versions it used.
 
 ## Add a tool
 
@@ -25,6 +26,9 @@ mise install --locked
 2. Lock every platform: `mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64` (the
    `lockfile_platforms` setting, where set, supplies the same list).
 3. Commit `mise.toml` and `mise.lock` together.
+
+Pin only a released version or a commit on the upstream main branch. When a release fixes a defect that the project
+hits, move to it. Keep each pin, digest and version string equal to what ships.
 
 ## Move to a new baseline
 

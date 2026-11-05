@@ -1,7 +1,7 @@
 ---
 name: github-workflow-conventions
 description: "Organize GitHub Actions workflows, name CI/release/deployment files, pin actions, and audit workflow references and stage boundaries. Use when creating, renaming, splitting, or reviewing workflows."
-# Content-Hash: blake3:aa4c7c44b271c5fabe1a312c93d0e200e3bbfb5e4a27b8b871f51b0a2fc955b8
+# Content-Hash: blake3:091df1440bffcee79d61dd5ab80418199eb0b0f6b49d8f4712767f6bfd397f0b
 ---
 
 # GitHub workflow conventions
@@ -41,9 +41,15 @@ A release may call a deployment workflow after its publication and verification 
 - Declare least-privilege permissions. Scope secrets and write permissions to jobs that use them.
 - Include the workflow itself and its actual script/task/config inputs in path filters. A negative
   test must prove the gate rejects the intended fault, and inventory checks must reject zero matches.
-- Cancel superseded validation runs when safe. Do not cancel publication or deployment midway through
-  irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
-  renaming; review behavior changes separately.
+- Trigger each gate on every branch that code merges through, for every target it protects. Fix or
+  remove a gate that is always red.
+- Roll out a new gate without turning unrelated work red: scope it to the lines a change introduces,
+  or migrate the existing findings first. Add an allowlist entry only with a case that reproduces it.
+  Two gates over one artifact check the same property the same way.
+- Cancel only a superseded run of the same ref. On the default and integration branches, key the
+  concurrency group by commit, so a push never cancels validation that is in progress. Do not cancel
+  publication or deployment midway through irreversible work, or a workflow one of them calls.
+  Preserve existing trigger semantics when renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's latest bare major tag (`@v4`); the full version tag
   only where the upstream publishes no major; never a SHA or branch (org ADR-0008). gau
   (gh-actions-updater) owns the updates: the `gh-actions-updater-lint-pins` poly hook gates them and

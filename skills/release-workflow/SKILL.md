@@ -1,7 +1,7 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:35f285e1640cd4d78ba69d4b56407bf0e2cef55f25a1eddcab8b7398d4d9c142
+# Content-Hash: blake3:9b3db81094ab1da629c290424eb30adb17eef50a8de6f10f433572d79a2b5d32
 ---
 
 # Release Workflow (shared)
@@ -49,6 +49,10 @@ source — do not release past a failure.
 Run each documented command, recipe or configuration that the release adds or
 changes end to end on the built artifact, including the default path without
 credentials. A documented step that fails on the artifact blocks the release.
+
+Release for exactly the platforms and server versions the project supports. Set
+the floor to the oldest version that its vendor still supports, check the version
+before code uses newer syntax, and publish an artifact for every target.
 
 If the repo carries a coding-agent plugin with its own version pin
 (`plugin/.ai-rulez/config.plugins.toml` `[plugin].version`, checked by its

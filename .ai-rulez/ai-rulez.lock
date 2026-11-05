@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:41553e1ee397c38627f91d8b189c2db9429a325500f12ce4baea3ba7c152d09e'
+tree = 'sha256:a2844f7b81abb0b8379d23c70f667c44fafa061c150172fb3387cdcafb36999c'
 
 [[served]]
 name = 'adr-authoring'
@@ -100,7 +100,7 @@ digest = 'sha256:1846207fdcfc0b4de03a309fcb11702d6ec056f1af2e46bf53db13650cb7909
 name = 'github-workflow-conventions'
 source = 'include:public-cicd/skills/github-workflow-conventions/SKILL.md'
 commit = ''
-digest = 'sha256:00579d27b9634903646544322fd750732cde114e6fdd5699dbe275444c40f7b6'
+digest = 'sha256:e1b07fab8f2d2b4e451704aa3e3dc7f229553ff64efc80060bc128a107837e6d'
 
 [[served]]
 name = 'incremental-approach'
@@ -124,7 +124,7 @@ digest = 'sha256:31534b5c6a3277702ec20250ac3791d5a55c3d2e7ed288f81afe7100bd6ae68
 name = 'mise-toolchains'
 source = 'include:public-core/skills/mise-toolchains/SKILL.md'
 commit = ''
-digest = 'sha256:dd45aafb89b7f46bb3e95ff9b66cb93e331d55e59c30e76614d58c69263ff4c4'
+digest = 'sha256:d78be30b9b194c4cf8f94351f473e5085cf17f45adaf0560cbd2122f285e56d3'
 
 [[served]]
 name = 'owasp-quick-reference'
@@ -154,7 +154,7 @@ digest = 'sha256:6656581eb3d9804be647631530e15f54805546700d1cc9d8ba7e775d1c1e55c
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:8a7680836d6bea640ed63de255f7308ff52cf5312651cd889eecbc0914b0bea8'
+digest = 'sha256:fd1f7c0c49c464e7abe507d83eb46d21c653b058b1bd0da980c025e708707029'
 
 [[served]]
 name = 'scoop-distribution'
@@ -190,7 +190,7 @@ digest = 'sha256:517c67f45363ed00d4a5ff0b04b8271cb48e0771d2c11b374dec0fad11f403e
 name = 'xberg-brand-and-docs'
 source = 'include:public-docs-sites/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:8339456c12b72eaf685a716a0d0fd7aa73001382e9cad8c782617dc0b6180473'
+digest = 'sha256:c760b65c104a6253ff2aa0c3397fa78dde310297d462157bc16db93a79e5cafd'
 
 [[item]]
 kind = 'context'
@@ -208,19 +208,19 @@ digest = 'sha256:0623b9904116139f9a85c6825d91461e82ef8abc44bdfb22fdd78f679982616
 kind = 'local-include'
 id = 'public-cicd'
 path = 'modules/cicd'
-digest = 'sha256:2766e42933e167100be4746364da13174dbad7072fa2d88a2dde0466b32b558b'
+digest = 'sha256:3f46c86a0a78279769cdb8a90e9f7dd1c9f725e0f2441dc808d98d8065a33145'
 
 [[item]]
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:e1c074b877c58fcc6b05f66c20a0b7abe707c23ea4dbad2946795a2dc310b8f0'
+digest = 'sha256:861a55243cdafbae63a6f1c1efd02980852bd5e567cf265b4ba59707874f7d56'
 
 [[item]]
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:c648e86802942fc66f06d9613c81c3f80abf43d25f601fd0bb10165db47e66a5'
+digest = 'sha256:d7660a30f8a81408fc1217e68e1f089071f5cb93ffab9ec11bf0683040ecc0fc'
 
 [[item]]
 kind = 'local-include'

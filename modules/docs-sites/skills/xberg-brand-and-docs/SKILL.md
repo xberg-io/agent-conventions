@@ -46,6 +46,8 @@ Docs sites are Astro Starlight projects under `docs-site/`, consuming the shared
 brand — cream and deep-purple surfaces, teal accents, Geist, CDN logo (`SiteTitle` override), and
 favicon/OG/Google Analytics head tags — through `xbergStarlightConfig()`; do NOT re-add per-repo brand CSS or GA.
 Style a new element with the theme's existing tokens and the style of its siblings; never add a colour value.
+Make each new control usable by keyboard and screen reader, with contrast that passes the audit, and check the page
+at phone width.
 Its default social links are GitHub, Discord (`https://discord.gg/xt9WY3GnKR`), X (`xberg_io`) and LinkedIn
 (`xberg-io`); no Reddit.
 
