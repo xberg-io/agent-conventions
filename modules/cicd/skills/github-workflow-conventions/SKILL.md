@@ -49,9 +49,15 @@ A release may call a deployment workflow after its publication and verification 
 - Declare least-privilege permissions. Scope secrets and write permissions to jobs that use them.
 - Include the workflow itself and its actual script/task/config inputs in path filters. A negative
   test must prove the gate rejects the intended fault, and inventory checks must reject zero matches.
-- Cancel superseded validation runs when safe. Do not cancel publication or deployment midway through
-  irreversible work, or a workflow one of them calls. Preserve existing trigger semantics when
-  renaming; review behavior changes separately.
+- Trigger each gate on every branch that code merges through, for every target it protects. Fix or
+  remove a gate that is always red.
+- Roll out a new gate without turning unrelated work red: scope it to the lines a change introduces,
+  or migrate the existing findings first. Add an allowlist entry only with a case that reproduces it.
+  Two gates over one artifact check the same property the same way.
+- Cancel only a superseded run of the same ref. On the default and integration branches, key the
+  concurrency group by commit, so a push never cancels validation that is in progress. Do not cancel
+  publication or deployment midway through irreversible work, or a workflow one of them calls.
+  Preserve existing trigger semantics when renaming; review behavior changes separately.
 - Pin every `uses:` reference to the action's latest bare major tag (`@v4`); the full version tag
   only where the upstream publishes no major; never a SHA or branch (org ADR-0008). gau
   (gh-actions-updater) owns the updates: the `gh-actions-updater-lint-pins` poly hook gates them and

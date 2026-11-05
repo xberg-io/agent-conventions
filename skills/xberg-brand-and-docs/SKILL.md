@@ -1,7 +1,7 @@
 ---
 name: xberg-brand-and-docs
 description: "xberg.io brand, product catalog, docs site (Astro Starlight, @xberg-io/docs-theme), README template, badges, analytics IDs. Use when writing READMEs or docs, or editing docs-site config."
-# Content-Hash: blake3:cbfb23e162513b219859f9c23d62d95417fd7b722b35d9359bc4980059485628
+# Content-Hash: blake3:2ff246e59b5542ae29d9278a4125ef60409fb1bbb5c2a4922a157266893bb492
 ---
 
 # Xberg Brand and Docs
@@ -37,6 +37,8 @@ Docs sites are Astro Starlight projects under `docs-site/`, consuming the shared
 brand — cream and deep-purple surfaces, teal accents, Geist, CDN logo (`SiteTitle` override), and
 favicon/OG/Google Analytics head tags — through `xbergStarlightConfig()`; do NOT re-add per-repo brand CSS or GA.
 Style a new element with the theme's existing tokens and the style of its siblings; never add a colour value.
+Make each new control usable by keyboard and screen reader, with contrast that passes the audit, and check the page
+at phone width.
 Its default social links are GitHub, Discord (`https://discord.gg/xt9WY3GnKR`), X (`xberg_io`) and LinkedIn
 (`xberg-io`); no Reddit.
 

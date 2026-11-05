@@ -55,6 +55,10 @@ Run each documented command, recipe or configuration that the release adds or
 changes end to end on the built artifact, including the default path without
 credentials. A documented step that fails on the artifact blocks the release.
 
+Release for exactly the platforms and server versions the project supports. Set
+the floor to the oldest version that its vendor still supports, check the version
+before code uses newer syntax, and publish an artifact for every target.
+
 If the repo carries a coding-agent plugin with its own version pin
 (`plugin/.ai-rulez/config.plugins.toml` `[plugin].version`, checked by its
 version-sync script), run its `--check` mode here too,

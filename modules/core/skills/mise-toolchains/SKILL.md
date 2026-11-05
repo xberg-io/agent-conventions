@@ -20,7 +20,8 @@ mise trust          # once per checkout or worktree; mise ignores an untrusted m
 mise install --locked
 ```
 
-`--locked` installs only what `mise.lock` pins for this platform, as CI does.
+`--locked` installs only what `mise.lock` pins for this platform, as CI does. A check task first verifies that each
+tool it needs exists and matches its pin and the lock, then prints the versions it used.
 
 ## Add a tool
 
@@ -30,6 +31,9 @@ mise install --locked
 2. Lock every platform: `mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64` (the
    `lockfile_platforms` setting, where set, supplies the same list).
 3. Commit `mise.toml` and `mise.lock` together.
+
+Pin only a released version or a commit on the upstream main branch. When a release fixes a defect that the project
+hits, move to it. Keep each pin, digest and version string equal to what ships.
 
 ## Move to a new baseline
 
