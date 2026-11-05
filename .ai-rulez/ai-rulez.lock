@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:a338cf1670f14afb026e7a0eff8fdb666860d363409d59df86fff5f790d0792d'
+tree = 'sha256:46f4d1067e65bab3a64dd6923115554b2174774fc0269e6a4575e884ba3da9b5'
 
 [[served]]
 name = 'adr-authoring'
@@ -160,7 +160,7 @@ digest = 'sha256:7ab2b543dc6608f204c957fedfc55ae902d22fda9dc8a52252330ff9b1406ff
 name = 'tdd-workflow'
 source = 'include:public-core/skills/tdd-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:7eff50bf8734b363dfe92fc8fd7ddd8de94f911bc8969316608d4150c833fb80'
+digest = 'sha256:1945ad0d5b7959066bd972598d6266085fd02108f591a08efadd264d17f4af11'
 
 [[served]]
 name = 'tracing-conventions'
@@ -202,7 +202,7 @@ digest = 'sha256:2766e42933e167100be4746364da13174dbad7072fa2d88a2dde0466b32b558
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:694559421850e405291a0e948e503aac45b2f43613fe5dd97ae59a304f8b2355'
+digest = 'sha256:a070026122eaf6b6b4f2b7df367f2e3d22c66cd9c779e54f7284b65226ab33a3'
 
 [[item]]
 kind = 'local-include'

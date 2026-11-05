@@ -22,6 +22,7 @@ x-ai-rulez:
 
 - A regression test fails with the fix reverted. Revert the fix locally once and watch the test fail. A test that
   passes either way is a guard: name it as one, and do not count it as the regression test.
+- Name each test, task and filter for what its body does. Read the body before you name it.
 - Drive the test through the production entry point, on the route the change claims, with the default
   configuration.
 - Cover every behaviour path the change touches: failure, resume, legacy state, boundary, rollback, and each case a
@@ -37,6 +38,13 @@ x-ai-rulez:
 - Keep fixture names distinct on file systems that ignore case.
 - A new test runs in CI, not skips: CI provisions the models, services, fixtures and tool versions it needs. Commit
   each fixture with its provenance.
+- Run a local check or test through the command, locked build and install path that CI and a real install use.
+
+## Test layout
+
+- Keep testable logic in a library, so a test reaches it without a binary or a service.
+- Put test files where the build does not make them separate targets. Keep test-only dependencies out of the runtime
+  set.
 
 ## Keeping tests
 
