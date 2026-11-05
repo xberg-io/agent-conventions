@@ -15,8 +15,8 @@ Where an ai-rulez builtin already says the same thing, the module does not repea
   commit-procedure, correctness, prove-the-check-fired, safe-git-operations, skill-discovery, test-alongside-code,
   toolchain-management
 - **Context** (1): polyrepo-structure
-- **Skills** (10): adr-authoring, agent-coordination, basemind-tools, correctness-review, mise-tasks, mise-toolchains,
-  poly-lint-format, release-workflow, tdd-workflow, verification-harness
+- **Skills** (11): adr-authoring, agent-coordination, basemind-tools, correctness-review, mise-tasks, mise-toolchains,
+  poly-lint-format, pull-requests, release-workflow, tdd-workflow, verification-harness
 
 `test-alongside-code` and `tdd-workflow` replace the `testing` builtin's rule and skill of the same ids, which say to
 run the full suite before committing, and `agent-workflow` replaces the `ai-governance` builtin's, adding the
