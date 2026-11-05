@@ -6,6 +6,7 @@
 - [Comment Discipline](comment-discipline.md)
 - [Commit Messages](commit-messages.md)
 - [Commit Procedure](commit-procedure.md)
+- [Correctness](correctness.md)
 - [Prove The Check Fired](prove-the-check-fired.md)
 - [Safe Git Operations](safe-git-operations.md)
 - [Skill Discovery](skill-discovery.md)
