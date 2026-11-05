@@ -18,3 +18,4 @@ When optimizing performance:
 1. Prefer: zero-copy, memchr/aho-corasick, cache-friendly layouts
 1. Avoid: unnecessary allocations, blocking in async, holding GIL/GVL
 1. Report baseline numbers, change impact, statistical significance
+1. For a change that adds parallelism or batch width, report peak memory (RSS) at base and head, and the bound that caps it
