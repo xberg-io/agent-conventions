@@ -8,4 +8,4 @@ x-ai-rulez:
     priority: high
 ---
 
-Tests ship with the behavior change, in the same commit; reproduce a bug with a failing test before fixing it (bug fixes and public APIs first). Run the checks that exercise the change, not the whole suite by default.
+Tests ship with the behavior change, in the same commit; reproduce a bug with a failing test before fixing it (bug fixes and public APIs first). Run the checks that exercise the change, not the whole suite by default. A regression test fails with the fix reverted: revert it locally once and watch the test fail.
