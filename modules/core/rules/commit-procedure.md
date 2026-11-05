@@ -10,5 +10,6 @@ x-ai-rulez:
 
 - Before committing, run `poly lint <changed paths>` and `poly fmt --check <changed paths>`; re-stage files a hook rewrote. A full build or test suite is not a commit step unless the user or a release procedure asks for it.
 - Hooks run on commit. Skip them with `--no-verify` only when the user asks, or in a subagent when a hook would compile; then lint the staged files yourself first.
-- Do not rebase or merge after committing unless the user asks. Before pushing, `git fetch` and inspect divergence; if the branch has diverged, ask how to reconcile.
+- Do not rebase or merge after committing unless the user asks. Before pushing, `git fetch` and inspect divergence; if the branch has diverged, ask how to reconcile. Exception: before requesting review or merge of a PR, merge its current base in, and resolve conflicts without bringing back code the base removed.
+- Request review only on a head whose CI passed on that commit; a skipped check is not a pass.
 - Use descriptive branch names; keep branches short-lived.
