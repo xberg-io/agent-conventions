@@ -1,7 +1,7 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:8ceb124c4d48d978bbfbe7dcdf6b9032b1fd7a71cc6e17cbc9d70cf96c7baba9
+# Content-Hash: blake3:35f285e1640cd4d78ba69d4b56407bf0e2cef55f25a1eddcab8b7398d4d9c142
 ---
 
 # Release Workflow (shared)
@@ -29,6 +29,10 @@ every `[Unreleased]` bullet into a new `## [X.Y.Z] - YYYY-MM-DD` section (groupe
 Added / Changed / Deprecated / Removed / Fixed / Security), highlight breaking
 changes, and re-create an empty `[Unreleased]`. Never tag an empty section.
 
+Classify each entry by its effect on users. A breaking change, a changed public
+output or a changed configuration format goes under the breaking or upgrade
+heading, never under Fixed. A change to tests or CI only gets no entry.
+
 ## 3. Clean-tree precondition (hard gate)
 
 Never release a dirty or failing tree.
@@ -41,6 +45,10 @@ poly fmt --check .     # formatting clean
 The repo's test task must pass too (find it with `mise tasks | grep -i test`). Apply
 formatting with `poly fmt --fix .` and re-stage. Fix any lint or test failure at its
 source — do not release past a failure.
+
+Run each documented command, recipe or configuration that the release adds or
+changes end to end on the built artifact, including the default path without
+credentials. A documented step that fails on the artifact blocks the release.
 
 If the repo carries a coding-agent plugin with its own version pin
 (`plugin/.ai-rulez/config.plugins.toml` `[plugin].version`, checked by its

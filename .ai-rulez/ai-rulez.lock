@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:66ba8574489846f98cc81ce9a2c828308bba51bfb4db7347a90c8e6d3000b6dd'
+tree = 'sha256:f8ffa3787abc8a67f096cbeaf09b72312cf5b5d2493376fadf95bd8fc284e6e5'
 
 [[served]]
 name = 'adr-authoring'
@@ -142,7 +142,7 @@ digest = 'sha256:772854a122a129565f974e6c5ae84ef1169f7bc4f3a2068bfdc56b548c16169
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:e8e9204217e11d47cc1fc8d941dfacd105c9e528d738c298868fd8d987966893'
+digest = 'sha256:8a7680836d6bea640ed63de255f7308ff52cf5312651cd889eecbc0914b0bea8'
 
 [[served]]
 name = 'scoop-distribution'
@@ -178,7 +178,7 @@ digest = 'sha256:52ffa5fdd63293f4d0325b3f51a187d07eba9b69e2341da62c4603e2798dd94
 name = 'xberg-brand-and-docs'
 source = 'include:public-docs-sites/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:b56a82559495f0589d4d2d827a83b3e5be236b15d5351eabca1162f9c56ef2b9'
+digest = 'sha256:8339456c12b72eaf685a716a0d0fd7aa73001382e9cad8c782617dc0b6180473'
 
 [[item]]
 kind = 'context'
@@ -202,19 +202,19 @@ digest = 'sha256:2766e42933e167100be4746364da13174dbad7072fa2d88a2dde0466b32b558
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:d99936bab2107eb18b024bf7913bbcc217036750507ea86f9904afa9899dffa7'
+digest = 'sha256:adba0706fc65f740813bb9c2f8ddb29e349c81276c7c6aeef824f257a0dd0d0e'
 
 [[item]]
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:cd7442a35a8e23c15a96829e526452181ee402e7ee41f7c7c0adc920153a61cf'
+digest = 'sha256:c648e86802942fc66f06d9613c81c3f80abf43d25f601fd0bb10165db47e66a5'
 
 [[item]]
 kind = 'local-include'
 id = 'public-languages'
 path = 'modules/languages'
-digest = 'sha256:7790c3b3d045a5c0aaf9ea8b4ce51b4e9e1c2c9d2a746394ea2a76f17f08a192'
+digest = 'sha256:82dbaa28c8a4523d19679fcef09a38e66dc2d624008b1722cd410a3eb67b38c4'
 
 [[item]]
 kind = 'skill'
