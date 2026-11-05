@@ -1,7 +1,7 @@
 ---
 name: correctness-review
 description: "Invariants a code review keeps finding: every site, fail closed, no silent loss, bounds, safe writes, reuse, compatible API changes. Use when writing or reviewing a code change."
-# Content-Hash: blake3:9033cc3f029322a77d1ccc6ebf7ac83bacf63d195a909a565e7baabfc2d52181
+# Content-Hash: blake3:300461b301a287d66dd9882cf4b765c782e2c31d2f4d0631ace237e3f9dc6dee
 ---
 
 # Correctness review
@@ -22,12 +22,20 @@ frequent finding to the least.
   prefix scan, a word set or a count over the whole input.
 - Test real input of each legitimate shape, including scripts without spaces between words.
 - On malformed input, consume up to the closing delimiter.
+- Never panic on input. Index, slice and compare by character boundary, replace a bad encoding instead of failing the
+  item, and contain a failure to the item that caused it.
+
+## Specifications
+
+Implement a standard, protocol or external API as its specification or the real service defines it. Test against a
+reference implementation or a recorded real reply, not against your reading of the spec.
 
 ## Fail closed
 
 - An unknown, unparsable or failed value is the worst case: deny, keep the full reservation, or return an error.
 - Keep it distinct from every valid value. A zero or empty sentinel reads as a valid result.
 - Never report success for work that did not happen.
+- Before you decide an item is absent, read every page of the list, and page on the key the filter uses.
 
 ## Preflight
 
@@ -39,6 +47,15 @@ validation to do it.
 - Advance or persist state only after the step it records is complete and verified.
 - Make the guard check and the transition one atomic step.
 - Keep safety state across retries and resumes.
+- Make an invariant structural (a type, one API form, a lint, a check in release builds), not a comment, a debug
+  assertion or an order the caller must keep.
+
+## Retries and idempotence
+
+- Key each handler, task and external create that can run twice by a stable identity of the work, so a second run
+  does nothing new.
+- Give each job and retry loop a terminal state: bound the attempts, back off, retry at one layer only, and mark a
+  failure that repeats as permanent. Renew a lease while the work runs.
 
 ## Parity
 
@@ -62,7 +79,8 @@ validation to do it.
 ## Boundary validation
 
 Validate supplied input before you transform or drop it: clamp it to the documented bound, reject a zero
-denominator, reject fields the chosen variant does not use, and log a count when you repair input.
+denominator, reject fields the chosen variant does not use, and log a count when you repair input. Wire each accepted
+option and setting through to the code that applies it, or reject it. A setting that does nothing is a defect.
 
 ## Safe writes
 
@@ -70,11 +88,18 @@ denominator, reject fields the chosen variant does not use, and log a count when
   absolute and `..` paths.
 - Prove this run created the target, and that no two outputs collide. Derive names from the full identity of the
   input.
-- Check every path, including the empty and absent ones. Stop every child process you started.
+- Check every path, including the empty and absent ones.
 
-## Cache keys
+## Resources
+
+Release each handle, thread, runtime and child process you start on every exit path, cancellation and signals
+included, with a bounded wait. Leave process-global state as you found it.
+
+## Cache and identity keys
 
 - Every input that changes a result is part of the key.
+- Key identity and dedup sets by the canonical form of the identity (the final address, the normalised spelling).
+  Fold only what the standard calls equivalent.
 - Initialise a cache once. Release cached state by what the run selected.
 - Test the cache at the handler level, not only the cache type.
 
@@ -85,7 +110,13 @@ it should.
 
 ## Serialization
 
-Every field and its provenance cross each serialization boundary. Test the round trip.
+Every field and its provenance cross each serialization boundary. Escape or quote each value for the target syntax,
+and bind query values. Test the round trip: the reader parses back the structure and the values of the source.
+
+## Units
+
+Compute each limit, metric and routing decision on the quantity, unit and basis that its name states. Record it
+once, where the event is decided, and use one basis for related numbers.
 
 ## Bounded work
 
@@ -98,11 +129,22 @@ Every field and its provenance cross each serialization boundary. Test the round
 
 - Size each default (volume, buffer, limit) against the data it must hold.
 - Latch only a decision that must stay stable, never a value that changes during the life of the process.
+- Never overwrite or silently disable a value the caller set. An update changes only the fields it names, and a merge
+  keeps explicit values over defaults.
 
 ## Secrets
 
 - Ambient credentials never reach an endpoint that the caller supplies.
 - Assert that a secret is absent from the whole rendered error, and that the error still names the problem.
+- Validate an outbound address after you decode every embedded form, again on each redirect and resolved address, and
+  connect to the address you validated.
+
+## Errors and logs
+
+- Write each error and warning in the caller's terms: the problem, the real values and the setting that fixes it.
+  State only what was verified, and keep internal identifiers out.
+- Log a recoverable condition once, at warning level or lower. Keep error level for real failures, and rate-limit a
+  line that can flood.
 
 ## Reuse and placement
 
