@@ -31,7 +31,12 @@ from test_gateway_transport import stream_body
 MODEL = "claude-sonnet-5-5"
 
 
-def edit_stream(name: str = "Edit", inputs: dict | None = None, sequence: int = 0) -> bytes:
+DIRECT = {"type": "direct"}
+
+
+def edit_stream(
+    name: str = "Edit", inputs: dict | None = None, sequence: int = 0, caller: dict | None = DIRECT
+) -> bytes:
     events = [json.loads(frame.split("data: ", 1)[1]) for frame in stream_body().decode().split("\n\n") if frame]
     suffix = f"_{sequence}" if sequence else ""
     events[0]["message"]["id"] += suffix
@@ -40,7 +45,7 @@ def edit_stream(name: str = "Edit", inputs: dict | None = None, sequence: int = 
         "id": f"toolu_offline_{name.lower()}{suffix}",
         "name": name,
         "input": {},
-    }
+    } | ({"caller": caller} if caller is not None else {})
     events[2]["delta"] = {
         "type": "input_json_delta",
         "partial_json": json.dumps(inputs or {"file_path": "fixture.txt", "old_string": "old", "new_string": "new"}),
@@ -540,6 +545,20 @@ class EvidenceTest(unittest.TestCase):
             broken["messages"][-1]["content"][0][change] = "not the native result"
             with self.subTest(field=change):
                 self.assertIsNone(tool_unavailable.request_refusal(broken, runner.DEFAULT_TOOLS, sources))
+
+    def test_provider_direct_caller_field_still_certifies_but_other_callers_do_not(self) -> None:
+        sources = tool_unavailable.response_sources("text/event-stream", edit_stream())
+        self.assertEqual(len(sources), 1)
+        request = refusal_request()
+        request["messages"][-2]["content"][0]["caller"] = DIRECT
+        self.assertIsNotNone(tool_unavailable.request_refusal(request, runner.DEFAULT_TOOLS, sources))
+        events = native_events()
+        events[1]["message"]["content"][0]["caller"] = DIRECT
+        self.assertIsNotNone(tool_unavailable.native_evidence("\n".join(map(json.dumps, events)), runner.DEFAULT_TOOLS))
+        other = {"type": "code_execution_20260120", "tool_id": "srvtoolu_offline"}
+        self.assertEqual(tool_unavailable.response_sources("text/event-stream", edit_stream(caller=other)), [])
+        request["messages"][-2]["content"][0]["caller"] = other
+        self.assertIsNone(tool_unavailable.request_refusal(request, runner.DEFAULT_TOOLS, sources))
 
     def test_tool_json_inside_model_text_is_not_native_evidence(self) -> None:
         events = native_events()

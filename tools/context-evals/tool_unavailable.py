@@ -9,6 +9,7 @@ import re
 from dataclasses import dataclass
 
 API_ERROR = "API Error: 400 round stopped or request refused"
+DIRECT_CALLER = {"type": "direct"}
 TERMINAL_FIELDS = {
     "type",
     "subtype",
@@ -101,7 +102,10 @@ class Evidence:
 
 
 def evidence(message_id: object, block: object) -> Evidence | None:
-    if not isinstance(block, dict) or set(block) - {"type", "id", "name", "input", "cache_control"}:
+    if not isinstance(block, dict) or set(block) - {"type", "id", "name", "input", "cache_control", "caller"}:
+        return None
+    # ~keep The live API marks a model-issued call `caller: {"type": "direct"}`; any other caller is a server path.
+    if block.get("caller", DIRECT_CALLER) != DIRECT_CALLER:
         return None
     if (
         block.get("type") != "tool_use"
