@@ -32,13 +32,13 @@ from pathlib import Path
 import budget
 import cases as cases_mod
 import continuation
-import exposure
 import gateway
 import gateway_transport
 import judge
 import records
 import runner
 import scoring
+import start_context
 import stats
 import transcript
 from cases import Case, Criterion, Reference
@@ -135,7 +135,7 @@ def run_metadata(
         "harness_version": HARNESS_VERSION,
         "execution_policy": execution_policy(args),
         "budget_round": budget_round(args),
-        "calibration_version": exposure.CALIBRATION["calibration_version"],
+        "calibration_version": start_context.CALIBRATION["calibration_version"],
         "taxonomy_version": hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest(),
         "record_version": records.RECORD_VERSION,
         "judge_prompt_version": judge.JUDGE_PROMPT_VERSION,
@@ -461,7 +461,7 @@ def score_run(run_dir: Path, domains: dict) -> int:
         from continuation_runtime import verify_request_partition
 
         verify_request_partition(plan, out)
-    meta["calibration_version"] = exposure.CALIBRATION["calibration_version"]
+    meta["calibration_version"] = start_context.CALIBRATION["calibration_version"]
     meta["taxonomy_version"] = hashlib.sha256(json.dumps(domains, sort_keys=True).encode()).hexdigest()
     write_json(run_dir / "run.json", meta)
     apply_judge(run_dir, out)

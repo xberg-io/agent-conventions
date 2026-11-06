@@ -17,7 +17,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-import exposure
+import start_context
 import stats
 import yaml
 
@@ -218,7 +218,7 @@ def generated_skills(repo_root: Path) -> set[str]:
     names: set[str] = set()
     for base in (repo_root / ".claude" / "skills", repo_root / ".agents" / "skills"):
         for file in sorted(base.glob("*/SKILL.md")) if base.exists() else []:
-            names.add(exposure.metadata(file).get("name") or file.parent.name)
+            names.add(start_context.metadata(file).get("name") or file.parent.name)
     return names
 
 

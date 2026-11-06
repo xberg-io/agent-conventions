@@ -2,53 +2,57 @@
 
 The static layer of the context harness from
 [issue #3](https://github.com/xberg-io/agent-conventions/issues/3): what a session in a consumer repository sees at
-start, and which product terms leak into another product's start context. It reads the files `ai-rulez generate`
-wrote; it runs no model.
+start, and which product terms leak into another product's start context. ai-rulez measures both natively
+(`ai-rulez exposure`, [docs](https://goldziher.github.io/ai-rulez/exposure/)); this directory holds the shared
+taxonomy it checks against.
 
 ```sh
-# in each consumer checkout first
+# in a consumer checkout, after generating the outputs
 npx -y ai-rulez@latest generate
-
-python3 tools/context-evals/exposure.py ../xberg ../sceptre ../liter-llm --markdown report.md --json report.json
+python3 ../agent-conventions/tools/context-evals/areas.py --repo xberg --out /tmp/areas.toml
+npx -y ai-rulez@latest exposure --areas /tmp/areas.toml                # Claude Code start tokens
+npx -y ai-rulez@latest exposure --harness codex                         # Codex start tokens
+npx -y ai-rulez@latest exposure leakage --areas /tmp/areas.toml        # foreign terms at session start
 ```
 
-Per repository and preset (`claude`, `codex`) it reports:
-
-- start tokens: the root instruction files Claude or Codex actually reads (a `CLAUDE.md` without `@AGENTS.md`
-  replaces `AGENTS.md`), always-on rules, and the name and description of every skill and agent that is listed at
-  start. Skills with `paths:` and user-only skills (`disable-model-invocation: true`) are counted but cost nothing at
-  start. Tokens use the recorded Sonnet instruction-text calibration in `calibration.json`; CLI runtime overhead is separate.
-- MCP servers each preset's config declares (`.mcp.json`, `.codex/config.toml`). A server costs nothing in the
-  report until `--measure-mcp NAME` starts it over stdio and counts its tool schemas and instructions; unmeasured
-  servers are listed. The full `ai-rulez mcp` server lists 67 tools (about 38k tokens); restricted to `find_skill`
-  and `load_skill` (`[mcp] tools`), about 1.1k.
-- inlined and glob-scoped rules, the largest always-loaded rules, descriptions over 250 characters.
-- leaks: a term of a domain the repository does not own (`domains.toml`) found in its always-visible text.
-
 `domains.toml` is the taxonomy: `[domain.<name>]` with owner, owning paths and terms; `[repos.<name>].domains` lists the
-domains a repository owns; `[[accept]]` records an exception with a written `reason`. `--fail-on-leak` exits 1 when a
-leak remains; `--fail-on-long-descriptions` when a listed skill or agent description is over 250 characters;
-`--budget claude=N` (repeatable, per preset) when the estimated start tokens exceed `N`. `--repo-name` sets the name the
-repository is looked up by in `domains.toml`, and a name missing from `[repos]` is an error under `--fail-on-leak`.
+domains a repository owns; `names` lists compounds that contain a term without naming its domain (`xberg-io`);
+`[[accept]]` records an exception with a written `reason`. `areas.py --repo NAME [--harness claude|codex]` renders it
+as an ai-rulez area map: owned domains are `shared`, `names` and the other domains' compound terms become each area's
+`exclude`, and the acceptances that hold in that repository and harness become `[[accept]]` entries (ai-rulez fails
+on one that accepts nothing). This repository commits its own rendering as `[exposure] areas_file`
+(`exposure-areas.toml`, kept current by `test_areas.py`).
 
 ## CI gate
 
-Consumers run the checks after `validate-ai-rulez` has generated the outputs, with budgets about 10% above the last
-measurement:
+Consumers run `actions/context-exposure` after `validate-ai-rulez` has generated the outputs, with ai-rulez on `PATH`:
 
 ```yaml
 - uses: xberg-io/agent-conventions/actions/context-exposure@v1
-  with:
-    budgets: |
-      claude=4650
-      codex=7250
 ```
 
-The action preserves its existing budget inputs in legacy byte/3.9 units while reporting calibrated totals. It
-also checks the consumer's ai-rulez hook revision and lock against this repository's pins.
+The budgets live in the consumer's `.ai-rulez/config.toml`, about 5% above the last measurement, so `ai-rulez validate`
+(`AR9W3`) and the action read the same numbers:
 
-The action measures the `ai-rulez` server by default (`measure-mcp`), so it needs `ai-rulez` on `PATH`. Raising a
-budget is a reviewed change to the consumer's workflow; the job summary carries the full report.
+```toml
+[exposure]
+mcp_server_tokens = 1150  # the ai-rulez server restricted to find_skill and load_skill
+start_budget = 5750
+codex_start_budget = 6450
+
+[lint.description]
+max_length = 250          # AR802; validate --strict raises it to an error
+```
+
+The action renders the repository's area map from `domains.toml`, runs `ai-rulez exposure` for Claude Code (fails over
+`start_budget`, or when it is unset) and for Codex (fails over `codex_start_budget`, warns when it is unset), and
+`ai-rulez exposure leakage`. It also checks the consumer's ai-rulez hook revision and lock against this repository's
+pins. The deprecated `budgets` and `measure-mcp` inputs are accepted and ignored with a warning. Raising a budget is a
+reviewed change to the consumer's configuration; the job summary carries the reports.
+
+Native leakage reads the Claude Code inventory only, also for Codex
+([Goldziher/ai-rulez#545](https://github.com/Goldziher/ai-rulez/issues/545)): Codex's AGENTS.md is the file Claude's
+`@AGENTS.md` import scans, but the path-gated skills only Codex lists are not checked.
 
 Tests: `mise run context:test` (supplies PyYAML).
 
@@ -56,7 +60,8 @@ Tests: `mise run context:test` (supplies PyYAML).
 
 Runs real headless sessions per case and scores them (issue #3, section 5.2). Never in per-commit CI: it costs model
 calls and is nondeterministic. Needs `claude`, `ai-rulez`, PyYAML and `ANTHROPIC_API_KEY`; refuses to start inside
-another agent session. `--model` has no default: pick one per study and keep it fixed.
+another agent session. `--model` has no default: pick one per study and keep it fixed. Scoring names what a session
+loaded, and estimates its start tokens when a transcript has no usage, with `start_context.py`'s static model.
 
 - Cases: `cases/<repo>/<domain>.yaml` (schema in `cases.py`), owned by the domain's owner. Split tune/holdout by
   `sha256(id) % 5`. `harness.py validate-cases [--repo-root CHECKOUT --repo NAME]` checks the schema, and against a
@@ -123,5 +128,7 @@ restricting it to `find_skill` and `load_skill`.
 and judge validity in `baseline-2026-11-06/`.
 
 [`native-exposure-2026-11-04.md`](native-exposure-2026-11-04.md): ai-rulez 5.10.0's native `exposure` commands against
-exposure.py, and the gaps that keep exposure.py as the gate. `areas.py --repo NAME` renders a repository's
-`[exposure] areas_file` from `domains.toml`.
+the retired bespoke classifier, and the gaps that kept it as the gate.
+
+[`native-exposure-2026-11-06.md`](native-exposure-2026-11-06.md): the parity record for the switch to the native gate
+on ai-rulez 5.11.0.

@@ -93,8 +93,9 @@ reaches it. Place each rule, skill or agent at the first level that fits:
 5. Needs isolation or restricted tools: an agent. Otherwise not an agent.
 6. Shared across repos: a module here, only if it is true in every repo that includes the module.
 
-`tools/context-evals/exposure.py` reports what each consumer loads at start and flags product terms that leak into
-another product's start context; see [tools/context-evals](tools/context-evals/README.md).
+`ai-rulez exposure` reports what each consumer loads at start, and `ai-rulez exposure leakage` flags product terms that
+leak into another product's start context against the taxonomy in `tools/context-evals/domains.toml`; see
+[tools/context-evals](tools/context-evals/README.md).
 
 ## Usage
 
@@ -176,7 +177,8 @@ Bump the major version only for a change that breaks consumers, such as removing
 Consumers generate local harness files from these modules. Product plugin content is maintained
 separately under each product's `plugin/.ai-rulez/`; its public `skills/` export contains product
 integration instructions. It does not expose this repository's internal contributor conventions.
-CI gates the start context with `actions/context-exposure` (budgets, leaks, description length); see
+CI gates the start context with `actions/context-exposure` (ai-rulez's native exposure checks: the consumer's
+`[exposure]` budgets and leakage); see
 [tools/context-evals](tools/context-evals/README.md) and [docs/load-mechanics.md](docs/load-mechanics.md).
 Reviewed Poly hooks validate staged source configuration; `mise run governance:check` checks the
 materialized local output. See [CONTRIBUTING.md](CONTRIBUTING.md) for editing and hook setup.

@@ -36,7 +36,7 @@ them from the repository root. A run directory holds `run.json` (repo, ref, mode
    sees the failing transcripts, judge reasons, the inventory and that history.
 4. **Arms.** Every round also runs a **placebo** arm (a harmless no-op edit; measures false accepts) and a
    **deletion** arm (remove the most suspicious artifact).
-5. **Static gate** before any spend: `poly lint .`, structure guards, leakage (`exposure.py --fail-on-leak`), case
+5. **Static gate** before any spend: `poly lint .`, structure guards, leakage (`ai-rulez exposure leakage`), case
    validation, start-token delta, and every new fact or path checked against the code.
 6. **Screen.** Target-cluster cases, 3 repeats. Stop arms whose paired mean difference is <= 0 (ledger decision
    `stopped`).

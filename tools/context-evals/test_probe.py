@@ -33,6 +33,17 @@ class ProbeTest(unittest.TestCase):
             self.assertIn("disable-model-invocation: true", (root / ".claude/skills/probe-manual/SKILL.md").read_text())
             self.assertIn(tokens["agent"], (root / ".claude/agents/probe-agent.md").read_text())
 
+    def test_plants_one_distinct_sentinel_per_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "crates/a/src").mkdir(parents=True)
+            (root / "crates/a/src/lib.rs").write_text("")
+            tokens = probe.plant(root, "crates/a/src/lib.rs")
+            self.assertEqual(len(set(tokens.values())), 10)
+            self.assertTrue(all(probe.SENTINEL.fullmatch(t) for t in tokens.values()))
+            self.assertIn('"crates/a/src/**"', (root / ".claude/rules/probe-scoped.md").read_text())
+            self.assertIn(tokens["nested"], (root / "crates/a/src/CLAUDE.md").read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

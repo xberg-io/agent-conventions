@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-from exposure import BYTES_PER_TOKEN
+from start_context import BYTES_PER_TOKEN
 
 
 def _strings(value: object) -> Iterator[str]:

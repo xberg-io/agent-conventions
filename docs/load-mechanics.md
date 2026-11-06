@@ -56,10 +56,8 @@ estimates; it does not remove CLI runtime overhead or establish the tokenizer us
 Reproduce the calibration with `calibrate.py --root WORKSPACE --model claude-sonnet-5-5 --out calibration.json`
 and the sample paths in the JSON, with `ANTHROPIC_API_KEY` in the environment. The key is never written to output.
 
-The shared exposure action continues evaluating existing budget inputs in their original byte/3.9 units through
-`--budget-estimator legacy`. It reports calibrated totals separately. This preserves the exact previous byte
-threshold rather than changing consumer gates merely because the estimator improved. Direct CLI budgets use
-calibrated units by default.
+The shared exposure action gates with ai-rulez's native estimate, UTF-8 bytes divided by 3.9: the units of the
+earlier legacy budgets, not the calibrated ones. A consumer's `[exposure]` budgets are in those units.
 
 ## MCP scope
 

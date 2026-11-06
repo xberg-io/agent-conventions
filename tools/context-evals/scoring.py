@@ -4,7 +4,7 @@ A loaded artifact leaks when it belongs to a domain the case's repo (and the cas
 by path (domains.toml `paths`) for every artifact, and by text (domain `terms`) for context artifacts, i.e.
 instructions, rules, skills and agents. Files the session read are judged by path only: source code legitimately
 mentions neighbouring products, while a rule or skill that does is routing knowledge into the wrong session.
-The domains.toml accept list applies, with the artifact named as exposure.py names it.
+The domains.toml accept list applies, with the artifact named as scoring names it (`skill:NAME`, a path).
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-import exposure
+import start_context
 import stats
 import tool_unavailable
 import transcript
@@ -55,7 +55,9 @@ def foreign_terms(text: str, owned: set[str], domains: dict, accept: list[dict],
         if name in owned:
             continue
         for term in spec.get("terms", []):
-            if exposure.term_pattern(term).search(text) and not exposure.is_accepted(accept, term, artifact, repo):
+            if start_context.term_pattern(term).search(text) and not start_context.is_accepted(
+                accept, term, artifact, repo
+            ):
                 hits.append(f"{name}:{term}")
     return hits
 
@@ -67,10 +69,10 @@ def artifact_name(item: Loaded) -> str:
 def artifact_text(item: Loaded, context: Path) -> str:
     if item.kind == "skill":
         file = transcript.skill_file(context, item.name)
-        return exposure.read(file) if file else item.name
+        return start_context.read(file) if file else item.name
     if item.kind in ("instructions", "rule"):
         path = context / item.name
-        return exposure.read(path) if path.is_file() else ""
+        return start_context.read(path) if path.is_file() else ""
     return ""
 
 
@@ -99,7 +101,7 @@ def start_tokens(t: Transcript, context: Path) -> int:
     """Context tokens of the first model call; the static estimate when the transcript has no usage."""
     if t.first_usage is not None and t.first_usage.context_tokens:
         return t.first_usage.context_tokens
-    return int(exposure.claude(context).summary()["start_tokens"])
+    return start_context.claude(context).start_tokens()
 
 
 def classified_outcome(t: Transcript, error: str, certified: bool, contaminated: list) -> tuple[str, str, bool]:

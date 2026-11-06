@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
-import exposure
+import start_context
 import yaml
 from records import Loaded, Usage
 
@@ -287,7 +287,7 @@ def glob_regex(pattern: str) -> re.Pattern[str]:
 
 def rule_paths(file: Path) -> list[str]:
     """The `paths:` globs of a rule's front matter (a list or a comma-separated string); empty when unscoped."""
-    match = exposure.FRONTMATTER.match(file.read_text(encoding="utf-8", errors="replace"))
+    match = start_context.FRONTMATTER.match(file.read_text(encoding="utf-8", errors="replace"))
     if not match:
         return []
     try:
@@ -301,15 +301,15 @@ def rule_paths(file: Path) -> list[str]:
 
 
 def _tokens(nbytes: int) -> int:
-    return round(nbytes / exposure.BYTES_PER_TOKEN)
+    return round(nbytes / start_context.BYTES_PER_TOKEN)
 
 
 def _file_tokens(path: Path) -> int:
-    return _tokens(len(exposure.read(path).encode())) if path.is_file() else 0
+    return _tokens(len(start_context.read(path).encode())) if path.is_file() else 0
 
 
 def _start_items(context: Path, case_cwd: str) -> list[Loaded]:
-    report = exposure.claude(context)
+    report = start_context.claude(context)
     items = [Loaded("instructions", i.path, 0, _tokens(i.bytes)) for i in report.items if i.kind == "instructions"]
     items += [Loaded("rule", i.path, 0, _tokens(i.bytes)) for i in report.items if i.kind == "rule" and not i.gated]
     # Claude Code loads the CLAUDE.md of every directory from the root down to the start directory.
@@ -335,7 +335,7 @@ def scoped_rules(context: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
 def skill_file(context: Path, name: str) -> Path | None:
     for base in (context / ".claude" / "skills", context / ".agents" / "skills"):
         for file in sorted(base.glob("*/SKILL.md")) if base.exists() else []:
-            if (exposure.metadata(file).get("name") or file.parent.name) == name:
+            if (start_context.metadata(file).get("name") or file.parent.name) == name:
                 return file
     return None
 

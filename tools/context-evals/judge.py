@@ -27,8 +27,8 @@ import tempfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
-import exposure
 import runner
+import start_context
 import stats
 import transcript
 from cases import Case
@@ -223,7 +223,7 @@ def swap_domain(answer: str, case: Case, domains: dict) -> str | None:
         return None
     swapped = answer
     for term in domains.get("domain", {}).get(case.domain, {}).get("terms", []):
-        swapped = exposure.term_pattern(term).sub(foreign, swapped)
+        swapped = start_context.term_pattern(term).sub(foreign, swapped)
     return swapped if swapped != answer else None
 
 
