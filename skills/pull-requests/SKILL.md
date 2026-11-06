@@ -1,7 +1,7 @@
 ---
 name: pull-requests
 description: "Pull request scope and text: title and description, claims as wide as the head commit, Closes only for a full fix, one change per PR, acceptance items, follow-up issues. Use when opening, writing or readying a PR."
-# Content-Hash: blake3:b0234c2f0c3334f2f824703d13cc9770b6d8c4f564f66969455abfece6ca6b60
+# Content-Hash: blake3:07670198747e3376a03d2cc625f1990ce774bb0ec1d2090214b82def709cfa81
 ---
 
 # Pull requests
@@ -37,8 +37,11 @@ Write `Closes #n` only for an issue the change fully fixes. Otherwise write `Ref
 
 ## Before it leaves draft
 
-Deliver every acceptance item that the issue names: each site, the tests, and each comparison or measurement it asks
-for. If an item remains, list it in the body.
+- Deliver every acceptance item that the issue names: each site, the tests, and each comparison or measurement it
+  asks for. If an item remains, list it in the body.
+- Where CI runs on pull requests, request review only on a head whose CI passed on that commit. A skipped check is not
+  a pass.
+- If the branch is behind its base, ask before you merge or rebase the base in (commit-procedure).
 
 ## Before merge
 

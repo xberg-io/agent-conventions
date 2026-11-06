@@ -42,8 +42,11 @@ Write `Closes #n` only for an issue the change fully fixes. Otherwise write `Ref
 
 ## Before it leaves draft
 
-Deliver every acceptance item that the issue names: each site, the tests, and each comparison or measurement it asks
-for. If an item remains, list it in the body.
+- Deliver every acceptance item that the issue names: each site, the tests, and each comparison or measurement it
+  asks for. If an item remains, list it in the body.
+- Where CI runs on pull requests, request review only on a head whose CI passed on that commit. A skipped check is not
+  a pass.
+- If the branch is behind its base, ask before you merge or rebase the base in (commit-procedure).
 
 ## Before merge
 
