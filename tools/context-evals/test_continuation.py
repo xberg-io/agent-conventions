@@ -719,5 +719,22 @@ class CollectionIntegrationTest(CollectionFixture, unittest.TestCase):
         forbidden.assert_not_called()
 
 
+class CeilingTest(unittest.TestCase):
+    def test_continuation_header_admits_the_current_ceiling_but_not_more(self) -> None:
+        ledger = Path(tempfile.gettempdir()).resolve() / "round.sqlite3"
+        keys = ("previous_admission", "next_admission", "previous_manifest", "next_manifest", "prior_requests_sha256",
+                "preflight", "repos", "sessions", "compatibility", "adjudications")  # fmt: skip
+        plan = dict.fromkeys(keys) | {"version": 1, "reviewed_ref": "f" * 40}
+        reached = RuntimeError("ceiling accepted")
+        with patch("gateway.verify_reviewed_source", side_effect=reached):
+            for total, accepted in [(55_000_000_000, True), (55_000_000_001, False)]:
+                plan["round"] = {"uuid": "fixture", "ledger_path": str(ledger), "total_nanos": total}
+                expected = (
+                    (RuntimeError, "ceiling accepted") if accepted else (continuation.ContinuationError, "ceiling")
+                )
+                with self.subTest(total=total), self.assertRaisesRegex(*expected):
+                    continuation.validate_header(plan, ledger)
+
+
 if __name__ == "__main__":
     unittest.main()

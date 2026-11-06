@@ -223,7 +223,7 @@ def recover(path: Path, identity: dict, previous: dict, current: dict, approval:
         db.execute("PRAGMA foreign_keys=ON")
         db.execute("BEGIN IMMEDIATE")
         actual, root_policy, legacy_stop = root_identity(db)
-        if actual != identity or not 0 < actual["total_nanos"] <= 25_000_000_000:
+        if actual != identity or not 0 < actual["total_nanos"] <= current["max_budget_usd"] * 1_000_000_000:
             raise fail("recovery round UUID, canonical path or ceiling changed")
         if db.execute("SELECT id FROM hard_requests WHERE state='pending'").fetchone():
             raise fail("pending requests block recovery")

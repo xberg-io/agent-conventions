@@ -90,6 +90,20 @@ class RecoveryTest(unittest.TestCase):
         self.assertEqual(current.spent(), HELD)
         self.assertEqual(len(current.snapshot()["epoch_history"]), 2)
 
+    def test_recovery_admits_the_current_ceiling_but_not_more(self) -> None:
+        for total, allowed in [(55_000_000_001, False), (55_000_000_000, True)]:
+            with closing(sqlite3.connect(self.path)) as db, db:
+                db.execute("UPDATE hard_round SET total=? WHERE id=1", (total,))
+            identity = self.identity | {"total_nanos": total}
+            approval = self.approval | {"round": identity}
+            with self.subTest(total=total):
+                if allowed:
+                    gateway.recover_round(self.path, identity, self.previous, approval)
+                    self.assertEqual(gateway.Ledger(self.path, 55).spent(), HELD)
+                else:
+                    with self.assertRaisesRegex(gateway.GatewayError, "ceiling"):
+                        gateway.recover_round(self.path, identity, self.previous, approval)
+
     def test_cap_includes_the_original_uncertain_charge(self) -> None:
         self.migrate()
         current = gateway.Ledger(self.path, 25)

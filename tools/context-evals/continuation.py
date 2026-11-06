@@ -600,7 +600,8 @@ def validate_header(data: object, ledger: Path, *, historical: bool = False) -> 
     ):
         raise ContinuationError("unknown continuation protocol or reviewed source ref")
     identity = require_keys(plan["round"], {"uuid", "ledger_path", "total_nanos"})
-    if type(identity["total_nanos"]) is not int or not 0 < identity["total_nanos"] <= 25_000_000_000:
+    ceiling = gateway.MAX_BUDGET_USD * gateway.NANOS_PER_DOLLAR
+    if type(identity["total_nanos"]) is not int or not 0 < identity["total_nanos"] <= ceiling:
         raise ContinuationError("continuation ceiling is invalid")
     if identity["ledger_path"] != str(ledger):
         raise ContinuationError("continuation must use its original canonical ledger")
