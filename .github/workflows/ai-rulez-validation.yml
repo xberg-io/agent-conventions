@@ -89,6 +89,8 @@ jobs:
       - uses: xberg-io/actions/setup-mise@v1
         with:
           install-args: python uv github:Goldziher/poly
+      # The context-exposure gate tests run the real ai-rulez when it is on PATH. ~keep
+      - uses: xberg-io/actions/setup-ai-rulez@v1
       - name: Resolve the mise Python version
         id: python
         run: echo "version=$(python3 -c 'import platform; print(platform.python_version())')" >> "$GITHUB_OUTPUT"
