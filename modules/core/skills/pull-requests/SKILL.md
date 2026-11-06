@@ -26,7 +26,8 @@ rewrites stored customer data, or reverses a documented rule.
 ## Title and description
 
 - The title follows the commit-messages rule and describes the whole change, not the last commit.
-- The description says what changed and why, links the issue, and lists what the change does not cover.
+- The description says briefly what changed and why, links the issue, and names what the change does not cover, if
+  anything.
 - Describe the change in prose. Do not walk through the diff file by file, and do not list internal symbol names
   where a sentence says the same.
 

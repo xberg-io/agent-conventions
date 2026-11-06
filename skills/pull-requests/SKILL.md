@@ -1,7 +1,7 @@
 ---
 name: pull-requests
 description: "Pull request scope and text: title and description, claims as wide as the head commit, Closes only for a full fix, one change per PR, acceptance items, follow-up issues. Use when opening, writing or readying a PR."
-# Content-Hash: blake3:07670198747e3376a03d2cc625f1990ce774bb0ec1d2090214b82def709cfa81
+# Content-Hash: blake3:b9dbf83516ff8bc8d13e115cd91c801c5d85a00493c9bca6485e4bd8581f59dd
 ---
 
 # Pull requests
@@ -21,7 +21,8 @@ rewrites stored customer data, or reverses a documented rule.
 ## Title and description
 
 - The title follows the commit-messages rule and describes the whole change, not the last commit.
-- The description says what changed and why, links the issue, and lists what the change does not cover.
+- The description says briefly what changed and why, links the issue, and names what the change does not cover, if
+  anything.
 - Describe the change in prose. Do not walk through the diff file by file, and do not list internal symbol names
   where a sentence says the same.
 
