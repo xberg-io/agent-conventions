@@ -20,7 +20,7 @@ before a release that contains them.
 ## Parity against a build of `main`
 
 ai-rulez `main` at `860f38b2`, built locally. Each consumer's main checkout as found (xberg `f9e24f8`, sceptre
-`2924b5d`, liter-llm `56538e3`, alef `e05508f`, actions `97c0428`), and agent-conventions with the #8 module changes.
+`2924b5d`, liter-llm `56538e3`, alef `e05508f`, actions `97c0428`), and agent-conventions at this branch.
 The areas file was `areas.py`'s output plus a per-area `exclude` of every compound in domains.toml's `names` and
 terms that contains a word of the area, and the repository-scoped `[[accept]]` entries.
 
@@ -29,8 +29,9 @@ terms that contains a word of the area, and the repository-scoped `[[accept]]` e
   so imports are scanned now. infra-release-runners, which is not gated, leaks in both with the same artifacts and
   terms; native also reads its generated banner comment (`Project: xberg-infra`), which exposure.py skips.
   paddle-to-onnx's `OCR` acceptance matches nothing in either tool, which native reports as stale (exit 2).
-- **Start tokens.** Native Claude and Codex figures run 2-11% above exposure.py's legacy estimate (agent-conventions:
-  Claude 4,316 against 4,137, Codex 4,998 against 4,551). The budgets must be re-measured on the release, not copied.
+- **Start tokens.** Across those six repositories, native figures run 2-11% above exposure.py's legacy estimate
+  without MCP (agent-conventions: Claude 4,316 against 4,137, Codex 4,998 against 4,551). The budgets must be
+  re-measured on the release, not copied.
 
 ## Gaps that keep exposure.py as the gate
 
@@ -48,6 +49,7 @@ terms that contains a word of the area, and the repository-scoped `[[accept]]` e
   to render each only where it matches: under Claude the brand-skill entry is stale in every consumer but
   infra-release-runners, and paddle-to-onnx's entry has to go.
 
-The two upstream gaps need ai-rulez issues. Once a release carries 541 and 542 and they are fixed, move the
+Codex leakage and the ignored `.mcp.json` need ai-rulez issues; the acceptance semantics can be handled in
+`areas.py`. Once a release carries 541, 542 and fixes for those two issues, move the
 `exclude` and per-consumer `[[accept]]` rendering into `areas.py`, re-measure both budgets, and switch the action to
 `ai-rulez exposure` (both harnesses) and `ai-rulez exposure leakage`.
