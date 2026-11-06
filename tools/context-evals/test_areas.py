@@ -44,7 +44,7 @@ class AreasTest(unittest.TestCase):
 
     def test_an_area_excludes_the_compounds_that_contain_its_terms(self) -> None:
         domains = {
-            "names": ["invoice-io", "invoicer"],
+            "names": ["invoice-io", "invoicer", "invoice_sync"],
             "domain": {
                 "billing": {"terms": ["invoice"]},
                 "pro": {"terms": ["invoice-pro"]},
@@ -53,7 +53,7 @@ class AreasTest(unittest.TestCase):
             "repos": {"tooling": {"domains": []}},
         }
         rendered = {area["name"]: area for area in tomllib.loads(areas.render(domains, "tooling"))["area"]}
-        self.assertEqual(rendered["billing"]["exclude"], ["invoice-io", "invoice-pro"])
+        self.assertEqual(rendered["billing"]["exclude"], ["invoice-io", "invoice_sync", "invoice-pro"])
         self.assertNotIn("exclude", rendered["pro"])
         self.assertNotIn("exclude", rendered["search"])
 

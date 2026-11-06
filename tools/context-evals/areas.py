@@ -28,8 +28,9 @@ AGENT_PATHS = {"claude": ".claude/agents/{}.md", "codex": ".codex/agents/{}.toml
 
 
 def contains_term(compound: str, term: str) -> bool:
-    """`term` bounded by non-word characters inside `compound`: `xberg` in `xberg-io`, not in `xberger`."""
-    return re.search(rf"(?<!\w){re.escape(term)}(?!\w)", compound, re.IGNORECASE) is not None
+    """`term` inside `compound` where ai-rulez matches it: only ASCII letters and digits continue a word, so `xberg`
+    is in `xberg-io` and `xberg_io`, not in `xberger`."""
+    return re.search(rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])", compound, re.IGNORECASE) is not None
 
 
 def compounds(domains: dict) -> list[str]:
