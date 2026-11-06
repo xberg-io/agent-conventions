@@ -1,0 +1,58 @@
+{
+  "status": "stopped-tool-profile-refusal",
+  "date": "2026-11-06",
+  "harness_version": "6",
+  "controller_commit": "84a6bc3",
+  "fix_commit": "3e320a8",
+  "protocol": "hard-gateway-5",
+  "policy_version": "anthropic-standard-sonnet-opus-2026-11-06-1",
+  "agent_model": "claude-sonnet-5-5",
+  "primary_judge_model": "claude-opus-5-5",
+  "secondary_judge_model": "claude-sonnet-5-5",
+  "judge_prompt_version": "judge-prompt-2",
+  "rubric_version": "rubric-2",
+  "taxonomy_version": "1",
+  "claude_code_version": "2.1.318",
+  "ai_rulez_version": "5.10.0",
+  "round": {
+    "uuid": "22fa58e7-6e44-4b48-9914-2daae6d5288e",
+    "ceiling_usd": 55
+  },
+  "ledger": {
+    "settled_requests": 613,
+    "settled_usd": 10.7949498,
+    "uncertain_usd": 0,
+    "by_model": {
+      "claude-sonnet-5-5": {
+        "requests": 565,
+        "usd": 9.9279
+      },
+      "claude-opus-5-5": {
+        "requests": 48,
+        "usd": 0.8671
+      }
+    },
+    "stop_reason": "request policy or reservation refused",
+    "stop_policy_error": "tool_profile_mismatch"
+  },
+  "consumers": {
+    "sceptre": {
+      "commit": "4828941cb15812d95251dfa57e689116ce59c859",
+      "case_corpus_hash": "de6a7ed8899c0abbecd06974a46813f4115537163c4a472d653d8002bd2fd41e",
+      "context_sha256": "1aeef6ad06c5f4da35ba1c74a9ca21be02b81cbb70cdb89544a8198ecf38c6a3",
+      "expected_sessions": 48,
+      "collected_sessions": 48,
+      "failed_sessions": 0,
+      "judged_sessions": 48
+    },
+    "xberg": {
+      "commit": "7090e728b39a140d4a8f6aabae5627bca5af39b2",
+      "case_corpus_hash": "6f151b7fe94e84a5f9792298cf8fcd16dd22fe0e2b7e551ac539ec1fbc6ca35d",
+      "context_sha256": "d24230a20c733be7336ec47668d55a829c6faa2d9f4046eaf2585bfab9c8a77c",
+      "expected_sessions": 138,
+      "collected_sessions": 124,
+      "failed_sessions": 14,
+      "judged_sessions": 0
+    }
+  }
+}
