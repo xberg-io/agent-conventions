@@ -15,6 +15,20 @@ max_turns = 8
 timeout_seconds = 180
 jobs = 1
 validation_sessions_per_domain = 4
+consumer_refs = { xberg = "7090e728b39a140d4a8f6aabae5627bca5af39b2", sceptre = "4828941cb15812d95251dfa57e689116ce59c859" }
+# A first attempt stopped on round 22fa58e7 (baseline-attempt-2026-11-06.md); its ledger is kept as is.
+stopped_attempt_round = "22fa58e7-6e44-4b48-9914-2daae6d5288e"
+stopped_attempt_usd = 10.7949498
+# Combined spend across both attempts stays at or below $50, so this round's ledger ceiling is $39.20.
+ledger_ceiling_usd = 39.2
+
+# ADR-0018: fresh independent review of the controller before paid use.
+[rounds.round-zero-2026-11-06.controller_review]
+reviewed_commit = "86e9db165521b81204621337ba45cd0403576a66"
+reviewed_changes = ["57d32d8 direct tool caller certification", "86e9db1 recovery and continuation ceilings"]
+reviewer = "orchestrating agent, independent of the implementing agent"
+approved_by = "maintainer, in chat"
+date = "2026-11-06"
 
 # The incomplete 2026-10-30 attempt (baseline-attempt-2026-10-30.md); kept for provenance, never compared.
 [rounds.round-zero-2026-10-30]
