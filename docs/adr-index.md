@@ -27,3 +27,4 @@ convention. Repository logs cite these records as `org ADR-NNNN` instead of rest
 | [0018](../adrs/0018-bound-paid-evaluations-through-reserved-egress.md) | Bound paid evaluations through reserved egress | proposed | 2026-10-30 |
 | [0019](../adrs/0019-gh-actions-updater-owns-action-pin-updates.md) | gh-actions-updater owns action pin updates | accepted | 2026-10-31 |
 | [0020](../adrs/0020-bind-ai-runtime-preflights-to-original-consumer-worktrees.md) | Bind AI runtime preflights to original consumer worktrees | proposed | 2026-10-31 |
+| [0022](../adrs/0022-gate-the-start-context-with-native-ai-rulez-exposure.md) | Gate the start context with native ai-rulez exposure | proposed | 2026-11-06 |
