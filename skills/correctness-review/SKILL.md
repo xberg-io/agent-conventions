@@ -1,7 +1,7 @@
 ---
 name: correctness-review
 description: "Invariants a code review keeps finding: every site, fail closed, no silent loss, bounds, safe writes, reuse, compatible API changes. Use when writing or reviewing a code change."
-# Content-Hash: blake3:73ec5d39bdf25c9ea3f5d8219a79084902e1ba7ddc667457899a2b40ce61d3a6
+# Content-Hash: blake3:088d8d2ff4951f18a7dae42f8c1438273816e2e6412c3ef96b7650a936ed5cd6
 ---
 
 # Correctness review
@@ -18,12 +18,12 @@ frequent finding to the least.
 
 ## Structure, not text
 
-- Match and classify by parsed structure, position and whole-token boundaries. Never use a substring, raw-byte or
-  prefix scan, a word set or a count over the whole input.
+- Match and classify by parsed structure, position and whole-token boundaries. Where a parser or a token boundary
+  exists, never classify by a substring, raw-byte or prefix scan, a word set or a count over the whole input.
 - Test real input of each legitimate shape, including scripts without spaces between words.
 - On malformed input, consume up to the closing delimiter.
-- Never panic on input. Index, slice and compare by character boundary, replace a bad encoding instead of failing the
-  item, and contain a failure to the item that caused it.
+- Return an error on malformed input; never crash or panic. Index, slice and compare by character boundary, replace
+  a bad encoding instead of failing the item, and contain a failure to the item that caused it.
 
 ## Specifications
 
@@ -119,7 +119,8 @@ option and setting through to the code that applies it, or reject it. A setting 
 - Change a public API additively. Never add a required field to a public type, or a field to a public struct that
   callers build literally (an exhaustive Rust struct, a positional Go literal), because those callers break: use an
   internal option or a new entry point.
-- Keep internal pipeline hints out of user-facing options. Deprecate for one minor release before you remove.
+- Keep internal pipeline hints out of user-facing options. On a documented public surface, deprecate for one minor
+  release before you remove.
 - Make each schema and wire change safe while old and new versions run together: create the invariant in one locked
   upgrade step, fence or drain old writers, and make a new wire field optional for old readers.
 - Do not add compatibility code for versions the project does not support.

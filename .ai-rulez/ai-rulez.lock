@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:5e70d960e52c5d91e67ff1dbb1c2838cd6070e0ce72db047083596b76084727a'
+tree = 'sha256:3deda2bacb6ae7654dfac5d4569f93668bfdb604f4fb7f9720b96f65c5a59b1f'
 
 [[served]]
 name = 'adr-authoring'
@@ -58,7 +58,7 @@ digest = 'sha256:6ee68d694003145cce1b24827d85e0f4c162f89f8d9c96be80a9469bfde4cbd
 name = 'correctness-review'
 source = 'include:public-core/skills/correctness-review/SKILL.md'
 commit = ''
-digest = 'sha256:4a0d5887303c57875d56c776cb60348bb859079a9eb03b8bb3e423c4a43adea9'
+digest = 'sha256:f65064543a03d13e672c1ee7847b75da17791a999eda2ac7dfe0e3ca47a4f2ec'
 
 [[served]]
 name = 'dependency-awareness'
@@ -214,7 +214,7 @@ digest = 'sha256:3f46c86a0a78279769cdb8a90e9f7dd1c9f725e0f2441dc808d98d8065a3314
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:905431a85bb9139d6521888a6df017c2d1cdeef5cd071f5ca827c374e4ce1eaf'
+digest = 'sha256:bebb2aa81c002ad2d77d522bcec01f57801c43940d85e094d56a463f633832a9'
 
 [[item]]
 kind = 'local-include'
