@@ -1,55 +1,42 @@
 # Native exposure migration
 
-Status on 2026-11-06. The consumer gate stays `actions/context-exposure` (exposure.py, both presets). This repository
-also runs the native Claude checks through `[exposure]` (see
-[`native-exposure-2026-11-04.md`](../tools/context-evals/native-exposure-2026-11-04.md)).
+Status on 2026-11-06. `actions/context-exposure` runs ai-rulez's native exposure checks; the bespoke classifier is
+gone. The parity record is [`native-exposure-2026-11-06.md`](../tools/context-evals/native-exposure-2026-11-06.md),
+the earlier one [`native-exposure-2026-11-04.md`](../tools/context-evals/native-exposure-2026-11-04.md).
 
-## Upstream fixes are merged, not released
+## Needs ai-rulez 5.11.0
 
-The four gaps recorded in the 2026-11-04 parity record are fixed on ai-rulez `main` and closed:
-[536](https://github.com/Goldziher/ai-rulez/issues/536) (leakage scans `@path` imports) and
-[537](https://github.com/Goldziher/ai-rulez/issues/537) (areas-file `exclude` and `[[accept]]`) in
-[PR 541](https://github.com/Goldziher/ai-rulez/pull/541);
-[538](https://github.com/Goldziher/ai-rulez/issues/538) (`--harness codex`, `codex_start_budget`) and
-[539](https://github.com/Goldziher/ai-rulez/issues/539) (`mcp_server_tokens`) in
-[PR 542](https://github.com/Goldziher/ai-rulez/pull/542). The latest release, 5.10.0, predates both. It rejects an
-areas file with `exclude` (`AR9W5 unknown key "area.exclude"`, which turns every exposure rule off) and refuses
-`--harness codex`. CI and the hooks run the latest release (org ADR-0015), so none of these keys can be committed
-before a release that contains them.
+The gate depends on [PR 541](https://github.com/Goldziher/ai-rulez/pull/541) (leakage scans `@path` imports;
+areas-file `exclude` and `[[accept]]`), [PR 542](https://github.com/Goldziher/ai-rulez/pull/542) (`--harness codex`,
+`codex_start_budget`, `mcp_server_tokens`) and [#546](https://github.com/Goldziher/ai-rulez/issues/546) (a Git-ignored
+root `.mcp.json` counts), all in 5.11.0. 5.10.0 rejects `exclude` (`AR9W5`) and the new `[exposure]` keys, and
+CI runs the latest release (org ADR-0015), so this change ships only after 5.11.0 is released.
 
-## Parity against a build of `main`
+## Consumer steps
 
-ai-rulez `main` at `860f38b2`, built locally. Each consumer's main checkout as found (xberg `f9e24f8`, sceptre
-`2924b5d`, liter-llm `56538e3`, alef `e05508f`, actions `97c0428`), and agent-conventions at this branch.
-The areas file was `areas.py`'s output plus a per-area `exclude` of every compound in domains.toml's `names` and
-terms that contains a word of the area, and the repository-scoped `[[accept]]` entries.
+After 5.11.0 and before the agent-conventions release that moves `v1`, each consumer adds to `.ai-rulez/config.toml`
+(the figures from its own `ai-rulez exposure` runs, about 5% headroom):
 
-- **Claude leakage matches.** The 22 consumers with generated outputs agree with exposure.py's Claude preset. 20
-  have no violation; sceptre's `OCR` occurrences are accepted, and they sit in `AGENTS.md`, imported by `CLAUDE.md`,
-  so imports are scanned now. infra-release-runners, which is not gated, leaks in both with the same artifacts and
-  terms; native also reads its generated banner comment (`Project: xberg-infra`), which exposure.py skips.
-  paddle-to-onnx's `OCR` acceptance matches nothing in either tool, which native reports as stale (exit 2).
-- **Start tokens.** Across those six repositories, native figures run 2-11% above exposure.py's legacy estimate
-  without MCP (agent-conventions: Claude 4,316 against 4,137, Codex 4,998 against 4,551). The budgets must be
-  re-measured on the release, not copied.
+```toml
+[exposure]
+mcp_server_tokens = 1150
+start_budget = <claude start tokens x 1.05>
+codex_start_budget = <codex start tokens x 1.05>
 
-## Gaps that keep exposure.py as the gate
+[lint.description]
+max_length = 250
+```
 
-- **No release.** See above.
-- **Codex leakage.** `exposure leakage` and `AR9W0` read only the Claude inventory, also under `harness = "codex"`.
-  exposure.py checks the Codex preset too, whose listing holds the path-gated skills Claude hides; the
-  `skill:xberg-brand-and-docs` acceptance applies there, in agent-conventions, crawlberg, docs-theme,
-  html-to-markdown, liter-llm, sceptre and tree-sitter-language-pack.
-- **A Git-ignored `.mcp.json` counts no servers.** Under the Claude harness `mcp_server_tokens` multiplies by zero
-  when the root `.mcp.json` is ignored, which it is in every consumer (a generated output). Claude Code loads it
-  regardless. Under Codex the ignored `.codex/config.toml` counts. Control: the same `.mcp.json` counts one server
-  when it is not ignored.
-- **Acceptances that match nothing.** An `[[accept]]` that matches nothing fails the run (`AR9I0`, exit 2), while
-  exposure.py ignores an unused entry. domains.toml's acceptances are org-wide or per repository, so `areas.py` has
-  to render each only where it matches: under Claude the brand-skill entry is stale in every consumer but
-  infra-release-runners, and paddle-to-onnx's entry has to go.
+and drops the `budgets` input from its workflow, or from its `reusable-ai-rulez-validation.yml` call, once
+xberg-io/actions makes that input optional. `ai-rulez:update` alone does not do this: includes carry rules,
+context and skills, not `[exposure]` tables. The area map needs no consumer change; the action renders it from
+`domains.toml`.
 
-Codex leakage and the ignored `.mcp.json` need ai-rulez issues; the acceptance semantics can be handled in
-`areas.py`. Once a release carries 541, 542 and fixes for those two issues, move the
-`exclude` and per-consumer `[[accept]]` rendering into `areas.py`, re-measure both budgets, and switch the action to
-`ai-rulez exposure` (both harnesses) and `ai-rulez exposure leakage`.
+## Open
+
+- **Codex leakage** ([#545](https://github.com/Goldziher/ai-rulez/issues/545)): `exposure leakage` and `AR9W0` read
+  the Claude Code inventory under either harness. AGENTS.md is covered through Claude's `@AGENTS.md` import; the
+  path-gated skills Codex lists at start are not. The one known Codex-only occurrence is the brand skill's accepted
+  `xberg`.
+- **Codex skill policy**: native counts skills whose `agents/openai.yaml` sets `allow_implicit_invocation: false`
+  in the Codex start listing (not modelled upstream), so Codex figures run high by those listing lines.
