@@ -25,36 +25,38 @@ on one that accepts nothing). This repository commits its own rendering as `[exp
 
 ## CI gate
 
-Consumers run `actions/context-exposure` after `validate-ai-rulez` has generated the outputs, with ai-rulez on `PATH`:
+Consumers run `actions/context-exposure` after `validate-ai-rulez` has generated the outputs, with ai-rulez 5.11.0 or
+later on `PATH` (the action refuses an older one):
 
 ```yaml
 - uses: xberg-io/agent-conventions/actions/context-exposure@v1
 ```
 
-The budgets live in the consumer's `.ai-rulez/config.toml`, about 5% above the last measurement, so `ai-rulez validate`
-(`AR9W3`) and the action read the same numbers:
+The budgets live in the consumer's `.ai-rulez/config.toml`, about 5% above the last native measurement, so
+`ai-rulez validate` (`AR9W3`) and the action read the same numbers. They are in ai-rulez's units, not the earlier
+`budgets` input's: measure them with `ai-rulez exposure`, never copy the old values.
 
 ```toml
 [exposure]
 mcp_server_tokens = 1150  # the ai-rulez server restricted to find_skill and load_skill
 start_budget = 5750
 codex_start_budget = 6450
-
-[lint.description]
-max_length = 250          # AR802; validate --strict raises it to an error
 ```
 
 The action renders the repository's area map from `domains.toml`, runs `ai-rulez exposure` for Claude Code (fails over
 `start_budget`, or when it is unset) and for Codex (fails over `codex_start_budget`, warns when it is unset), and
-`ai-rulez exposure leakage`. It also checks the consumer's ai-rulez hook revision and lock against this repository's
-pins. The deprecated `budgets` and `measure-mcp` inputs are accepted and ignored with a warning. Raising a budget is a
-reviewed change to the consumer's configuration; the job summary carries the reports.
+`ai-rulez exposure leakage`, and fails on an invocable skill or agent whose listed description is over 250 characters
+(from `ai-rulez exposure inventory`, path-gated ones included because Codex lists them; the bound is the action's, not
+the consumer's `[lint.description]`). It also checks the consumer's ai-rulez hook revision and lock against this
+repository's pins. The deprecated `budgets` and `measure-mcp` inputs are accepted and ignored with a warning. Raising a
+budget is a reviewed change to the consumer's configuration; the job summary carries the reports.
 
 Native leakage reads the Claude Code inventory only, also for Codex
 ([Goldziher/ai-rulez#545](https://github.com/Goldziher/ai-rulez/issues/545)): Codex's AGENTS.md is the file Claude's
 `@AGENTS.md` import scans, but the path-gated skills only Codex lists are not checked.
 
-Tests: `mise run context:test` (supplies PyYAML).
+Tests: `mise run context:test` (supplies PyYAML). The gate tests also run the real ai-rulez on a fixture when it is on
+`PATH`; CI installs it.
 
 ## Dynamic layer
 

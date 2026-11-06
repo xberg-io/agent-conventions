@@ -7,7 +7,8 @@ that has it. agent-conventions is this branch, generated with that build; the co
 found, with the outputs already generated there (xberg `f9e24f8`, xberg-enterprise `7c3fa8c`, crawlberg `796f958`,
 html-to-markdown `d9450cf`, liter-llm `56538e3`, tree-sitter-language-pack `c753c62`, sceptre `2924b5d`, alef
 `75bb740`, actions `97c0428`, paddle-to-onnx `391276e`). Native leakage used the map `areas.py --repo NAME` renders
-at this branch. Both estimators divide bytes by 3.9; exposure.py's figures here are its legacy estimate.
+at this branch. Both estimators divide bytes by 3.9; exposure.py's figures here are its legacy estimate. Rerun with the
+released 5.11.0 (`npx -y ai-rulez@latest`), every native figure and leak result below is unchanged.
 
 ## agent-conventions
 
@@ -20,7 +21,7 @@ at this branch. Both estimators divide bytes by 3.9; exposure.py's figures here 
 | Claude skills at start / path-gated / user-only | 20 / 8 / 1 | 20 / 8 / 1 | 18 / 8 / 1 (11-04) |
 | Codex skills at start | 26 | 29 | - |
 | Leaks (Claude, Codex) | 0, 0 (1 accepted, Codex) | 0 (Claude inventory only) | 0 |
-| Descriptions over 250 characters | 0 | 0 (`AR802`, max 240) | 0 |
+| Descriptions over 250 characters | 0 | 0 (listing lines, max 240) | 0 |
 | Collisions | no check | 0 of 0 pairs | - |
 | `validate --strict --no-local`, 8 configurations | - | no findings | - |
 
@@ -57,10 +58,10 @@ against 38,069 and Codex 47,504 against 45,014.
 
 ## Disagreements and which classifier is wrong
 
-1. **HTML comments.** exposure.py strips `<!-- -->` before counting; native counts them, so the generated banner
-   adds about 90 tokens per generated root file (CLAUDE.md and AGENTS.md). Neither is proven: whether Claude Code and Codex load
-   comments was not probed. Native is the conservative side; the budgets are measured natively, so it does not
-   gate wrongly.
+1. **HTML comments.** exposure.py strips `<!-- -->` before counting; native counts them, so the generated banner adds
+   about 90 tokens per generated root file (CLAUDE.md and AGENTS.md). Neither is proven: whether Claude Code and Codex
+   load comments was not probed. Native is the conservative side; the budgets are measured natively, so it does not gate
+   wrongly.
 2. **Codex skills with `allow_implicit_invocation: false`.** exposure.py drops a Codex skill whose SKILL.md says
    `disable-model-invocation: true`; native lists every `.agents/skills` skill, since the `agents/openai.yaml`
    policy is not modelled upstream. The frontmatter key is Claude's, so exposure.py is right only because ai-rulez
@@ -87,13 +88,15 @@ against 38,069 and Codex 47,504 against 45,014.
    still covered through Claude's `@AGENTS.md` import; the path-gated skills only Codex lists are not. Today the one
    Codex-only occurrence is the accepted brand skill, so the leak sets agree; the coverage gap stays until #545 is
    fixed. An ai-rulez defect.
-9. **Description length.** exposure.py checked the listed skill and agent descriptions; `[lint.description]
-   max_length = 250` (`AR802`, an error under `validate --strict`) checks every description in the sources, gated
-   and user-only included, which is stricter. No finding either way.
+9. **Description length.** ai-rulez has no gate-owned equivalent: `AR802` follows each consumer's
+   `[lint.description] max_length` (default 1024). The action keeps the 250-character bound itself, on the listing
+   lines `exposure inventory` reports for every invocable skill and agent (path-gated ones too, as Codex lists them).
+   The two agree in every consumer: none in agent-conventions, and crawlberg's and liter-llm's checkouts carry a
+   254-character `alef` skill that both flag (alef's current copy is 231).
 
 ## Controls
 
-Each check failed on purpose once, with the 5.11.0 build:
+Each check failed on purpose once, with the released 5.11.0:
 
 - A `liter-llm` line appended to the generated AGENTS.md: `exposure leakage` reports `AR9W0` at `AGENTS.md:149`
   (an imported file) and the action exits 1.
@@ -101,7 +104,9 @@ Each check failed on purpose once, with the 5.11.0 build:
   (6,148): `exposure --harness codex` exits 2, `OVER by 148`.
 - sceptre, which sets no `start_budget`: the action fails closed (`start_budget is not set`) and warns for Codex;
   its two `OCR` occurrences are reported as accepted.
-- `[lint.description] max_length = 150`: `validate` reports three `AR802` errors.
+- A 400-character description on the path-gated `adr-authoring` skill: the action fails, `listed description over 250
+  characters: .claude/skills/adr-authoring/SKILL.md (400 characters)`.
+- ai-rulez 5.10.0 on `PATH`: the action stops, `context-exposure needs ai-rulez >= 5.11.0, found 5.10.0`.
 - The 11-04 map without `exclude`: three `AR9W0` violations, as above.
 
 ## Not done: pinning ai-rulez
