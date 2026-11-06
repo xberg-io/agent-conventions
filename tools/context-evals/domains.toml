@@ -5,7 +5,11 @@
 # them. [repos.<name>].domains lists the domains a consumer owns. [[accept]] records a reasoned
 # exception: every entry needs a `reason`. `names` lists hyphenated compounds that are names in their
 # own right, so a term inside one is not counted (`xberg` in `xberg-io`); every domain term is such a
-# name already. A term inside any other compound (`alef-generated`) is a hit.
+# name already. A term inside any other compound (`alef-generated`) is a hit. areas.py renders `names` as
+# each area's `exclude` and the entries that apply as the map's `[[accept]]`: `artifact` is `skill:NAME`,
+# `agent:NAME` or a path (absent: any file), `repo` a full-match pattern, and `harnesses` the harnesses
+# whose session start shows the occurrence (absent: both), since ai-rulez fails on an acceptance that
+# accepts nothing.
 
 names = ["xberg-io", "xberg-brand-and-docs"]
 
@@ -153,6 +157,8 @@ domains = ["xberg", "enterprise", "document-corpora"]
 [[accept]]
 term = "xberg"
 artifact = "skill:xberg-brand-and-docs"
+# The skill is path-gated, which only Claude Code honours: it is listed at start under Codex alone.
+harnesses = ["codex"]
 reason = "Org-wide brand skill: the name is the routing key, not product knowledge."
 
 # sceptre is an OCR engine: "OCR" in its own rules is its domain, not xberg's.
@@ -160,9 +166,3 @@ reason = "Org-wide brand skill: the name is the routing key, not product knowled
 term = "OCR"
 repo = "sceptre"
 reason = "sceptre's own subject; the term is shared with xberg's OCR work."
-
-# paddle-to-onnx converts OCR models; "OCR" is its subject, as for sceptre.
-[[accept]]
-term = "OCR"
-repo = "paddle-to-onnx"
-reason = "paddle-to-onnx's own subject; the term is shared with xberg's OCR work."

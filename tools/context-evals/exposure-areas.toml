@@ -4,6 +4,7 @@
 name = "xberg"
 owner = "@xberg-io/xberg"
 terms = ["xberg", "extraction benchmark", "ground truth", "OCR", "Pdfium", "hOCR"]
+exclude = ["xberg-io", "xberg-brand-and-docs", "xberg-enterprise"]
 shared = false
 
 [[area]]

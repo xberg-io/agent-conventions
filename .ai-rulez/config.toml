@@ -74,8 +74,17 @@ name = "public-docs-sites"
 source = "modules/docs-sites"
 include = ["skills"]
 
-# Native session-exposure checks (AR9W0, AR9W3, AR964). The map is rendered from domains.toml by areas.py; exposure.py
-# stays the gate for Codex, CLAUDE.md imports and domains.toml's accepts until ai-rulez covers them. ~keep
+# Session-exposure gate (AR9W0, AR9W3, AR964; actions/context-exposure). The map is rendered from domains.toml by
+# areas.py. mcp_server_tokens is the measured tool schema size of the ai-rulez server restricted above. ~keep
 [exposure]
 areas_file = "tools/context-evals/exposure-areas.toml"
-start_budget = 4400
+mcp_server_tokens = 1150
+start_budget = 5750
+codex_start_budget = 6450
+
+# Listed skill and agent descriptions stay short: the listing loads in every session. ~keep
+[lint.description]
+max_length = 250
+
+[lint.severity]
+AR802 = "error"
