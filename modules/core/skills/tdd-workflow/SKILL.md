@@ -43,8 +43,8 @@ x-ai-rulez:
 ## Test layout
 
 - Keep testable logic in a library, so a test reaches it without a binary or a service.
-- Put test files where the build does not make them separate targets. Keep test-only dependencies out of the runtime
-  set.
+- Keep test-only dependencies out of the runtime set: dev-dependencies in Rust, a dev group in Python,
+  devDependencies in TypeScript.
 
 ## Keeping tests
 

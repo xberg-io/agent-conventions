@@ -1,7 +1,7 @@
 ---
 name: tdd-workflow
 description: "Test-driven workflow: red, green, refactor; restart if code came first; reproduce a bug as a failing test; integration, unit or property test by change type. Use before a feature or bug fix or when choosing a test type."
-# Content-Hash: blake3:ecf350b5c9dcc181dd75d0c09e2292639a2eb0366f35e4274af05c32c1dc3ebd
+# Content-Hash: blake3:05d4489726adbba50905c04c417e540a49050358e093500d48cdad881c4a9944
 ---
 
 # TDD workflow
@@ -38,8 +38,8 @@ description: "Test-driven workflow: red, green, refactor; restart if code came f
 ## Test layout
 
 - Keep testable logic in a library, so a test reaches it without a binary or a service.
-- Put test files where the build does not make them separate targets. Keep test-only dependencies out of the runtime
-  set.
+- Keep test-only dependencies out of the runtime set: dev-dependencies in Rust, a dev group in Python,
+  devDependencies in TypeScript.
 
 ## Keeping tests
 
