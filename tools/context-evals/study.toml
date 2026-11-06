@@ -21,6 +21,12 @@ stopped_attempt_round = "22fa58e7-6e44-4b48-9914-2daae6d5288e"
 stopped_attempt_usd = 10.7949498
 # Combined spend across both attempts stays at or below $50, so this round's ledger ceiling is $39.20.
 ledger_ceiling_usd = 39.2
+round_uuid = "31c234f3-c288-4a94-86a7-b00af760e518"
+round_spend_usd = 20.4425007
+claude_code_version = "2.1.318"
+claude_binary_sha256 = "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+ai_rulez_version = "5.10.0"
+ai_rulez_binary_sha256 = "7384384eba21f9978986c5ff6ac3fc1a3a89b721706348b462eb8177579f7633"
 
 # ADR-0018: fresh independent review of the controller before paid use.
 [rounds.round-zero-2026-11-06.controller_review]

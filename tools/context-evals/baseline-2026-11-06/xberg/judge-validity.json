@@ -1,0 +1,582 @@
+{
+  "budget_round": {
+    "ledger_path": "/Users/naamanhirschfeld/workspace/xberg-io/reports/context-evals-round0b-2026-11-06/round.sqlite3",
+    "total_nanos": 39200000000,
+    "uuid": "31c234f3-c288-4a94-86a7-b00af760e518"
+  },
+  "continuation_manifest_sha256": null,
+  "criteria": {
+    "xberg-api-no-extract-url-route/batch-is-async": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-api-no-extract-url-route/url-is-field": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-ask-fix-tests/which": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-ask-stale-results/cache-or-ask": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-benchmark-workflow-dispatch-only/dispatch-only": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-ask-broken/which-binding": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 0.1666666666666666,
+      "valid": false
+    },
+    "xberg-bindings-extractor-alef-skip/global-abort": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-extractor-alef-skip/on-struct": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 0.5714285714285715,
+      "valid": false
+    },
+    "xberg-bindings-ffi-trait-default/default-fallback": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-bindings-ffi-trait-default/json": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-bindings-generator-bug-owner/alef-owns": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-generator-bug-owner/order": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-handfix-generated/fix-source": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-handfix-generated/generated": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-java-panama/jni-owner": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-java-panama/panama": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-neg-release-not-enterprise/alef-sync": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-neg-release-not-enterprise/no-hand-edit": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-no-alef-format/poly": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-bindings-non-exhaustive-e0639/derive-default": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-bindings-non-exhaustive-e0639/struct-literal": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-config-duplicate-tesseract-default/change-both": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-config-duplicate-tesseract-default/two-structs": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-crate-structure-native-pdf-log-target/constant": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-crate-structure-new-member-docker/allowlist": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-crate-structure-new-member-docker/verify-task": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-e2e-add-fixture/fixture-json": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-e2e-add-fixture/regen": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-e2e-config-table/crates-e2e": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 0.5,
+      "valid": false
+    },
+    "xberg-e2e-config-table/languages": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-e2e-edit-generated-test/generated": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 0.6153846153846155,
+      "valid": true
+    },
+    "xberg-e2e-no-generator-dir/not-here": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-e2e-single-language/lang-task": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-e2e-verify-freshness/verify-task": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-either-bump-version/task": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-feature-parity-windows-target/add-to-windows": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-feature-parity-windows-target/names-check": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-feature-sevenz-opt-level/keep-opt-level-1": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-infra-chart-appversion-image/image-exists": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-infra-chart-version-sync/script-owns": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-infra-neg-chart-not-enterprise/chart-values": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 0.6153846153846155,
+      "valid": true
+    },
+    "xberg-neg-unit-test-not-benchmark/unit-scope": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 0.6153846153846155,
+      "valid": true
+    },
+    "xberg-nohint-long-extraction-route/async": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-ocr-font-size-comparison/different-quantities": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 0.6666666666666667,
+      "valid": true
+    },
+    "xberg-ocr-font-size-comparison/font-info": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-office-security-budget/alef-skip": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-office-security-budget/budget": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 0.6153846153846155,
+      "valid": true
+    },
+    "xberg-pdfium-capability-gap/narrower": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-pdfium-capability-gap/native": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-pipeline-cache-docker-build-id/build-id-in-key": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-pipeline-cache-docker-build-id/empty-build-id": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-pipeline-fallback-parsing-error/eligible-errors": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-pipeline-fallback-parsing-error/names-predicate": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-pipeline-fallback-parsing-error/not-a-bug": {
+      "decided": 6,
+      "items": 6,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-plugin-internal-extractor-trait/collision": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-plugin-internal-extractor-trait/internal": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-release-version-sync/check": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-release-version-sync/integrations": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-release-version-sync/sync": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-rule-async-select/timeout": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-rule-changelog-ci-entry/no-entry": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-rule-extraction-safety-max-pages/max-pages": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-rule-measurement-ratio-vs-count/absolute": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-rule-measurement-ratio-vs-count/distribution": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-rule-partner-corpus-ids/names": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-rule-partner-corpus-ids/opaque-id": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-test-corpus-no-include-bytes/helper": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-test-corpus-no-include-bytes/no-include": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-test-corpus-worktree-control/fix": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-test-corpus-worktree-control/vacuous": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "xberg-ts-integration-lockfiles/own-lockfile": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "xberg-wasm-html-limit/limit": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    }
+  },
+  "execution_policy": {
+    "mode": "hard-gateway",
+    "policy": {
+      "context_tokens": 1000000,
+      "max_budget_usd": 55,
+      "max_output_tokens": 4096,
+      "protocol": "hard-gateway-5",
+      "rates_nanos_per_token": {
+        "claude-opus-5-5": {
+          "input": 4000,
+          "output": 20000,
+          "read": 200,
+          "write_1h": 8000,
+          "write_5m": 5000
+        },
+        "claude-sonnet-5": {
+          "input": 2000,
+          "output": 10000,
+          "read": 200,
+          "write_1h": 4000,
+          "write_5m": 2500
+        },
+        "claude-sonnet-5-5": {
+          "input": 2000,
+          "output": 10000,
+          "read": 100,
+          "write_1h": 4000,
+          "write_5m": 2500
+        }
+      },
+      "source_files": [
+        "gateway.py",
+        "gateway_transport.py",
+        "gateway_epochs.py",
+        "harness.py",
+        "runner.py",
+        "judge.py",
+        "records.py",
+        "scoring.py",
+        "continuation.py",
+        "continuation_compat.py",
+        "continuation_runtime.py",
+        "tool_unavailable.py"
+      ],
+      "source_sha256": "21dee4fefb2f5648e340effa9814e9d7b975748412ecc96c2d420667daddcea0",
+      "version": "anthropic-standard-sonnet-opus-2026-11-06-1"
+    },
+    "policy_sha256": "4ad61df6a4bb61305e10481fef2d4dac42fdd50baa7b715f02fd0a67f6f38bcc"
+  },
+  "independent_prompt_version": "judge-prompt-independent-2",
+  "judge_prompt_version": "judge-prompt-2",
+  "judge_tool_profile_version": "claude-judge-no-tools-1",
+  "judge_valid": false,
+  "kappa_min": 0.6,
+  "min_items": 4,
+  "models": {
+    "primary": "claude-opus-5-5",
+    "secondary": "claude-sonnet-5-5"
+  },
+  "mutation": {
+    "by_kind": {
+      "drop-fact": {
+        "mutants": 46,
+        "tnr": 0.9565217391304348
+      },
+      "swap-domain": {
+        "mutants": 21,
+        "tnr": 0.38095238095238093
+      },
+      "tool-deflection": {
+        "mutants": 46,
+        "tnr": 1.0
+      },
+      "wrong-path": {
+        "mutants": 33,
+        "tnr": 0.5151515151515151
+      }
+    },
+    "mutants": 146,
+    "originals": 46,
+    "tnr": 0.7876712328767124,
+    "tpr": 1.0
+  },
+  "rubric_version": "rubric-2",
+  "valid_criteria": [
+    "xberg-api-no-extract-url-route/batch-is-async",
+    "xberg-api-no-extract-url-route/url-is-field",
+    "xberg-ask-fix-tests/which",
+    "xberg-ask-stale-results/cache-or-ask",
+    "xberg-benchmark-workflow-dispatch-only/dispatch-only",
+    "xberg-bindings-extractor-alef-skip/global-abort",
+    "xberg-bindings-generator-bug-owner/alef-owns",
+    "xberg-bindings-generator-bug-owner/order",
+    "xberg-bindings-handfix-generated/fix-source",
+    "xberg-bindings-handfix-generated/generated",
+    "xberg-bindings-java-panama/jni-owner",
+    "xberg-bindings-java-panama/panama",
+    "xberg-bindings-neg-release-not-enterprise/alef-sync",
+    "xberg-bindings-neg-release-not-enterprise/no-hand-edit",
+    "xberg-bindings-no-alef-format/poly",
+    "xberg-config-duplicate-tesseract-default/change-both",
+    "xberg-config-duplicate-tesseract-default/two-structs",
+    "xberg-crate-structure-native-pdf-log-target/constant",
+    "xberg-crate-structure-new-member-docker/allowlist",
+    "xberg-crate-structure-new-member-docker/verify-task",
+    "xberg-e2e-add-fixture/fixture-json",
+    "xberg-e2e-add-fixture/regen",
+    "xberg-e2e-config-table/languages",
+    "xberg-e2e-edit-generated-test/generated",
+    "xberg-e2e-no-generator-dir/not-here",
+    "xberg-e2e-single-language/lang-task",
+    "xberg-e2e-verify-freshness/verify-task",
+    "xberg-feature-parity-windows-target/add-to-windows",
+    "xberg-feature-parity-windows-target/names-check",
+    "xberg-infra-chart-appversion-image/image-exists",
+    "xberg-infra-chart-version-sync/script-owns",
+    "xberg-infra-neg-chart-not-enterprise/chart-values",
+    "xberg-neg-unit-test-not-benchmark/unit-scope",
+    "xberg-nohint-long-extraction-route/async",
+    "xberg-ocr-font-size-comparison/different-quantities",
+    "xberg-ocr-font-size-comparison/font-info",
+    "xberg-office-security-budget/alef-skip",
+    "xberg-office-security-budget/budget",
+    "xberg-pdfium-capability-gap/narrower",
+    "xberg-pdfium-capability-gap/native",
+    "xberg-pipeline-cache-docker-build-id/build-id-in-key",
+    "xberg-pipeline-cache-docker-build-id/empty-build-id",
+    "xberg-pipeline-fallback-parsing-error/eligible-errors",
+    "xberg-pipeline-fallback-parsing-error/names-predicate",
+    "xberg-pipeline-fallback-parsing-error/not-a-bug",
+    "xberg-plugin-internal-extractor-trait/collision",
+    "xberg-plugin-internal-extractor-trait/internal",
+    "xberg-release-version-sync/check",
+    "xberg-release-version-sync/integrations",
+    "xberg-release-version-sync/sync",
+    "xberg-rule-async-select/timeout",
+    "xberg-rule-extraction-safety-max-pages/max-pages",
+    "xberg-ts-integration-lockfiles/own-lockfile",
+    "xberg-wasm-html-limit/limit"
+  ]
+}

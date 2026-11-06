@@ -1,0 +1,581 @@
+{
+  "judge_validity": {
+    "budget_round": {
+      "ledger_path": "/Users/naamanhirschfeld/workspace/xberg-io/reports/context-evals-round0b-2026-11-06/round.sqlite3",
+      "total_nanos": 39200000000,
+      "uuid": "31c234f3-c288-4a94-86a7-b00af760e518"
+    },
+    "continuation_manifest_sha256": null,
+    "criteria": {
+      "sceptre-adr-reverse-decision/new-adr": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-adr-reverse-decision/status": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-backend-seam-accelerator-fallback/reject": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-backend-seam-accelerator-fallback/table": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-backend-seam-candle-architecture/candle": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-backend-seam-candle-architecture/network-kind": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-backend-seam-direct-ort/pure-rust": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-backend-seam-direct-ort/seam": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-code-style-config-precedence/order": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-code-style-config-precedence/typo": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-code-style-stdout/denied": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "sceptre-code-style-stdout/tracing": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "sceptre-crate-layout-flag-mapping/overrides": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-mcp-add-parameter/optional": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-mcp-add-parameter/order": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-neg-ocr-accuracy/craft-knobs": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "sceptre-neg-release/dry-run": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-neg-release/tag": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-neg-tests-no-e2e/golden": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-nohint-mcp-subcommand/mcp": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-ocr-ctc-blank/blank": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-ocr-ctc-blank/height": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-ocr-detection-defaults/values": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "sceptre-ocr-model-cache/hf-cache": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-ocr-model-cache/verified": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-rust-checks-test-gate/release-gate": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "sceptre-rust-checks-test-gate/upgrade": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      }
+    },
+    "execution_policy": {
+      "mode": "hard-gateway",
+      "policy": {
+        "context_tokens": 1000000,
+        "max_budget_usd": 55,
+        "max_output_tokens": 4096,
+        "protocol": "hard-gateway-5",
+        "rates_nanos_per_token": {
+          "claude-opus-5-5": {
+            "input": 4000,
+            "output": 20000,
+            "read": 200,
+            "write_1h": 8000,
+            "write_5m": 5000
+          },
+          "claude-sonnet-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 200,
+            "write_1h": 4000,
+            "write_5m": 2500
+          },
+          "claude-sonnet-5-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 100,
+            "write_1h": 4000,
+            "write_5m": 2500
+          }
+        },
+        "source_files": [
+          "gateway.py",
+          "gateway_transport.py",
+          "gateway_epochs.py",
+          "harness.py",
+          "runner.py",
+          "judge.py",
+          "records.py",
+          "scoring.py",
+          "continuation.py",
+          "continuation_compat.py",
+          "continuation_runtime.py",
+          "tool_unavailable.py"
+        ],
+        "source_sha256": "21dee4fefb2f5648e340effa9814e9d7b975748412ecc96c2d420667daddcea0",
+        "version": "anthropic-standard-sonnet-opus-2026-11-06-1"
+      },
+      "policy_sha256": "4ad61df6a4bb61305e10481fef2d4dac42fdd50baa7b715f02fd0a67f6f38bcc"
+    },
+    "independent_prompt_version": "judge-prompt-independent-2",
+    "judge_prompt_version": "judge-prompt-2",
+    "judge_tool_profile_version": "claude-judge-no-tools-1",
+    "judge_valid": true,
+    "kappa_min": 0.6,
+    "min_items": 4,
+    "models": {
+      "primary": "claude-opus-5-5",
+      "secondary": "claude-sonnet-5-5"
+    },
+    "mutation": {
+      "by_kind": {
+        "drop-fact": {
+          "mutants": 16,
+          "tnr": 0.9375
+        },
+        "swap-domain": {
+          "mutants": 5,
+          "tnr": 0.8
+        },
+        "tool-deflection": {
+          "mutants": 16,
+          "tnr": 1.0
+        },
+        "wrong-path": {
+          "mutants": 10,
+          "tnr": 0.5
+        }
+      },
+      "mutants": 47,
+      "originals": 16,
+      "tnr": 0.851063829787234,
+      "tpr": 1.0
+    },
+    "rubric_version": "rubric-2",
+    "valid_criteria": [
+      "sceptre-adr-reverse-decision/new-adr",
+      "sceptre-adr-reverse-decision/status",
+      "sceptre-backend-seam-accelerator-fallback/reject",
+      "sceptre-backend-seam-accelerator-fallback/table",
+      "sceptre-backend-seam-candle-architecture/candle",
+      "sceptre-backend-seam-candle-architecture/network-kind",
+      "sceptre-backend-seam-direct-ort/pure-rust",
+      "sceptre-backend-seam-direct-ort/seam",
+      "sceptre-code-style-config-precedence/order",
+      "sceptre-code-style-config-precedence/typo",
+      "sceptre-crate-layout-flag-mapping/overrides",
+      "sceptre-mcp-add-parameter/optional",
+      "sceptre-mcp-add-parameter/order",
+      "sceptre-neg-release/dry-run",
+      "sceptre-neg-release/tag",
+      "sceptre-neg-tests-no-e2e/golden",
+      "sceptre-nohint-mcp-subcommand/mcp",
+      "sceptre-ocr-ctc-blank/blank",
+      "sceptre-ocr-ctc-blank/height",
+      "sceptre-ocr-model-cache/hf-cache",
+      "sceptre-ocr-model-cache/verified",
+      "sceptre-rust-checks-test-gate/release-gate",
+      "sceptre-rust-checks-test-gate/upgrade"
+    ]
+  },
+  "run": {
+    "agent": "claude",
+    "allowed_tools": ["Read", "Glob", "Grep", "Skill"],
+    "budget_round": {
+      "ledger_path": "/Users/naamanhirschfeld/workspace/xberg-io/reports/context-evals-round0b-2026-11-06/round.sqlite3",
+      "total_nanos": 39200000000,
+      "uuid": "31c234f3-c288-4a94-86a7-b00af760e518"
+    },
+    "calibration_version": "1",
+    "case_corpus_hash": "de6a7ed8899c0abbecd06974a46813f4115537163c4a472d653d8002bd2fd41e",
+    "cases": [
+      "sceptre-adr-reverse-decision",
+      "sceptre-backend-seam-direct-ort",
+      "sceptre-backend-seam-candle-architecture",
+      "sceptre-backend-seam-accelerator-fallback",
+      "sceptre-code-style-config-precedence",
+      "sceptre-code-style-stdout",
+      "sceptre-crate-layout-flag-mapping",
+      "sceptre-mcp-add-parameter",
+      "sceptre-ocr-detection-defaults",
+      "sceptre-ocr-ctc-blank",
+      "sceptre-ocr-model-cache",
+      "sceptre-rust-checks-test-gate",
+      "sceptre-neg-release",
+      "sceptre-neg-ocr-accuracy",
+      "sceptre-neg-tests-no-e2e",
+      "sceptre-nohint-mcp-subcommand"
+    ],
+    "commit": "4828941cb15812d95251dfa57e689116ce59c859",
+    "execution_policy": {
+      "mode": "hard-gateway",
+      "policy": {
+        "context_tokens": 1000000,
+        "max_budget_usd": 55,
+        "max_output_tokens": 4096,
+        "protocol": "hard-gateway-5",
+        "rates_nanos_per_token": {
+          "claude-opus-5-5": {
+            "input": 4000,
+            "output": 20000,
+            "read": 200,
+            "write_1h": 8000,
+            "write_5m": 5000
+          },
+          "claude-sonnet-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 200,
+            "write_1h": 4000,
+            "write_5m": 2500
+          },
+          "claude-sonnet-5-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 100,
+            "write_1h": 4000,
+            "write_5m": 2500
+          }
+        },
+        "source_files": [
+          "gateway.py",
+          "gateway_transport.py",
+          "gateway_epochs.py",
+          "harness.py",
+          "runner.py",
+          "judge.py",
+          "records.py",
+          "scoring.py",
+          "continuation.py",
+          "continuation_compat.py",
+          "continuation_runtime.py",
+          "tool_unavailable.py"
+        ],
+        "source_sha256": "21dee4fefb2f5648e340effa9814e9d7b975748412ecc96c2d420667daddcea0",
+        "version": "anthropic-standard-sonnet-opus-2026-11-06-1"
+      },
+      "policy_sha256": "4ad61df6a4bb61305e10481fef2d4dac42fdd50baa7b715f02fd0a67f6f38bcc"
+    },
+    "finished_at": "2026-11-06T08:15:28Z",
+    "harness_version": "6",
+    "jobs": 1,
+    "judge_model": "claude-opus-5-5",
+    "judge_prompt_version": "judge-prompt-2",
+    "judge_tool_profile_version": "claude-judge-no-tools-1",
+    "max_turns": 8,
+    "model": "claude-sonnet-5-5",
+    "record_version": 3,
+    "ref": "4828941cb15812d95251dfa57e689116ce59c859",
+    "repeats": 3,
+    "repo": "sceptre",
+    "rubric_version": "rubric-2",
+    "run_id": "sceptre@4828941cb158@2026-11-06T08:02:00Z",
+    "split": "tune",
+    "started_at": "2026-11-06T08:02:00Z",
+    "taxonomy_version": "d014c0045969e4a560a88e7f5aac4df23b2a14a1a0943ed4c5b9badc7fbacc64",
+    "timeout": 180.0,
+    "tool_profile_version": "claude-read-only-1"
+  },
+  "summary": {
+    "domains": {
+      "sceptre": {
+        "all_trials": {
+          "completion": {
+            "denominator": 48,
+            "numerator": 48.0,
+            "rate": 1.0,
+            "ungraded_trials": 0
+          },
+          "criteria_pass": {
+            "denominator": 48,
+            "numerator": 32.5,
+            "rate": null,
+            "ungraded_trials": 9
+          },
+          "executed_trials": 48,
+          "execution_valid": true,
+          "expect_pass": {
+            "denominator": 39,
+            "numerator": 31.0,
+            "rate": 0.7948717948717948,
+            "ungraded_trials": 0
+          },
+          "invalid_errors": {},
+          "invalid_trials": 0,
+          "valid_trials": 48,
+          "version": 1
+        },
+        "errors": 0,
+        "metrics": {
+          "answer_leak_rate": {
+            "cases": 16,
+            "clusters": 1,
+            "hi": 0.020833333333333332,
+            "lo": 0.020833333333333332,
+            "mean": 0.020833333333333332,
+            "sessions": 48
+          },
+          "cost_usd": {
+            "cases": 16,
+            "clusters": 1,
+            "hi": 0.056305670833333335,
+            "lo": 0.056305670833333335,
+            "mean": 0.056305670833333335,
+            "sessions": 48
+          },
+          "criteria_pass_rate": {
+            "cases": 13,
+            "clusters": 1,
+            "hi": 0.8333333333333334,
+            "lo": 0.8333333333333334,
+            "mean": 0.8333333333333334,
+            "sessions": 39
+          },
+          "expect_pass_rate": {
+            "cases": 13,
+            "clusters": 1,
+            "hi": 0.7948717948717949,
+            "lo": 0.7948717948717949,
+            "mean": 0.7948717948717949,
+            "sessions": 39
+          },
+          "leak_rate": {
+            "cases": 16,
+            "clusters": 1,
+            "hi": 1.0,
+            "lo": 1.0,
+            "mean": 1.0,
+            "sessions": 48
+          },
+          "over_ask_rate": {
+            "cases": 15,
+            "clusters": 1,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 45
+          },
+          "skill_precision": {
+            "cases": 1,
+            "clusters": 1,
+            "hi": 1.0,
+            "lo": 1.0,
+            "mean": 1.0,
+            "sessions": 3
+          },
+          "skill_recall": null,
+          "start_tokens": {
+            "cases": 16,
+            "clusters": 1,
+            "hi": 10232.020833333334,
+            "lo": 10232.020833333334,
+            "mean": 10232.020833333334,
+            "sessions": 48
+          },
+          "under_ask_rate": null
+        },
+        "sessions": 48
+      }
+    },
+    "overall": {
+      "all_trials": {
+        "completion": {
+          "denominator": 48,
+          "numerator": 48.0,
+          "rate": 1.0,
+          "ungraded_trials": 0
+        },
+        "criteria_pass": {
+          "denominator": 48,
+          "numerator": 32.5,
+          "rate": null,
+          "ungraded_trials": 9
+        },
+        "executed_trials": 48,
+        "execution_valid": true,
+        "expect_pass": {
+          "denominator": 39,
+          "numerator": 31.0,
+          "rate": 0.7948717948717948,
+          "ungraded_trials": 0
+        },
+        "invalid_errors": {},
+        "invalid_trials": 0,
+        "valid_trials": 48,
+        "version": 1
+      },
+      "errors": 0,
+      "metrics": {
+        "answer_leak_rate": {
+          "cases": 16,
+          "clusters": 1,
+          "hi": 0.020833333333333332,
+          "lo": 0.020833333333333332,
+          "mean": 0.020833333333333332,
+          "sessions": 48
+        },
+        "cost_usd": {
+          "cases": 16,
+          "clusters": 1,
+          "hi": 0.056305670833333335,
+          "lo": 0.056305670833333335,
+          "mean": 0.056305670833333335,
+          "sessions": 48
+        },
+        "criteria_pass_rate": {
+          "cases": 13,
+          "clusters": 1,
+          "hi": 0.8333333333333334,
+          "lo": 0.8333333333333334,
+          "mean": 0.8333333333333334,
+          "sessions": 39
+        },
+        "expect_pass_rate": {
+          "cases": 13,
+          "clusters": 1,
+          "hi": 0.7948717948717949,
+          "lo": 0.7948717948717949,
+          "mean": 0.7948717948717949,
+          "sessions": 39
+        },
+        "leak_rate": {
+          "cases": 16,
+          "clusters": 1,
+          "hi": 1.0,
+          "lo": 1.0,
+          "mean": 1.0,
+          "sessions": 48
+        },
+        "over_ask_rate": {
+          "cases": 15,
+          "clusters": 1,
+          "hi": 0.0,
+          "lo": 0.0,
+          "mean": 0.0,
+          "sessions": 45
+        },
+        "skill_precision": {
+          "cases": 1,
+          "clusters": 1,
+          "hi": 1.0,
+          "lo": 1.0,
+          "mean": 1.0,
+          "sessions": 3
+        },
+        "skill_recall": null,
+        "start_tokens": {
+          "cases": 16,
+          "clusters": 1,
+          "hi": 10232.020833333334,
+          "lo": 10232.020833333334,
+          "mean": 10232.020833333334,
+          "sessions": 48
+        },
+        "under_ask_rate": null
+      },
+      "sessions": 48
+    }
+  }
+}

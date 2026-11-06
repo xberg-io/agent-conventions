@@ -1,0 +1,281 @@
+{
+  "budget_round": {
+    "ledger_path": "/Users/naamanhirschfeld/workspace/xberg-io/reports/context-evals-round0b-2026-11-06/round.sqlite3",
+    "total_nanos": 39200000000,
+    "uuid": "31c234f3-c288-4a94-86a7-b00af760e518"
+  },
+  "continuation_manifest_sha256": null,
+  "criteria": {
+    "sceptre-adr-reverse-decision/new-adr": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-adr-reverse-decision/status": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-backend-seam-accelerator-fallback/reject": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-backend-seam-accelerator-fallback/table": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-backend-seam-candle-architecture/candle": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-backend-seam-candle-architecture/network-kind": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-backend-seam-direct-ort/pure-rust": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-backend-seam-direct-ort/seam": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-code-style-config-precedence/order": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-code-style-config-precedence/typo": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-code-style-stdout/denied": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "sceptre-code-style-stdout/tracing": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "sceptre-crate-layout-flag-mapping/overrides": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-mcp-add-parameter/optional": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-mcp-add-parameter/order": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-neg-ocr-accuracy/craft-knobs": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "sceptre-neg-release/dry-run": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-neg-release/tag": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-neg-tests-no-e2e/golden": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-nohint-mcp-subcommand/mcp": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-ocr-ctc-blank/blank": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-ocr-ctc-blank/height": {
+      "decided": 5,
+      "items": 5,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-ocr-detection-defaults/values": {
+      "decided": 3,
+      "items": 3,
+      "kappa": 1.0,
+      "valid": false
+    },
+    "sceptre-ocr-model-cache/hf-cache": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-ocr-model-cache/verified": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-rust-checks-test-gate/release-gate": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    },
+    "sceptre-rust-checks-test-gate/upgrade": {
+      "decided": 4,
+      "items": 4,
+      "kappa": 1.0,
+      "valid": true
+    }
+  },
+  "execution_policy": {
+    "mode": "hard-gateway",
+    "policy": {
+      "context_tokens": 1000000,
+      "max_budget_usd": 55,
+      "max_output_tokens": 4096,
+      "protocol": "hard-gateway-5",
+      "rates_nanos_per_token": {
+        "claude-opus-5-5": {
+          "input": 4000,
+          "output": 20000,
+          "read": 200,
+          "write_1h": 8000,
+          "write_5m": 5000
+        },
+        "claude-sonnet-5": {
+          "input": 2000,
+          "output": 10000,
+          "read": 200,
+          "write_1h": 4000,
+          "write_5m": 2500
+        },
+        "claude-sonnet-5-5": {
+          "input": 2000,
+          "output": 10000,
+          "read": 100,
+          "write_1h": 4000,
+          "write_5m": 2500
+        }
+      },
+      "source_files": [
+        "gateway.py",
+        "gateway_transport.py",
+        "gateway_epochs.py",
+        "harness.py",
+        "runner.py",
+        "judge.py",
+        "records.py",
+        "scoring.py",
+        "continuation.py",
+        "continuation_compat.py",
+        "continuation_runtime.py",
+        "tool_unavailable.py"
+      ],
+      "source_sha256": "21dee4fefb2f5648e340effa9814e9d7b975748412ecc96c2d420667daddcea0",
+      "version": "anthropic-standard-sonnet-opus-2026-11-06-1"
+    },
+    "policy_sha256": "4ad61df6a4bb61305e10481fef2d4dac42fdd50baa7b715f02fd0a67f6f38bcc"
+  },
+  "independent_prompt_version": "judge-prompt-independent-2",
+  "judge_prompt_version": "judge-prompt-2",
+  "judge_tool_profile_version": "claude-judge-no-tools-1",
+  "judge_valid": true,
+  "kappa_min": 0.6,
+  "min_items": 4,
+  "models": {
+    "primary": "claude-opus-5-5",
+    "secondary": "claude-sonnet-5-5"
+  },
+  "mutation": {
+    "by_kind": {
+      "drop-fact": {
+        "mutants": 16,
+        "tnr": 0.9375
+      },
+      "swap-domain": {
+        "mutants": 5,
+        "tnr": 0.8
+      },
+      "tool-deflection": {
+        "mutants": 16,
+        "tnr": 1.0
+      },
+      "wrong-path": {
+        "mutants": 10,
+        "tnr": 0.5
+      }
+    },
+    "mutants": 47,
+    "originals": 16,
+    "tnr": 0.851063829787234,
+    "tpr": 1.0
+  },
+  "rubric_version": "rubric-2",
+  "valid_criteria": [
+    "sceptre-adr-reverse-decision/new-adr",
+    "sceptre-adr-reverse-decision/status",
+    "sceptre-backend-seam-accelerator-fallback/reject",
+    "sceptre-backend-seam-accelerator-fallback/table",
+    "sceptre-backend-seam-candle-architecture/candle",
+    "sceptre-backend-seam-candle-architecture/network-kind",
+    "sceptre-backend-seam-direct-ort/pure-rust",
+    "sceptre-backend-seam-direct-ort/seam",
+    "sceptre-code-style-config-precedence/order",
+    "sceptre-code-style-config-precedence/typo",
+    "sceptre-crate-layout-flag-mapping/overrides",
+    "sceptre-mcp-add-parameter/optional",
+    "sceptre-mcp-add-parameter/order",
+    "sceptre-neg-release/dry-run",
+    "sceptre-neg-release/tag",
+    "sceptre-neg-tests-no-e2e/golden",
+    "sceptre-nohint-mcp-subcommand/mcp",
+    "sceptre-ocr-ctc-blank/blank",
+    "sceptre-ocr-ctc-blank/height",
+    "sceptre-ocr-model-cache/hf-cache",
+    "sceptre-ocr-model-cache/verified",
+    "sceptre-rust-checks-test-gate/release-gate",
+    "sceptre-rust-checks-test-gate/upgrade"
+  ]
+}

@@ -1,0 +1,1227 @@
+{
+  "judge_validity": {
+    "budget_round": {
+      "ledger_path": "/Users/naamanhirschfeld/workspace/xberg-io/reports/context-evals-round0b-2026-11-06/round.sqlite3",
+      "total_nanos": 39200000000,
+      "uuid": "31c234f3-c288-4a94-86a7-b00af760e518"
+    },
+    "continuation_manifest_sha256": null,
+    "criteria": {
+      "xberg-api-no-extract-url-route/batch-is-async": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-api-no-extract-url-route/url-is-field": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-ask-fix-tests/which": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-ask-stale-results/cache-or-ask": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-benchmark-workflow-dispatch-only/dispatch-only": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-ask-broken/which-binding": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 0.1666666666666666,
+        "valid": false
+      },
+      "xberg-bindings-extractor-alef-skip/global-abort": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-extractor-alef-skip/on-struct": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 0.5714285714285715,
+        "valid": false
+      },
+      "xberg-bindings-ffi-trait-default/default-fallback": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-bindings-ffi-trait-default/json": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-bindings-generator-bug-owner/alef-owns": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-generator-bug-owner/order": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-handfix-generated/fix-source": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-handfix-generated/generated": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-java-panama/jni-owner": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-java-panama/panama": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-neg-release-not-enterprise/alef-sync": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-neg-release-not-enterprise/no-hand-edit": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-no-alef-format/poly": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-bindings-non-exhaustive-e0639/derive-default": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-bindings-non-exhaustive-e0639/struct-literal": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-config-duplicate-tesseract-default/change-both": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-config-duplicate-tesseract-default/two-structs": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-crate-structure-native-pdf-log-target/constant": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-crate-structure-new-member-docker/allowlist": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-crate-structure-new-member-docker/verify-task": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-e2e-add-fixture/fixture-json": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-e2e-add-fixture/regen": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-e2e-config-table/crates-e2e": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 0.5,
+        "valid": false
+      },
+      "xberg-e2e-config-table/languages": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-e2e-edit-generated-test/generated": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 0.6153846153846155,
+        "valid": true
+      },
+      "xberg-e2e-no-generator-dir/not-here": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-e2e-single-language/lang-task": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-e2e-verify-freshness/verify-task": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-either-bump-version/task": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-feature-parity-windows-target/add-to-windows": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-feature-parity-windows-target/names-check": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-feature-sevenz-opt-level/keep-opt-level-1": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-infra-chart-appversion-image/image-exists": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-infra-chart-version-sync/script-owns": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-infra-neg-chart-not-enterprise/chart-values": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 0.6153846153846155,
+        "valid": true
+      },
+      "xberg-neg-unit-test-not-benchmark/unit-scope": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 0.6153846153846155,
+        "valid": true
+      },
+      "xberg-nohint-long-extraction-route/async": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-ocr-font-size-comparison/different-quantities": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 0.6666666666666667,
+        "valid": true
+      },
+      "xberg-ocr-font-size-comparison/font-info": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-office-security-budget/alef-skip": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-office-security-budget/budget": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 0.6153846153846155,
+        "valid": true
+      },
+      "xberg-pdfium-capability-gap/narrower": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-pdfium-capability-gap/native": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-pipeline-cache-docker-build-id/build-id-in-key": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-pipeline-cache-docker-build-id/empty-build-id": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-pipeline-fallback-parsing-error/eligible-errors": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-pipeline-fallback-parsing-error/names-predicate": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-pipeline-fallback-parsing-error/not-a-bug": {
+        "decided": 6,
+        "items": 6,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-plugin-internal-extractor-trait/collision": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-plugin-internal-extractor-trait/internal": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-release-version-sync/check": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-release-version-sync/integrations": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-release-version-sync/sync": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-rule-async-select/timeout": {
+        "decided": 4,
+        "items": 4,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-rule-changelog-ci-entry/no-entry": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-rule-extraction-safety-max-pages/max-pages": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-rule-measurement-ratio-vs-count/absolute": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-rule-measurement-ratio-vs-count/distribution": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-rule-partner-corpus-ids/names": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-rule-partner-corpus-ids/opaque-id": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-test-corpus-no-include-bytes/helper": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-test-corpus-no-include-bytes/no-include": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-test-corpus-worktree-control/fix": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-test-corpus-worktree-control/vacuous": {
+        "decided": 3,
+        "items": 3,
+        "kappa": 1.0,
+        "valid": false
+      },
+      "xberg-ts-integration-lockfiles/own-lockfile": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      },
+      "xberg-wasm-html-limit/limit": {
+        "decided": 5,
+        "items": 5,
+        "kappa": 1.0,
+        "valid": true
+      }
+    },
+    "execution_policy": {
+      "mode": "hard-gateway",
+      "policy": {
+        "context_tokens": 1000000,
+        "max_budget_usd": 55,
+        "max_output_tokens": 4096,
+        "protocol": "hard-gateway-5",
+        "rates_nanos_per_token": {
+          "claude-opus-5-5": {
+            "input": 4000,
+            "output": 20000,
+            "read": 200,
+            "write_1h": 8000,
+            "write_5m": 5000
+          },
+          "claude-sonnet-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 200,
+            "write_1h": 4000,
+            "write_5m": 2500
+          },
+          "claude-sonnet-5-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 100,
+            "write_1h": 4000,
+            "write_5m": 2500
+          }
+        },
+        "source_files": [
+          "gateway.py",
+          "gateway_transport.py",
+          "gateway_epochs.py",
+          "harness.py",
+          "runner.py",
+          "judge.py",
+          "records.py",
+          "scoring.py",
+          "continuation.py",
+          "continuation_compat.py",
+          "continuation_runtime.py",
+          "tool_unavailable.py"
+        ],
+        "source_sha256": "21dee4fefb2f5648e340effa9814e9d7b975748412ecc96c2d420667daddcea0",
+        "version": "anthropic-standard-sonnet-opus-2026-11-06-1"
+      },
+      "policy_sha256": "4ad61df6a4bb61305e10481fef2d4dac42fdd50baa7b715f02fd0a67f6f38bcc"
+    },
+    "independent_prompt_version": "judge-prompt-independent-2",
+    "judge_prompt_version": "judge-prompt-2",
+    "judge_tool_profile_version": "claude-judge-no-tools-1",
+    "judge_valid": false,
+    "kappa_min": 0.6,
+    "min_items": 4,
+    "models": {
+      "primary": "claude-opus-5-5",
+      "secondary": "claude-sonnet-5-5"
+    },
+    "mutation": {
+      "by_kind": {
+        "drop-fact": {
+          "mutants": 46,
+          "tnr": 0.9565217391304348
+        },
+        "swap-domain": {
+          "mutants": 21,
+          "tnr": 0.38095238095238093
+        },
+        "tool-deflection": {
+          "mutants": 46,
+          "tnr": 1.0
+        },
+        "wrong-path": {
+          "mutants": 33,
+          "tnr": 0.5151515151515151
+        }
+      },
+      "mutants": 146,
+      "originals": 46,
+      "tnr": 0.7876712328767124,
+      "tpr": 1.0
+    },
+    "rubric_version": "rubric-2",
+    "valid_criteria": [
+      "xberg-api-no-extract-url-route/batch-is-async",
+      "xberg-api-no-extract-url-route/url-is-field",
+      "xberg-ask-fix-tests/which",
+      "xberg-ask-stale-results/cache-or-ask",
+      "xberg-benchmark-workflow-dispatch-only/dispatch-only",
+      "xberg-bindings-extractor-alef-skip/global-abort",
+      "xberg-bindings-generator-bug-owner/alef-owns",
+      "xberg-bindings-generator-bug-owner/order",
+      "xberg-bindings-handfix-generated/fix-source",
+      "xberg-bindings-handfix-generated/generated",
+      "xberg-bindings-java-panama/jni-owner",
+      "xberg-bindings-java-panama/panama",
+      "xberg-bindings-neg-release-not-enterprise/alef-sync",
+      "xberg-bindings-neg-release-not-enterprise/no-hand-edit",
+      "xberg-bindings-no-alef-format/poly",
+      "xberg-config-duplicate-tesseract-default/change-both",
+      "xberg-config-duplicate-tesseract-default/two-structs",
+      "xberg-crate-structure-native-pdf-log-target/constant",
+      "xberg-crate-structure-new-member-docker/allowlist",
+      "xberg-crate-structure-new-member-docker/verify-task",
+      "xberg-e2e-add-fixture/fixture-json",
+      "xberg-e2e-add-fixture/regen",
+      "xberg-e2e-config-table/languages",
+      "xberg-e2e-edit-generated-test/generated",
+      "xberg-e2e-no-generator-dir/not-here",
+      "xberg-e2e-single-language/lang-task",
+      "xberg-e2e-verify-freshness/verify-task",
+      "xberg-feature-parity-windows-target/add-to-windows",
+      "xberg-feature-parity-windows-target/names-check",
+      "xberg-infra-chart-appversion-image/image-exists",
+      "xberg-infra-chart-version-sync/script-owns",
+      "xberg-infra-neg-chart-not-enterprise/chart-values",
+      "xberg-neg-unit-test-not-benchmark/unit-scope",
+      "xberg-nohint-long-extraction-route/async",
+      "xberg-ocr-font-size-comparison/different-quantities",
+      "xberg-ocr-font-size-comparison/font-info",
+      "xberg-office-security-budget/alef-skip",
+      "xberg-office-security-budget/budget",
+      "xberg-pdfium-capability-gap/narrower",
+      "xberg-pdfium-capability-gap/native",
+      "xberg-pipeline-cache-docker-build-id/build-id-in-key",
+      "xberg-pipeline-cache-docker-build-id/empty-build-id",
+      "xberg-pipeline-fallback-parsing-error/eligible-errors",
+      "xberg-pipeline-fallback-parsing-error/names-predicate",
+      "xberg-pipeline-fallback-parsing-error/not-a-bug",
+      "xberg-plugin-internal-extractor-trait/collision",
+      "xberg-plugin-internal-extractor-trait/internal",
+      "xberg-release-version-sync/check",
+      "xberg-release-version-sync/integrations",
+      "xberg-release-version-sync/sync",
+      "xberg-rule-async-select/timeout",
+      "xberg-rule-extraction-safety-max-pages/max-pages",
+      "xberg-ts-integration-lockfiles/own-lockfile",
+      "xberg-wasm-html-limit/limit"
+    ]
+  },
+  "run": {
+    "agent": "claude",
+    "allowed_tools": ["Read", "Glob", "Grep", "Skill"],
+    "budget_round": {
+      "ledger_path": "/Users/naamanhirschfeld/workspace/xberg-io/reports/context-evals-round0b-2026-11-06/round.sqlite3",
+      "total_nanos": 39200000000,
+      "uuid": "31c234f3-c288-4a94-86a7-b00af760e518"
+    },
+    "calibration_version": "1",
+    "case_corpus_hash": "6f151b7fe94e84a5f9792298cf8fcd16dd22fe0e2b7e551ac539ec1fbc6ca35d",
+    "cases": [
+      "xberg-bindings-extractor-alef-skip",
+      "xberg-bindings-non-exhaustive-e0639",
+      "xberg-bindings-java-panama",
+      "xberg-bindings-handfix-generated",
+      "xberg-bindings-no-alef-format",
+      "xberg-bindings-ffi-trait-default",
+      "xberg-bindings-generator-bug-owner",
+      "xberg-bindings-neg-release-not-enterprise",
+      "xberg-bindings-ask-broken",
+      "xberg-e2e-add-fixture",
+      "xberg-e2e-config-table",
+      "xberg-e2e-no-generator-dir",
+      "xberg-e2e-edit-generated-test",
+      "xberg-e2e-verify-freshness",
+      "xberg-e2e-single-language",
+      "xberg-infra-chart-version-sync",
+      "xberg-infra-chart-appversion-image",
+      "xberg-infra-neg-chart-not-enterprise",
+      "xberg-pipeline-fallback-parsing-error",
+      "xberg-pipeline-cache-docker-build-id",
+      "xberg-api-no-extract-url-route",
+      "xberg-benchmark-workflow-dispatch-only",
+      "xberg-config-duplicate-tesseract-default",
+      "xberg-crate-structure-new-member-docker",
+      "xberg-crate-structure-native-pdf-log-target",
+      "xberg-feature-parity-windows-target",
+      "xberg-feature-sevenz-opt-level",
+      "xberg-office-security-budget",
+      "xberg-ocr-font-size-comparison",
+      "xberg-pdfium-capability-gap",
+      "xberg-plugin-internal-extractor-trait",
+      "xberg-test-corpus-worktree-control",
+      "xberg-test-corpus-no-include-bytes",
+      "xberg-wasm-html-limit",
+      "xberg-release-version-sync",
+      "xberg-ts-integration-lockfiles",
+      "xberg-rule-extraction-safety-max-pages",
+      "xberg-rule-async-select",
+      "xberg-rule-changelog-ci-entry",
+      "xberg-rule-measurement-ratio-vs-count",
+      "xberg-rule-partner-corpus-ids",
+      "xberg-neg-unit-test-not-benchmark",
+      "xberg-ask-stale-results",
+      "xberg-ask-fix-tests",
+      "xberg-either-bump-version",
+      "xberg-nohint-long-extraction-route"
+    ],
+    "commit": "7090e728b39a140d4a8f6aabae5627bca5af39b2",
+    "execution_policy": {
+      "mode": "hard-gateway",
+      "policy": {
+        "context_tokens": 1000000,
+        "max_budget_usd": 55,
+        "max_output_tokens": 4096,
+        "protocol": "hard-gateway-5",
+        "rates_nanos_per_token": {
+          "claude-opus-5-5": {
+            "input": 4000,
+            "output": 20000,
+            "read": 200,
+            "write_1h": 8000,
+            "write_5m": 5000
+          },
+          "claude-sonnet-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 200,
+            "write_1h": 4000,
+            "write_5m": 2500
+          },
+          "claude-sonnet-5-5": {
+            "input": 2000,
+            "output": 10000,
+            "read": 100,
+            "write_1h": 4000,
+            "write_5m": 2500
+          }
+        },
+        "source_files": [
+          "gateway.py",
+          "gateway_transport.py",
+          "gateway_epochs.py",
+          "harness.py",
+          "runner.py",
+          "judge.py",
+          "records.py",
+          "scoring.py",
+          "continuation.py",
+          "continuation_compat.py",
+          "continuation_runtime.py",
+          "tool_unavailable.py"
+        ],
+        "source_sha256": "21dee4fefb2f5648e340effa9814e9d7b975748412ecc96c2d420667daddcea0",
+        "version": "anthropic-standard-sonnet-opus-2026-11-06-1"
+      },
+      "policy_sha256": "4ad61df6a4bb61305e10481fef2d4dac42fdd50baa7b715f02fd0a67f6f38bcc"
+    },
+    "finished_at": "2026-11-06T09:05:15Z",
+    "harness_version": "6",
+    "jobs": 1,
+    "judge_model": "claude-opus-5-5",
+    "judge_prompt_version": "judge-prompt-2",
+    "judge_tool_profile_version": "claude-judge-no-tools-1",
+    "max_turns": 8,
+    "model": "claude-sonnet-5-5",
+    "record_version": 3,
+    "ref": "7090e728b39a140d4a8f6aabae5627bca5af39b2",
+    "repeats": 3,
+    "repo": "xberg",
+    "rubric_version": "rubric-2",
+    "run_id": "xberg@7090e728b39a@2026-11-06T08:15:39Z",
+    "split": "tune",
+    "started_at": "2026-11-06T08:15:39Z",
+    "taxonomy_version": "d014c0045969e4a560a88e7f5aac4df23b2a14a1a0943ed4c5b9badc7fbacc64",
+    "timeout": 180.0,
+    "tool_profile_version": "claude-read-only-1"
+  },
+  "summary": {
+    "domains": {
+      "bindings": {
+        "all_trials": {
+          "completion": {
+            "denominator": 27,
+            "numerator": 27.0,
+            "rate": 1.0,
+            "ungraded_trials": 0
+          },
+          "criteria_pass": {
+            "denominator": 27,
+            "numerator": 0,
+            "rate": null,
+            "ungraded_trials": 27
+          },
+          "executed_trials": 27,
+          "execution_valid": true,
+          "expect_pass": {
+            "denominator": 24,
+            "numerator": 21.0,
+            "rate": 0.875,
+            "ungraded_trials": 0
+          },
+          "invalid_errors": {},
+          "invalid_trials": 0,
+          "valid_trials": 27,
+          "version": 1
+        },
+        "errors": 0,
+        "metrics": {
+          "answer_leak_rate": {
+            "cases": 9,
+            "clusters": 4,
+            "hi": 0.2222222222222222,
+            "lo": 0.0,
+            "mean": 0.07407407407407407,
+            "sessions": 27
+          },
+          "cost_usd": {
+            "cases": 9,
+            "clusters": 4,
+            "hi": 0.07735139696969696,
+            "lo": 0.042386111111111104,
+            "mean": 0.060688266666666664,
+            "sessions": 27
+          },
+          "criteria_pass_rate": null,
+          "expect_pass_rate": {
+            "cases": 8,
+            "clusters": 4,
+            "hi": 1.0,
+            "lo": 0.7142857142857143,
+            "mean": 0.875,
+            "sessions": 24
+          },
+          "leak_rate": {
+            "cases": 9,
+            "clusters": 4,
+            "hi": 0.4444444444444444,
+            "lo": 0.16666666666666666,
+            "mean": 0.3333333333333333,
+            "sessions": 27
+          },
+          "over_ask_rate": {
+            "cases": 8,
+            "clusters": 4,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 24
+          },
+          "skill_precision": {
+            "cases": 3,
+            "clusters": 3,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 9
+          },
+          "skill_recall": {
+            "cases": 6,
+            "clusters": 3,
+            "hi": 0.5,
+            "lo": 0.0,
+            "mean": 0.16666666666666666,
+            "sessions": 18
+          },
+          "start_tokens": {
+            "cases": 9,
+            "clusters": 4,
+            "hi": 11010.606060606062,
+            "lo": 9801.333333333334,
+            "mean": 10304.814814814814,
+            "sessions": 27
+          },
+          "under_ask_rate": {
+            "cases": 1,
+            "clusters": 1,
+            "hi": 1.0,
+            "lo": 1.0,
+            "mean": 1.0,
+            "sessions": 3
+          }
+        },
+        "sessions": 27
+      },
+      "e2e-generator": {
+        "all_trials": {
+          "completion": {
+            "denominator": 18,
+            "numerator": 18.0,
+            "rate": 1.0,
+            "ungraded_trials": 0
+          },
+          "criteria_pass": {
+            "denominator": 18,
+            "numerator": 0,
+            "rate": null,
+            "ungraded_trials": 18
+          },
+          "executed_trials": 18,
+          "execution_valid": true,
+          "expect_pass": {
+            "denominator": 15,
+            "numerator": 14.0,
+            "rate": 0.9333333333333333,
+            "ungraded_trials": 0
+          },
+          "invalid_errors": {},
+          "invalid_trials": 0,
+          "valid_trials": 18,
+          "version": 1
+        },
+        "errors": 0,
+        "metrics": {
+          "answer_leak_rate": {
+            "cases": 6,
+            "clusters": 4,
+            "hi": 0.3,
+            "lo": 0.0,
+            "mean": 0.16666666666666666,
+            "sessions": 18
+          },
+          "cost_usd": {
+            "cases": 6,
+            "clusters": 4,
+            "hi": 0.08171773333333333,
+            "lo": 0.04824305833333333,
+            "mean": 0.05940128333333333,
+            "sessions": 18
+          },
+          "criteria_pass_rate": null,
+          "expect_pass_rate": {
+            "cases": 5,
+            "clusters": 4,
+            "hi": 1.0,
+            "lo": 0.75,
+            "mean": 0.9333333333333333,
+            "sessions": 15
+          },
+          "leak_rate": {
+            "cases": 6,
+            "clusters": 4,
+            "hi": 0.8333333333333334,
+            "lo": 0.03333333333333333,
+            "mean": 0.27777777777777773,
+            "sessions": 18
+          },
+          "over_ask_rate": {
+            "cases": 6,
+            "clusters": 4,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 18
+          },
+          "skill_precision": {
+            "cases": 3,
+            "clusters": 3,
+            "hi": 0.75,
+            "lo": 0.0,
+            "mean": 0.4166666666666667,
+            "sessions": 7
+          },
+          "skill_recall": {
+            "cases": 3,
+            "clusters": 3,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 9
+          },
+          "start_tokens": {
+            "cases": 6,
+            "clusters": 4,
+            "hi": 14280.5,
+            "lo": 10921.833333333334,
+            "mean": 12041.388888888889,
+            "sessions": 18
+          },
+          "under_ask_rate": null
+        },
+        "sessions": 18
+      },
+      "infrastructure": {
+        "all_trials": {
+          "completion": {
+            "denominator": 9,
+            "numerator": 9.0,
+            "rate": 1.0,
+            "ungraded_trials": 0
+          },
+          "criteria_pass": {
+            "denominator": 9,
+            "numerator": 0,
+            "rate": null,
+            "ungraded_trials": 9
+          },
+          "executed_trials": 9,
+          "execution_valid": true,
+          "expect_pass": {
+            "denominator": 3,
+            "numerator": 3.0,
+            "rate": 1.0,
+            "ungraded_trials": 0
+          },
+          "invalid_errors": {},
+          "invalid_trials": 0,
+          "valid_trials": 9,
+          "version": 1
+        },
+        "errors": 0,
+        "metrics": {
+          "answer_leak_rate": {
+            "cases": 3,
+            "clusters": 2,
+            "hi": 1.0,
+            "lo": 0.5,
+            "mean": 0.6666666666666666,
+            "sessions": 9
+          },
+          "cost_usd": {
+            "cases": 3,
+            "clusters": 2,
+            "hi": 0.049117600000000004,
+            "lo": 0.041528916666666665,
+            "mean": 0.04405847777777778,
+            "sessions": 9
+          },
+          "criteria_pass_rate": null,
+          "expect_pass_rate": {
+            "cases": 1,
+            "clusters": 1,
+            "hi": 1.0,
+            "lo": 1.0,
+            "mean": 1.0,
+            "sessions": 3
+          },
+          "leak_rate": {
+            "cases": 3,
+            "clusters": 2,
+            "hi": 1.0,
+            "lo": 0.0,
+            "mean": 0.6666666666666666,
+            "sessions": 9
+          },
+          "over_ask_rate": {
+            "cases": 3,
+            "clusters": 2,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 9
+          },
+          "skill_precision": {
+            "cases": 2,
+            "clusters": 1,
+            "hi": 0.0,
+            "lo": 0.0,
+            "mean": 0.0,
+            "sessions": 6
+          },
+          "skill_recall": {
+            "cases": 2,
+            "clusters": 1,
+            "hi": 1.0,
+            "lo": 1.0,
+            "mean": 1.0,
+            "sessions": 6
+          },
+          "start_tokens": {
+            "cases": 3,
+            "clusters": 2,
+            "hi": 9802.333333333332,
+            "lo": 9800.666666666666,
+            "mean": 9801.777777777777,
+            "sessions": 9
+          },
+          "under_ask_rate": null
+        },
+        "sessions": 9
+      },
+      "xberg": {
+        "all_trials": {
+          "completion": {
+            "denominator": 84,
+            "numerator": 81.0,
+            "rate": 0.9642857142857143,
+            "ungraded_trials": 0
+          },
+          "criteria_pass": {
+            "denominator": 84,
+            "numerator": 0.0,
+            "rate": null,
+            "ungraded_trials": 81
+          },
+          "executed_trials": 84,
+          "execution_valid": true,
+          "expect_pass": {
+            "denominator": 63,
+            "numerator": 55.0,
+            "rate": 0.873015873015873,
+            "ungraded_trials": 0
+          },
+          "invalid_errors": {},
+          "invalid_trials": 0,
+          "valid_trials": 84,
+          "version": 1
+        },
+        "errors": 3,
+        "metrics": {
+          "answer_leak_rate": {
+            "cases": 27,
+            "clusters": 15,
+            "hi": 0.2839506172839506,
+            "lo": 0.0,
+            "mean": 0.09876543209876543,
+            "sessions": 81
+          },
+          "cost_usd": {
+            "cases": 27,
+            "clusters": 15,
+            "hi": 0.07298441,
+            "lo": 0.05189746464646464,
+            "mean": 0.059564679012345675,
+            "sessions": 81
+          },
+          "criteria_pass_rate": null,
+          "expect_pass_rate": {
+            "cases": 21,
+            "clusters": 14,
+            "hi": 1.0,
+            "lo": 0.7471264367816093,
+            "mean": 0.8730158730158729,
+            "sessions": 63
+          },
+          "leak_rate": {
+            "cases": 27,
+            "clusters": 15,
+            "hi": 0.2857142857142857,
+            "lo": 0.0,
+            "mean": 0.08641975308641976,
+            "sessions": 81
+          },
+          "over_ask_rate": {
+            "cases": 24,
+            "clusters": 15,
+            "hi": 0.05333333333333333,
+            "lo": 0.0,
+            "mean": 0.013888888888888888,
+            "sessions": 72
+          },
+          "skill_precision": {
+            "cases": 6,
+            "clusters": 4,
+            "hi": 1.0,
+            "lo": 0.0,
+            "mean": 0.5,
+            "sessions": 13
+          },
+          "skill_recall": {
+            "cases": 19,
+            "clusters": 14,
+            "hi": 0.3684210526315789,
+            "lo": 0.0,
+            "mean": 0.15789473684210525,
+            "sessions": 57
+          },
+          "start_tokens": {
+            "cases": 27,
+            "clusters": 15,
+            "hi": 11722.32142857143,
+            "lo": 9816.035087719298,
+            "mean": 10970.0987654321,
+            "sessions": 81
+          },
+          "under_ask_rate": {
+            "cases": 1,
+            "clusters": 1,
+            "hi": 1.0,
+            "lo": 1.0,
+            "mean": 1.0,
+            "sessions": 3
+          }
+        },
+        "sessions": 84
+      }
+    },
+    "overall": {
+      "all_trials": {
+        "completion": {
+          "denominator": 138,
+          "numerator": 135.0,
+          "rate": 0.9782608695652174,
+          "ungraded_trials": 0
+        },
+        "criteria_pass": {
+          "denominator": 138,
+          "numerator": 0.0,
+          "rate": null,
+          "ungraded_trials": 135
+        },
+        "executed_trials": 138,
+        "execution_valid": true,
+        "expect_pass": {
+          "denominator": 105,
+          "numerator": 93.0,
+          "rate": 0.8857142857142857,
+          "ungraded_trials": 0
+        },
+        "invalid_errors": {},
+        "invalid_trials": 0,
+        "valid_trials": 138,
+        "version": 1
+      },
+      "errors": 3,
+      "metrics": {
+        "answer_leak_rate": {
+          "cases": 45,
+          "clusters": 22,
+          "hi": 0.2764227642276423,
+          "lo": 0.03864734299516908,
+          "mean": 0.14074074074074072,
+          "sessions": 135
+        },
+        "cost_usd": {
+          "cases": 45,
+          "clusters": 22,
+          "hi": 0.06768181666666666,
+          "lo": 0.05223128496732026,
+          "mean": 0.058733863703703704,
+          "sessions": 135
+        },
+        "criteria_pass_rate": null,
+        "expect_pass_rate": {
+          "cases": 35,
+          "clusters": 20,
+          "hi": 0.9639639639639639,
+          "lo": 0.8020833333333334,
+          "mean": 0.8857142857142857,
+          "sessions": 105
+        },
+        "leak_rate": {
+          "cases": 45,
+          "clusters": 22,
+          "hi": 0.38211382113821135,
+          "lo": 0.05691056910569105,
+          "mean": 0.2,
+          "sessions": 135
+        },
+        "over_ask_rate": {
+          "cases": 41,
+          "clusters": 22,
+          "hi": 0.029411764705882353,
+          "lo": 0.0,
+          "mean": 0.008130081300813007,
+          "sessions": 123
+        },
+        "skill_precision": {
+          "cases": 14,
+          "clusters": 9,
+          "hi": 0.6166666666666667,
+          "lo": 0.057692307692307696,
+          "mean": 0.30357142857142855,
+          "sessions": 35
+        },
+        "skill_recall": {
+          "cases": 30,
+          "clusters": 18,
+          "hi": 0.4358974358974359,
+          "lo": 0.0,
+          "mean": 0.2,
+          "sessions": 90
+        },
+        "start_tokens": {
+          "cases": 45,
+          "clusters": 22,
+          "hi": 11348.060109289618,
+          "lo": 10311.388888888889,
+          "mean": 10901.992592592593,
+          "sessions": 135
+        },
+        "under_ask_rate": {
+          "cases": 2,
+          "clusters": 2,
+          "hi": 1.0,
+          "lo": 1.0,
+          "mean": 1.0,
+          "sessions": 6
+        }
+      },
+      "sessions": 138
+    }
+  }
+}
