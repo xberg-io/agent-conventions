@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.10.0'
 scope = 'all'
-tree = 'sha256:eab7bc7bc682b6159f753c49255e5836b7093b7b943c1986dbe537b1a96ec262'
+tree = 'sha256:4ea0fe224598d12f6fbf9f4e0b551a45404c4dab0545e46ff9eec59416179fd3'
 
 [[served]]
 name = 'adr-authoring'
@@ -214,7 +214,7 @@ digest = 'sha256:3f46c86a0a78279769cdb8a90e9f7dd1c9f725e0f2441dc808d98d8065a3314
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:c2bda02bb1a2d5aa7cb03e0f47199bc6cbf4b4b61d431171e29e5263626afd38'
+digest = 'sha256:a4b7f4601097897d9fb58e250aacdb4779c8a35fc098c2597b2834c56daed59b'
 
 [[item]]
 kind = 'local-include'
