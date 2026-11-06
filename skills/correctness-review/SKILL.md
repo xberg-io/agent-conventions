@@ -1,7 +1,7 @@
 ---
 name: correctness-review
 description: "Invariants a code review keeps finding: every site, fail closed, no silent loss, bounds, safe writes, reuse, compatible API changes. Use when writing or reviewing a code change."
-# Content-Hash: blake3:300461b301a287d66dd9882cf4b765c782e2c31d2f4d0631ace237e3f9dc6dee
+# Content-Hash: blake3:35efe746017a1d70de6394fea7b23baa32567d10d2443f5eefbe44dc1f906227
 ---
 
 # Correctness review
@@ -90,34 +90,6 @@ option and setting through to the code that applies it, or reject it. A setting 
   input.
 - Check every path, including the empty and absent ones.
 
-## Resources
-
-Release each handle, thread, runtime and child process you start on every exit path, cancellation and signals
-included, with a bounded wait. Leave process-global state as you found it.
-
-## Cache and identity keys
-
-- Every input that changes a result is part of the key.
-- Key identity and dedup sets by the canonical form of the identity (the final address, the normalised spelling).
-  Fold only what the standard calls equivalent.
-- Initialise a cache once. Release cached state by what the run selected.
-- Test the cache at the handler level, not only the cache type.
-
-## Result independence
-
-A result does not change with output options, traversal order, API mode or entry point, unless the change says that
-it should.
-
-## Serialization
-
-Every field and its provenance cross each serialization boundary. Escape or quote each value for the target syntax,
-and bind query values. Test the round trip: the reader parses back the structure and the values of the source.
-
-## Units
-
-Compute each limit, metric and routing decision on the quantity, unit and basis that its name states. Record it
-once, where the event is decided, and use one basis for related numbers.
-
 ## Bounded work
 
 - Bound every loop, search, allocation and buffer that input size or untrusted input drives: no rescan of a container
@@ -125,26 +97,12 @@ once, where the event is decided, and use one basis for related numbers.
   operation.
 - Add a scaling test with an adversarial outlier.
 
-## Defaults
-
-- Size each default (volume, buffer, limit) against the data it must hold.
-- Latch only a decision that must stay stable, never a value that changes during the life of the process.
-- Never overwrite or silently disable a value the caller set. An update changes only the fields it names, and a merge
-  keeps explicit values over defaults.
-
 ## Secrets
 
 - Ambient credentials never reach an endpoint that the caller supplies.
 - Assert that a secret is absent from the whole rendered error, and that the error still names the problem.
 - Validate an outbound address after you decode every embedded form, again on each redirect and resolved address, and
   connect to the address you validated.
-
-## Errors and logs
-
-- Write each error and warning in the caller's terms: the problem, the real values and the setting that fixes it.
-  State only what was verified, and keep internal identifiers out.
-- Log a recoverable condition once, at warning level or lower. Keep error level for real failures, and rate-limit a
-  line that can flood.
 
 ## Reuse and placement
 
@@ -164,3 +122,17 @@ once, where the event is decided, and use one basis for related numbers.
 - Make each schema and wire change safe while old and new versions run together: create the invariant in one locked
   upgrade step, fence or drain old writers, and make a new wire field optional for old readers.
 - Do not add compatibility code for versions the project does not support.
+
+## Less frequent invariants
+
+[references/more-invariants.md](references/more-invariants.md) holds resources, cache and identity keys, result
+independence, serialization, units, defaults, and errors and logs. Read it when the diff touches one of them.
+
+
+## Resources
+
+This skill bundles supporting files. Read them on demand when the task calls for them — don't bulk-load.
+
+### References
+
+- [`references/more-invariants.md`](references/more-invariants.md) — More correctness invariants

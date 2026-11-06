@@ -11,6 +11,7 @@
     ".agents/skills/context-improvement/SKILL.md",
     ".agents/skills/context-improvement/agents/openai.yaml",
     ".agents/skills/correctness-review/SKILL.md",
+    ".agents/skills/correctness-review/references/more-invariants.md",
     ".agents/skills/dependency-awareness/SKILL.md",
     ".agents/skills/e2e-generation/SKILL.md",
     ".agents/skills/error-handling/SKILL.md",
@@ -50,6 +51,7 @@
     ".claude/skills/consumer-release-gates/SKILL.md",
     ".claude/skills/context-improvement/SKILL.md",
     ".claude/skills/correctness-review/SKILL.md",
+    ".claude/skills/correctness-review/references/more-invariants.md",
     ".claude/skills/dependency-awareness/SKILL.md",
     ".claude/skills/e2e-generation/SKILL.md",
     ".claude/skills/error-handling/SKILL.md",
@@ -92,6 +94,7 @@
     "skills/config-placement/SKILL.md",
     "skills/consumer-release-gates/SKILL.md",
     "skills/correctness-review/SKILL.md",
+    "skills/correctness-review/references/more-invariants.md",
     "skills/dependency-awareness/SKILL.md",
     "skills/e2e-generation/SKILL.md",
     "skills/error-handling/SKILL.md",
@@ -136,5 +139,10 @@
         "ai-rulez"
       ]
     ]
+  },
+  "assets": {
+    ".agents/skills/correctness-review/references/more-invariants.md": "487f6be34e27b3b5eb834b391c9997abbf98668b7be80a97b056faca251ba8a6",
+    ".claude/skills/correctness-review/references/more-invariants.md": "487f6be34e27b3b5eb834b391c9997abbf98668b7be80a97b056faca251ba8a6",
+    "skills/correctness-review/references/more-invariants.md": "487f6be34e27b3b5eb834b391c9997abbf98668b7be80a97b056faca251ba8a6"
   }
 }
