@@ -1,7 +1,7 @@
 ---
 name: correctness-review
 description: "Invariants a code review keeps finding: every site, fail closed, no silent loss, bounds, safe writes, reuse, compatible API changes. Use when writing or reviewing a code change."
-# Content-Hash: blake3:35efe746017a1d70de6394fea7b23baa32567d10d2443f5eefbe44dc1f906227
+# Content-Hash: blake3:73ec5d39bdf25c9ea3f5d8219a79084902e1ba7ddc667457899a2b40ce61d3a6
 ---
 
 # Correctness review
@@ -116,8 +116,9 @@ option and setting through to the code that applies it, or reject it. A setting 
 
 ## Compatible changes
 
-- Change a public API additively. Never add a field to a public struct or a required field to a public type, because
-  callers that build it literally break: use an internal option or a new entry point.
+- Change a public API additively. Never add a required field to a public type, or a field to a public struct that
+  callers build literally (an exhaustive Rust struct, a positional Go literal), because those callers break: use an
+  internal option or a new entry point.
 - Keep internal pipeline hints out of user-facing options. Deprecate for one minor release before you remove.
 - Make each schema and wire change safe while old and new versions run together: create the invariant in one locked
   upgrade step, fence or drain old writers, and make a new wire field optional for old readers.

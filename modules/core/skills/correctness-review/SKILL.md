@@ -121,8 +121,9 @@ option and setting through to the code that applies it, or reject it. A setting 
 
 ## Compatible changes
 
-- Change a public API additively. Never add a field to a public struct or a required field to a public type, because
-  callers that build it literally break: use an internal option or a new entry point.
+- Change a public API additively. Never add a required field to a public type, or a field to a public struct that
+  callers build literally (an exhaustive Rust struct, a positional Go literal), because those callers break: use an
+  internal option or a new entry point.
 - Keep internal pipeline hints out of user-facing options. Deprecate for one minor release before you remove.
 - Make each schema and wire change safe while old and new versions run together: create the invariant in one locked
   upgrade step, fence or drain old writers, and make a new wire field optional for old readers.
