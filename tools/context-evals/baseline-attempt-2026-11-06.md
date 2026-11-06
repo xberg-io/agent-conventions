@@ -11,8 +11,9 @@ costs are in [baseline-attempt-2026-11-06.json](baseline-attempt-2026-11-06.json
 | Xberg | `7090e72` | 138 | 124 | 14 | 0 |
 
 Subject `claude-sonnet-5-5`, three repeats, eight turns, 180-second timeout, one worker, hard-budget gateway
-(protocol `hard-gateway-5`, policy `anthropic-standard-sonnet-opus-2026-11-06-1`, $55 ceiling), controller `84a6bc3`,
-Claude Code 2.1.318, ai-rulez 5.10.0. Judge prompt `judge-prompt-2`, rubric `rubric-2`, taxonomy 1, harness 6.
+(protocol `hard-gateway-5`, policy `anthropic-standard-sonnet-opus-2026-11-06-1`, $55 ceiling), controller `b801c2e`
+(source sha256 `056afc17`; it ran as `84a6bc3` before the rebase onto main), Claude Code 2.1.318, ai-rulez 5.10.0.
+Judge prompt `judge-prompt-2`, rubric `rubric-2`, taxonomy 1, harness 6.
 
 ## Spend
 
@@ -29,7 +30,7 @@ round, so the remaining 13 Xberg sessions were refused before reaching the provi
 
 Cause: the live API now returns every model tool call with `caller: {"type": "direct"}`. The certification evidence
 accepted only the older block keys, and the offline provider fixture omitted the field, so the real-CLI controls passed.
-`3e320a8` accepts exactly the direct caller (any other caller still refuses), emits the field in the fixture, and the
+`57d32d8` accepts exactly the direct caller (any other caller still refuses), emits the field in the fixture, and the
 real-CLI controls fail without the fix. The fixed controller certifies the stopped session's raw transcript.
 
 ## Not done
@@ -38,5 +39,10 @@ Judge validation, Xberg judging and the round-zero ledger entry need the remaini
 the same round. The fix changes the controller policy hash, so continuing this ledger requires the reviewed
 recovery and continuation procedure in [hard-budget.md](hard-budget.md); $44.21 of the $55 ceiling remains.
 The failed Xberg sessions are the stopping session and 13 refused after it.
+
+That procedure cannot serve this round yet. Recovery and the continuation header refused any ceiling above $25
+(fixed in `86e9db1`), and the continuation compatibility proof (`continuation_compat.proof`) accepts only the
+2026-10-30 controller transition: for `b801c2e` to `57d32d8` it fails with "unreviewed CLI classification tail".
+No recovery was applied; the ledger is unchanged.
 
 Raw transcripts, the ledger and per-run reports stay in the ignored polyrepo `reports/context-evals-round0-2026-11-06/`.
