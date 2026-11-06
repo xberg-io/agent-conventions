@@ -16,14 +16,19 @@ from pathlib import Path
 import gateway_epochs
 import runner
 
-POLICY_VERSION = "anthropic-standard-sonnet-2026-10-30-1"
+POLICY_VERSION = "anthropic-standard-sonnet-opus-2026-11-06-1"
 CONTEXT_TOKENS = 1_000_000
 MODEL_OUTPUT_TOKENS = 128_000
 OUTPUT_TOKENS = 4096
 NANOS_PER_DOLLAR = 1_000_000_000
-MAX_BUDGET_USD = 25
+MAX_BUDGET_USD = 55
 BODY_BYTES = 4 * 1024 * 1024
-MODELS = ("claude-sonnet-5-5", "claude-sonnet-5")
+MODELS = ("claude-sonnet-5-5", "claude-sonnet-5", "claude-opus-5-5")
+RATES = {
+    "claude-sonnet-5-5": {"input": 2000, "output": 10000, "write_5m": 2500, "write_1h": 4000, "read": 100},
+    "claude-sonnet-5": {"input": 2000, "output": 10000, "write_5m": 2500, "write_1h": 4000, "read": 200},
+    "claude-opus-5-5": {"input": 4000, "output": 20000, "write_5m": 5000, "write_1h": 8000, "read": 200},
+}
 TOKEN_KEYS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 
 POLICY_ERRORS = (
@@ -85,13 +90,7 @@ def usd_nanos(value: object) -> int:
 def rates(model: str) -> dict[str, int]:
     if model not in MODELS:
         raise GatewayError("unpriced model")
-    return {
-        "input": 2000,
-        "output": 10000,
-        "write_5m": 2500,
-        "write_1h": 4000,
-        "read": 100 if model == MODELS[0] else 200,
-    }
+    return dict(RATES[model])
 
 
 def manifest() -> dict:

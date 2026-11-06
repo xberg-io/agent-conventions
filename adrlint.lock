@@ -95,3 +95,8 @@ blake3 = "eb2a57fee8ac2432dc7ce6d9db16fbae41d320eb8634895926e987930c44edf6"
 number = 19
 status = "accepted"
 blake3 = "df5d40c156cf4d8fa5315adaebba83a880ab22960ed3dd65d7f7adfef4868935"
+
+[adrs."adrs/0021-judge-context-evaluations-with-opus-5-5-under-a-55-dollar-round-ceiling.md"]
+number = 21
+status = "accepted"
+blake3 = "a055f5b256df92f38a4e230a612b9961e5cee0a848148c8e11a9b8bbe99fb8e6"

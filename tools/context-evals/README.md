@@ -69,11 +69,11 @@ another agent session. `--model` has no default: pick one per study and keep it 
   sessions. `--jobs N` gives each worker its own worktree; `--resume` reuses only saved sessions with identical
   run parameters. Immutable context/configuration fingerprints and agent/generator binary hashes must match
   before reuse; existing snapshots are never overwritten. Legacy runs without identity are refused. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
-Paid execution requires an explicit policy. `--hard-budget --budget-ledger PATH --budget-usd 25` routes
+Paid execution requires an explicit policy. `--hard-budget --budget-ledger PATH --budget-usd 55` routes
 agents and judges through the reserved egress gateway, caps output at 4,096 tokens and confines CLI network and
 credential-file access. See [the price bound, offline proofs and limitations](hard-budget.md) before use.
 `--allow-soft-budget` remains a separate prospective-accounting opt-in and cannot guarantee a dollar ceiling.
-Never mix policies or reuse the historical invalid attempt's ledger; `study.toml` records that attempt's choices.
+Never mix policies or reuse the historical invalid attempt's ledger; `study.toml` records each round's choices.
 
 - `harness.py judge RUN_DIR --model M` grades criteria; `judge-validate RUN_DIR --model M --second-model M2` computes
   Cohen's kappa per criterion and the mutation-test TPR/TNR. Judges use `--tools ""` and must advertise an empty

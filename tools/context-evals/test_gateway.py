@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import gateway
 
 MODEL = "claude-sonnet-5-5"
+JUDGE_MODEL = "claude-opus-5-5"
 TOOLS = ("Read", "Glob", "Grep", "Skill")
 
 
@@ -51,6 +52,17 @@ class PolicyTest(unittest.TestCase):
         self.assertEqual(policy.reservation(MODEL, 4096), 6_140_960_000)
         self.assertEqual(policy.reservation("claude-sonnet-5", 4096), 6_240_960_000)
 
+    def test_opus_judge_is_priced_at_its_documented_standard_rates(self) -> None:
+        policy = gateway.Policy()
+        self.assertEqual(policy.reservation(JUDGE_MODEL, 4096), 12_281_920_000)
+        self.assertEqual(policy.cost(usage(), JUDGE_MODEL, 4096), 1_100_000)
+        self.assertEqual(policy.prepare(payload() | {"model": JUDGE_MODEL}, TOOLS)["model"], JUDGE_MODEL)
+
+    def test_unpriced_models_are_still_refused(self) -> None:
+        for model in ["claude-opus-5", "claude-fable-5-1", "claude-haiku-5-5"]:
+            with self.subTest(model=model), self.assertRaisesRegex(gateway.GatewayError, "unpriced model"):
+                gateway.Policy().reservation(model, 4096)
+
     def test_normalizes_output_limit_and_standard_global_routing_without_mutating_input(self) -> None:
         request = payload()
         result = gateway.Policy().prepare(request, TOOLS)
@@ -62,7 +74,7 @@ class PolicyTest(unittest.TestCase):
     def test_refuses_unknown_model_pricing_tiers_and_server_features(self) -> None:
         changes = [
             {"model": "sonnet"},
-            {"model": "claude-opus-5-5"},
+            {"model": "claude-opus-5"},
             {"service_tier": "priority"},
             {"inference_geo": "us"},
             {"speed": "fast"},
@@ -180,9 +192,24 @@ class LedgerTest(unittest.TestCase):
             gateway.Ledger(path, 25)
             with self.assertRaises(gateway.GatewayError):
                 gateway.Ledger(path, 24)
-            for value in [0, -1, 25.01, float("nan"), True]:
+            for value in [0, -1, 55.01, 56, float("nan"), True]:
                 with self.subTest(value=value), self.assertRaises(gateway.GatewayError):
                     gateway.Ledger(Path(temporary) / "invalid.sqlite3", value)
+
+    def test_fifty_five_dollar_ceiling_admits_requests_only_within_it(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = gateway.Ledger(Path(temporary) / "round.sqlite3", 55)
+            self.assertEqual(ledger.identity()["total_nanos"], 55_000_000_000)
+            first, second = ledger.reserve(JUDGE_MODEL, 4096), ledger.reserve(JUDGE_MODEL, 4096)
+            self.assertEqual(ledger.spent(), 24_563_840_000)
+            for _ in range(4):
+                ledger.reserve(MODEL, 4096)
+            self.assertEqual(ledger.spent(), 49_127_680_000)
+            with self.assertRaisesRegex(gateway.GatewayError, "cannot reserve another complete request"):
+                ledger.reserve(MODEL, 4096)
+            ledger.settle(first, 1_100_000)
+            ledger.settle(second, 1_100_000)
+            ledger.reserve(JUDGE_MODEL, 4096)
 
 
 class StreamTest(unittest.TestCase):

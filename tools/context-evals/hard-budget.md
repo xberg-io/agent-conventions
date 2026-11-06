@@ -13,9 +13,11 @@ contract proves routing and accounting, not provider acceptance or model quality
 
 ## Price bound
 
-The 2026-10-30 policy supports only `claude-sonnet-5-5` and `claude-sonnet-5`: one million context tokens,
-$2 per million uncached input tokens, $10 output, $2.50 five-minute cache writes and $4 one-hour cache writes.
-Cache reads cost $0.10 and $0.20 respectively. These are documented standard, global-inference prices;
+The 2026-11-06 policy ([ADR-0021](../../adrs/0021-judge-context-evaluations-with-opus-5-5-under-a-55-dollar-round-ceiling.md))
+prices `claude-sonnet-5-5`, `claude-sonnet-5` and `claude-opus-5-5` with one million context tokens and a round
+ceiling of at most $55. Per million tokens, both Sonnets cost $2 uncached input, $10 output, $2.50 five-minute and $4
+one-hour cache writes, with cache reads at $0.10 (Sonnet 5.5) and $0.20 (Sonnet 5). Opus 5.5 costs $4 input, $20
+output, $5 and $8 cache writes and $0.20 cache reads. These are documented standard, global-inference prices;
 fast mode, priority tiers, US-only routing, server tools, images, documents and unknown features are refused.
 See [Sonnet 5.5](https://platform.claude.com/docs/en/models/sonnet-5-5/overview),
 [Sonnet 5](https://platform.claude.com/docs/en/models/sonnet-5/overview) and
@@ -25,8 +27,8 @@ The [token-count endpoint](https://platform.claude.com/docs/en/build-with-claude
 so it cannot establish a strict input bound. Instead each reservation independently charges the full context
 ceiling for uncached input, cache creation at the one-hour rate, and cache reads, plus the clamped output maximum.
 The [Messages API](https://platform.claude.com/docs/en/api/messages/create) defines `max_tokens` as an absolute
-output maximum, including thinking. The resulting reservations are $6.14096 and $6.24096 per request. This
-intentionally overcounts input categories; it can stop a round far below its $25 cash ceiling.
+output maximum, including thinking. The resulting reservations are $6.14096 (Sonnet 5.5), $6.24096 (Sonnet 5) and $12.28192 (Opus 5.5) per
+request. This intentionally overcounts input categories; it can stop a round far below its cash ceiling.
 
 Every charge uses integer nanodollars. Valid terminal provider usage replaces a reservation with its actual
 standard usage charge. Missing, decreasing, negative, noninteger, overflowing or unknown usage, incomplete
@@ -74,7 +76,7 @@ Use a fresh ledger and fresh output directories for the approved round. For exam
 
 ```sh
 mise run context:eval -- --hard-budget --budget-ledger ../reports/fresh-round/round.sqlite3 \
-  --budget-usd 25 run --repo ../xberg --ref main --model claude-sonnet-5-5 \
+  --budget-usd 55 run --repo ../xberg --ref main --model claude-sonnet-5-5 \
   --split tune --repeats 3 --jobs 1 --out ../reports/fresh-round/xberg
 ```
 

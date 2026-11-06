@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import gateway
 import gateway_transport
 import runner
-from test_gateway import MODEL, TOOLS, payload, usage
+from test_gateway import JUDGE_MODEL, MODEL, TOOLS, payload, usage
 
 CREDENTIAL_PATHS = (
     ".ssh/id_ed25519",
@@ -43,7 +43,7 @@ print(json.dumps({'own_environment_available':os.environ.get('ANTHROPIC_API_KEY'
 """
 
 
-def stream_body(final_usage: dict | None = None) -> bytes:
+def stream_body(final_usage: dict | None = None, model: str = MODEL) -> bytes:
     initial = usage()
     initial["output_tokens"] = 0
     events = [
@@ -56,7 +56,7 @@ def stream_body(final_usage: dict | None = None) -> bytes:
                 "content": [],
                 "stop_reason": None,
                 "stop_sequence": None,
-                "model": MODEL,
+                "model": model,
                 "usage": initial,
             },
         },
@@ -415,6 +415,29 @@ class ActualCliTest(unittest.TestCase):
                 self.assertEqual(ledger.spent(), 550_000)
                 self.assertIn("Fixture answer", result.stdout)
                 self.assertNotIn("never-forwarded-fixture", result.stdout + result.stderr)
+
+    def test_real_cli_opus_judge_request_passes_the_policy_and_settles_at_opus_rates(self) -> None:
+        import shutil
+
+        self.assertIsNotNone(shutil.which("claude"), "real Claude CLI required for this local contract")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "mcp.json").write_text('{"mcpServers":{}}')
+            ledger = gateway.Ledger(root / "round.sqlite3", 55)
+            calls = []
+
+            def provider(request: dict) -> tuple[str, bytes]:
+                calls.append(request)
+                self.assertEqual(ledger.spent(), 12_281_920_000)
+                return "text/event-stream", stream_body(model=JUDGE_MODEL)
+
+            execute = gateway_transport.HardExecute(ledger, "never-forwarded-fixture", provider=provider)
+            spec = runner.SessionSpec("Reply with one short sentence.", JUDGE_MODEL, 1, root / "mcp.json", ())
+            result = execute(runner.ClaudeAdapter().command(spec), root, {"PATH": os.environ["PATH"]}, 30)
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertEqual(runner.tool_profile_error(result.stdout, ()), "")
+            self.assertEqual([call["model"] for call in calls], [JUDGE_MODEL])
+            self.assertEqual(ledger.spent(), 1_100_000)
 
     def test_real_read_tool_cannot_send_a_fixture_secret_but_can_read_project_context(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

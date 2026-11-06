@@ -1,4 +1,23 @@
-version = "round-zero-2026-10-30"
+# Model and budget choices per evaluation round. Rounds are compared only within one set of versions.
+
+[rounds.round-zero-2026-11-06]
+decision = "adrs/0021-judge-context-evaluations-with-opus-5-5-under-a-55-dollar-round-ceiling.md"
+agent_model = "claude-sonnet-5-5"
+primary_judge_model = "claude-opus-5-5"
+secondary_judge_model = "claude-sonnet-5-5"
+round_budget_usd = 55.0
+execution_policy = "hard-budget"
+gateway_policy_version = "anthropic-standard-sonnet-opus-2026-11-06-1"
+model_catalog_verified = "2026-11-06"
+repeats = 3
+split = "tune"
+max_turns = 8
+timeout_seconds = 180
+jobs = 1
+validation_sessions_per_domain = 4
+
+# The incomplete 2026-10-30 attempt (baseline-attempt-2026-10-30.md); kept for provenance, never compared.
+[rounds.round-zero-2026-10-30]
 harness_version = "2"
 probe_version = "2"
 judge_prompt_version = "judge-prompt-1"
