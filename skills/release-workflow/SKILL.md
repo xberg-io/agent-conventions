@@ -1,7 +1,7 @@
 ---
 name: release-workflow
 description: "Cut a release: version task, CHANGELOG, clean-tree gate, push then tag, gh release create, check the publish trigger, install the released build. Use when cutting or publishing a version."
-# Content-Hash: blake3:9b3db81094ab1da629c290424eb30adb17eef50a8de6f10f433572d79a2b5d32
+# Content-Hash: blake3:1ede454e03a5d4ab2ecc2b62038dd136d58b8c4edaa97ca53b3c0dbabe74cae8
 ---
 
 # Release Workflow (shared)
@@ -39,7 +39,7 @@ Never release a dirty or failing tree.
 
 ```bash
 poly lint .            # lint clean
-poly fmt --check .     # formatting clean
+poly fmt .             # formatting clean (poly fmt --check . on poly 0.32 and older)
 ```
 
 The repo's test task must pass too (find it with `mise tasks | grep -i test`). Apply

@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.11.0'
+ai_rulez_version = '5.12.0'
 scope = 'all'
-tree = 'sha256:40b096466e49bf74f6b3ba4ff985827c063bff5c2d82da30319390ccc997d30b'
+tree = 'sha256:5ffd58ef3ea3d8f26271ee9ec1cbb71f0d9f24487e835bef28716f71d5fcca67'
 
 [[served]]
 name = 'adr-authoring'
@@ -142,7 +142,7 @@ digest = 'sha256:2700d984ba10baa2e16ed19b48cc8fd5f7351776f2ce03f6712394d3912f91c
 name = 'poly-lint-format'
 source = 'include:public-core/skills/poly-lint-format/SKILL.md'
 commit = ''
-digest = 'sha256:772854a122a129565f974e6c5ae84ef1169f7bc4f3a2068bfdc56b548c161697'
+digest = 'sha256:12d79037e9c9d68a3902fb302fbe51b22fb964bea0ad9302104d01c87739d03c'
 
 [[served]]
 name = 'pull-requests'
@@ -154,7 +154,7 @@ digest = 'sha256:d0d72791ebfa675d5f1529b0a7d434fd48dfc1b7990c4d5ea7d19c57f109f48
 name = 'release-workflow'
 source = 'include:public-core/skills/release-workflow/SKILL.md'
 commit = ''
-digest = 'sha256:fd1f7c0c49c464e7abe507d83eb46d21c653b058b1bd0da980c025e708707029'
+digest = 'sha256:f3fa28b92677fe52c9d3d2a1ea45ba3c169c7382a00ead779292ccccc0154ac0'
 
 [[served]]
 name = 'scoop-distribution'
@@ -214,7 +214,7 @@ digest = 'sha256:3f46c86a0a78279769cdb8a90e9f7dd1c9f725e0f2441dc808d98d8065a3314
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:4541ce8468319ebea029e45707d14b0753d11244d3b93d5e74b057315b93b3af'
+digest = 'sha256:a8ea94a56cfd66002dcb523f84e9b32bcc00bdddcb88d1a9b36e1949056bace5'
 
 [[item]]
 kind = 'local-include'

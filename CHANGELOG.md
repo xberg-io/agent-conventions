@@ -25,3 +25,9 @@ All notable changes to this project are documented in this file. The format is b
 
 - `tools/context-evals/exposure.py` and its tests. The eval harness's static start model and term matching moved to
   `start_context.py`.
+
+### Fixed
+
+- The commit-procedure and agent-workflow rules and the poly-lint-format and release-workflow skills no longer
+  prescribe `poly fmt --check`, which poly 0.33 rejects with exit 2 now that the dry run is the default. They name the
+  dry run on each side of that change, since a bare `poly fmt` on 0.32 and older rewrites files.
