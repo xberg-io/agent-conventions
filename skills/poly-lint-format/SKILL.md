@@ -1,7 +1,7 @@
 ---
 name: poly-lint-format
 description: "poly, the multi-language linter and formatter: engines, lint and fmt commands, poly.toml, severity, the uncomment pass, CI workflow. Use when linting, formatting or configuring poly.toml."
-# Content-Hash: blake3:4857a9aa51d3c5e9ab8b06ba38eb9c8f176468d8822a96d21ea47ec63d4b4262
+# Content-Hash: blake3:96bfdb65f1d3ec092d8f6ef2644785a029a5f1717a0178bf21402504a5747369
 ---
 
 # Poly
@@ -22,7 +22,8 @@ Poly is a single-binary multi-language linter and formatter, configured per repo
 ## Commands
 
 - Lint: `poly lint <paths>`
-- Check formatting (dry-run): `poly fmt --check <paths>`
+- Check formatting (dry run): `poly fmt <paths>` from poly 0.33, which rejects `--check` with exit 2; on 0.32 and
+  older a bare `poly fmt` rewrites files, so use `poly fmt --check <paths>` there. The repo's `mise.toml` pins the version.
 - Apply formatting: `poly fmt --fix <paths>`
 - Apply lint autofixes: `poly lint --fix <paths>`
 
@@ -73,6 +74,6 @@ Run linting and formatting validation in CI via the shared reusable workflow:
 uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
 ```
 
-This workflow runs `poly fmt --check .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
+This workflow pins poly through its `poly-version` input (default `v0.32.1`) and runs `poly fmt --check .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
 
-After making changes, run `poly fmt --check` and `poly lint` on the changed paths.
+After making changes, run the formatting dry run and `poly lint` on the changed paths.
