@@ -22,6 +22,8 @@ x-ai-rulez:
 
 - A regression test fails with the fix reverted. Revert the fix locally once and watch the test fail. A test that
   passes either way is a guard: name it as one, and do not count it as the regression test.
+- If the change claims to fix more than one condition, remove each condition on its own and watch a test fail. A
+  claimed condition that no test pins is not proven.
 - Name each test, task and filter for what its body does. Read the body before you name it.
 - Drive the test through the production entry point, on the route the change claims, with the default
   configuration.

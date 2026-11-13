@@ -1,7 +1,7 @@
 ---
 name: tdd-workflow
 description: "Test-driven workflow: red, green, refactor; restart if code came first; reproduce a bug as a failing test; integration, unit or property test by change type. Use before a feature or bug fix or when choosing a test type."
-# Content-Hash: blake3:05d4489726adbba50905c04c417e540a49050358e093500d48cdad881c4a9944
+# Content-Hash: blake3:e61aadb2e668007b90847699d2e97b879c291290ad5a6725970dbbf0af89cb96
 ---
 
 # TDD workflow
@@ -17,6 +17,8 @@ description: "Test-driven workflow: red, green, refactor; restart if code came f
 
 - A regression test fails with the fix reverted. Revert the fix locally once and watch the test fail. A test that
   passes either way is a guard: name it as one, and do not count it as the regression test.
+- If the change claims to fix more than one condition, remove each condition on its own and watch a test fail. A
+  claimed condition that no test pins is not proven.
 - Name each test, task and filter for what its body does. Read the body before you name it.
 - Drive the test through the production entry point, on the route the change claims, with the default
   configuration.
