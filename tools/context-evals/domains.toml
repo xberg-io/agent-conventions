@@ -91,6 +91,10 @@ domains = ["sceptre"]
 [repos.xberg-enterprise]
 domains = ["enterprise", "infrastructure", "xberg", "document-corpora"]
 
+# Public docs for the commercial products; no product code.
+[repos.xberg-pro]
+domains = ["xberg", "enterprise"]
+
 [repos.alef]
 domains = ["bindings", "e2e-generator"]
 

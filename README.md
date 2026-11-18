@@ -211,7 +211,7 @@ Repos that include `bindings` also enable the `polyglot-bindings` builtin; infra
 | sceptre, sdks | core, languages, cicd, docs-sites |
 | alef, actions, test-apps | core, languages, cicd |
 | infra | core, languages, cicd, infrastructure |
-| docs-theme | core, cicd, docs-sites |
+| docs-theme, xberg-pro | core, cicd, docs-sites |
 | test_documents | core, cicd, document-corpora |
 | paddle-to-onnx | core, languages |
 | assets, homebrew-tap, scoop-bucket, polyrepo root | core |

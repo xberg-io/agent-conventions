@@ -18,13 +18,13 @@ x-ai-rulez:
 **Company**: Kreuzberg, Inc.
 **Landing**: xberg.io
 **Open-source docs domain pattern**: `docs.<repo>.xberg.io` (core extraction lib uses bare `docs.xberg.io`)
-**Commercial docs domain**: enterprise.xberg.io
+**Commercial docs domain**: pro.xberg.io (the public `xberg-pro` repository; product source stays in private `xberg-enterprise`)
 
 Authoritative product list (use this exact ordering and wording in every README ecosystem block):
 
 - [Xberg](https://github.com/xberg-io/xberg) — the open-source content-intelligence engine: text, tables, and metadata from 100+ formats, with OCR, transcription, and code intelligence. MIT.
-- [Xberg Pro](https://xberg.io) — a complete self-hosted content-intelligence backend in a single container. Commercial.
-- [Xberg Enterprise](https://xberg.io) — the distributed, governed content-intelligence platform, scaled on Kubernetes with team governance and support. Commercial.
+- [Xberg Pro](https://pro.xberg.io) — a complete self-hosted content-intelligence backend in a single container. Commercial.
+- [Xberg Enterprise](https://pro.xberg.io) — the distributed, governed content-intelligence platform, scaled on Kubernetes with team governance and support. Commercial.
 - [crawlberg](https://github.com/xberg-io/crawlberg) — web crawling and scraping with HTML→Markdown and headless-Chrome fallback.
 - [html-to-markdown](https://github.com/xberg-io/html-to-markdown) — fast, lossless HTML→Markdown engine.
 - [liter-llm](https://github.com/xberg-io/liter-llm) — universal LLM API client with native bindings and a broad provider catalog.

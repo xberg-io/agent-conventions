@@ -100,3 +100,8 @@ blake3 = "df5d40c156cf4d8fa5315adaebba83a880ab22960ed3dd65d7f7adfef4868935"
 number = 21
 status = "accepted"
 blake3 = "a055f5b256df92f38a4e230a612b9961e5cee0a848148c8e11a9b8bbe99fb8e6"
+
+[adrs."adrs/0024-publish-the-commercial-docs-from-the-public-xberg-pro-repository.md"]
+number = 24
+status = "accepted"
+blake3 = "7ca32913244d6ef563b078e7c14a33ff5f5b60b1c1e2cb011f0ed336ca2c8879"

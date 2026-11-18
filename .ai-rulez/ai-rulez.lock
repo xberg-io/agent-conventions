@@ -2,9 +2,9 @@
 # Refresh it with `ai-rulez lock`; `ai-rulez generate --locked` fails when it is stale.
 
 version = 1
-ai_rulez_version = '5.12.0'
+ai_rulez_version = '5.14.0'
 scope = 'all'
-tree = 'sha256:4722ffd9998fae839a4f083138ca65695082056a3138c118013547f400b4c618'
+tree = 'sha256:d59a3fc230db52a17825bc88130c08168b33014d7fb813e7880c5e81a961d6c1'
 
 [[served]]
 name = 'adr-authoring'
@@ -190,7 +190,7 @@ digest = 'sha256:517c67f45363ed00d4a5ff0b04b8271cb48e0771d2c11b374dec0fad11f403e
 name = 'xberg-brand-and-docs'
 source = 'include:public-docs-sites/skills/xberg-brand-and-docs/SKILL.md'
 commit = ''
-digest = 'sha256:c760b65c104a6253ff2aa0c3397fa78dde310297d462157bc16db93a79e5cafd'
+digest = 'sha256:b99fcd1870fe270128f34f83483c3912438eb242f7c8792077b72415c67ce5fe'
 
 [[item]]
 kind = 'context'
@@ -220,7 +220,7 @@ digest = 'sha256:6861025f5c625eb91ccae965e99e225efed4f466594831d11dd8c56d0189f87
 kind = 'local-include'
 id = 'public-docs-sites'
 path = 'modules/docs-sites'
-digest = 'sha256:d7660a30f8a81408fc1217e68e1f089071f5cb93ffab9ec11bf0683040ecc0fc'
+digest = 'sha256:25786e0ec9d18ef6dcd5f1a66f1eaaa53894e7fc03964a72e1c59e0a93db0982'
 
 [[item]]
 kind = 'local-include'

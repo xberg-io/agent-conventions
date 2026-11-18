@@ -29,3 +29,4 @@ convention. Repository logs cite these records as `org ADR-NNNN` instead of rest
 | [0020](../adrs/0020-bind-ai-runtime-preflights-to-original-consumer-worktrees.md) | Bind AI runtime preflights to original consumer worktrees | proposed | 2026-10-31 |
 | [0022](../adrs/0022-gate-the-start-context-with-native-ai-rulez-exposure.md) | Gate the start context with native ai-rulez exposure | proposed | 2026-11-06 |
 | [0023](../adrs/0023-pin-third-party-github-actions-to-commit-shas.md) | Pin third-party GitHub Actions to commit SHAs | proposed | 2026-11-16 |
+| [0024](../adrs/0024-publish-the-commercial-docs-from-the-public-xberg-pro-repository.md) | Publish the commercial docs from the public xberg-pro repository | accepted | 2026-11-18 |
