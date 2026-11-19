@@ -37,7 +37,10 @@ class Pin:
 
 def sources(path: Path, table: str) -> list[dict]:
     data = tomllib.loads(path.read_text())
-    return data.get("hooks", {}).get("sources", []) if table == "hooks" else data.get(table, [])
+    found = data.get("hooks", {}).get("sources", []) if table == "hooks" else data.get(table, [])
+    if not isinstance(found, list) or any(not isinstance(entry, dict) for entry in found):
+        raise ValueError(f"{path}: hook sources must be a list of tables")
+    return found
 
 
 def source(path: Path, table: str, source_id: str = "ai-rulez") -> dict:

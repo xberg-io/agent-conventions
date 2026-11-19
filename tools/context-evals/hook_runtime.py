@@ -62,7 +62,7 @@ def fetch(url: str) -> bytes:
     return content
 
 
-# poly lock merges poly-hooks.lock ([[sources]]) into poly.lock ([[hook_sources]]); a consumer has one or the other.
+# Poly 0.35 and newer read only poly.lock ([[hook_sources]]); poly-hooks.lock ([[sources]]) serves consumers on older Poly.
 LOCKS = (("poly.lock", "hook_sources"), ("poly-hooks.lock", "sources"))
 
 
@@ -85,6 +85,8 @@ def locked_sources(path: Path, table: str = "sources") -> list[dict]:
         for key in ("id", "source", "revision", "path"):
             if not isinstance(entry.get(key), str):
                 raise ValueError(f"{path}: lock source requires string {key}")
+        if "ref" in entry and not isinstance(entry["ref"], str):
+            raise ValueError(f"{path}: lock source ref must be a string")
     return entries
 
 
@@ -95,6 +97,12 @@ def catalogue(consumer: Path) -> tuple[list[str], dict]:
     locked = unique_ai_source(locked_sources(*hook_lock(consumer)))
     if configured.get("git") != SOURCE or locked.get("source") != SOURCE or "path" in configured:
         raise ValueError("AI runtime probe requires the canonical Goldziher/ai-rulez Git source")
+    # Poly 0.36 records the declared revision as `ref` and refuses to run a source locked for another one.
+    if "ref" in locked and locked["ref"] != configured.get("revision"):
+        raise ValueError(
+            f"ai-rulez hook source is locked for revision {locked['ref']!r} but poly.toml declares "
+            f"{configured.get('revision')!r}; run poly lock"
+        )
     revision = locked.get("revision", "")
     if not isinstance(revision, str) or not COMMIT.fullmatch(revision):
         raise ValueError("AI runtime probe requires a resolved catalog commit")

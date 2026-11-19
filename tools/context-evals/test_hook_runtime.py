@@ -46,9 +46,9 @@ def configure(root: Path, channels: str = '["system"]') -> None:
         '[[hooks.sources]]\nid="ai-rulez"\ngit="https://github.com/Goldziher/ai-rulez.git"\n'
         'revision="v5"\nhooks=["ai-rulez-validate"]\n'
     )
-    (root / "poly-hooks.lock").write_text(
-        f'version=1\n[[sources]]\nid="ai-rulez"\nsource="https://github.com/Goldziher/ai-rulez.git"\n'
-        f'revision="{COMMIT}"\npath="cache://fixture/{COMMIT}"\n'
+    (root / "poly.lock").write_text(
+        f'version=1\n[[hook_sources]]\nid="ai-rulez"\nsource="https://github.com/Goldziher/ai-rulez.git"\n'
+        f'ref="v5"\nrevision="{COMMIT}"\npath="cache://fixture/{COMMIT}"\n'
     )
     (root / "poly.local.toml").write_text(f"[hook_preferences]\nchannels={channels}\n")
 
@@ -70,14 +70,16 @@ def invalid_locks(body: str) -> list[tuple[str, str]]:
         ("missing version", body.replace("version=1\n", "")),
         ("boolean version", body.replace("version=1", "version=true")),
         ("unsupported version", body.replace("version=1", "version=2")),
-        ("missing sources", "version=1\n"),
+        # Poly 0.36 reads a lock without hook_sources as locking none, which a path source needs; a non-list is invalid.
+        ("nonlist sources", 'version=1\nhook_sources="ai-rulez"\n'),
     ]
     for key in ("id", "source", "revision", "path"):
         line = next(line for line in body.splitlines(True) if line.startswith(key + "="))
         cases.append((f"missing {key}", body.replace(line, "")))
         cases.append((f"nonstring {key}", body.replace(line, f"{key}=123\n")))
+    cases.append(("nonstring ref", body.replace('ref="v5"', "ref=5")))
     cases.append(
-        ("unused source missing path", body + '\n[[sources]]\nid="unused"\nsource="other"\nrevision="other"\n')
+        ("unused source missing path", body + '\n[[hook_sources]]\nid="unused"\nsource="other"\nrevision="other"\n')
     )
     return cases
 
@@ -143,7 +145,7 @@ class RuntimeGateTest(unittest.TestCase):
             root = Path(directory)
             configure(root)
             executable(root / "ai-rulez", "5.9.8")
-            path = root / "poly-hooks.lock"
+            path = root / "poly.lock"
             body = path.read_text().replace("version=1\n", 'version=1\nfuture_header="allowed"\n')
             body = body.replace(f'path="cache://fixture/{COMMIT}"', 'path="not-an-execution-selector"')
             path.write_text(body + "future_source=123\n")
@@ -316,7 +318,7 @@ class RuntimeGateTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             configure(root)
-            path = root / "poly-hooks.lock"
+            path = root / "poly.lock"
             path.write_text(path.read_text().replace("Goldziher/ai-rulez.git", "other/ai-rulez.git"))
             with (
                 patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")),
@@ -383,8 +385,10 @@ class RuntimeGateTest(unittest.TestCase):
 
 
 class UnifiedLockTest(unittest.TestCase):
-    # poly.lock as `poly lock` wrote it (Goldziher/poly c7edb93; schema PolyLock in crates/poly-cli/src/polylock.rs).
-    POLY_LOCK = (Path(__file__).parent / "testdata/poly-lock-c7edb93.toml").read_text()
+    # poly.lock as `poly lock` wrote it, with the fixture commit (schema PolyLock in crates/poly-cli/src/polylock.rs).
+    # Poly 0.36.0 records the declared revision as `ref`; Goldziher/poly c7edb93 did not.
+    POLY_LOCK = (Path(__file__).parent / "testdata/poly-lock-v0.36.0.toml").read_text()
+    LEGACY_POLY_LOCK = (Path(__file__).parent / "testdata/poly-lock-c7edb93.toml").read_text()
 
     def verify(self, root: Path) -> list[str]:
         executable(root / "ai-rulez", "5.9.8")
@@ -398,8 +402,33 @@ class UnifiedLockTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             configure(root)
-            (root / "poly-hooks.lock").unlink()
             (root / "poly.lock").write_text(self.POLY_LOCK)
+            self.assertEqual(self.verify(root), ["5.9.8"])
+
+    def test_a_lock_without_ref_from_older_poly_is_still_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            configure(root)
+            (root / "poly.lock").write_text(self.LEGACY_POLY_LOCK)
+            self.assertEqual(self.verify(root), ["5.9.8"])
+
+    def test_a_source_locked_for_another_revision_is_refused_like_poly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            configure(root)
+            (root / "poly.lock").write_text(self.POLY_LOCK.replace('ref = "v5"', 'ref = "v4"'))
+            with (
+                patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")),
+                self.assertRaisesRegex(ValueError, "locked for revision 'v4' but poly.toml declares 'v5'"),
+            ):
+                hook_runtime.verify(root)
+
+    def test_the_legacy_lock_serves_a_consumer_on_older_poly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            configure(root)
+            (root / "poly.lock").unlink()
+            (root / "poly-hooks.lock").write_text(self.LEGACY_POLY_LOCK.replace("[[hook_sources]]", "[[sources]]"))
             self.assertEqual(self.verify(root), ["5.9.8"])
 
     def test_poly_lock_wins_and_the_legacy_lock_is_not_read(self) -> None:
