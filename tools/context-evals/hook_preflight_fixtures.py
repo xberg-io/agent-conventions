@@ -186,10 +186,10 @@ def setup(root: Path, *, stale: bool = False, separate: Path | None = None, work
     git(root, environment, *init)
     (root / ".ai-rulez").mkdir()
     (root / ".ai-rulez/config.toml").write_text(VALID_CONFIG)
-    update = poly_fixtures.run([str(root / "bin/poly"), "hooks", "update"], root, environment)
-    if update.returncode != 0:
-        raise AssertionError(update.stdout + update.stderr)
-    git(root, environment, "add", "poly.toml", "poly-hooks.lock", "probe.txt", ".ai-rulez/config.toml")
+    locked = poly_fixtures.run([str(root / "bin/poly"), "lock"], root, environment)
+    if locked.returncode != 0:
+        raise AssertionError(locked.stdout + locked.stderr)
+    git(root, environment, "add", "poly.toml", "poly.lock", "probe.txt", ".ai-rulez/config.toml")
     return environment
 
 

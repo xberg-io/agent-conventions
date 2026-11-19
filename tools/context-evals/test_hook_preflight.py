@@ -220,7 +220,7 @@ class WorktreePreflightTest(unittest.TestCase):
             environment = fixtures.setup(root, worktree=True)
             alternate = {**environment, "GIT_INDEX_FILE": str(root / "alternate index")}
             fixtures.git(root, alternate, "read-tree", "--empty")
-            fixtures.git(root, alternate, "add", "poly.toml", "poly-hooks.lock", "probe.txt", ".ai-rulez/config.toml")
+            fixtures.git(root, alternate, "add", "poly.toml", "poly.lock", "probe.txt", ".ai-rulez/config.toml")
             fixtures.index_policy(root, alternate, isolated=True)
             self.assertIn("isolate=true", fixtures.git(root, alternate, "show", ":poly.toml"))
             self.assertIn("isolate=false", fixtures.git(root, environment, "show", ":poly.toml"))

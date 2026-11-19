@@ -90,6 +90,10 @@ def sandbox(root: Path, channels: list[str], versions: dict[str, str]) -> dict[s
             "PROVIDER_TRACE": str(root / "trace"),
             "GIT_CONFIG_NOSYSTEM": "1",
             "GIT_CONFIG_GLOBAL": os.devnull,
+            # Poly 0.36 refuses hooks from an untrusted config; CI consumers trust the checkout the same way.
+            "POLY_TRUST": "1",
+            # The fixture producers are local repositories; Poly 0.36 fetches hook sources over https and ssh only.
+            "POLY_GIT_ALLOW_PROTOCOLS": "+file",
         }
     )
 
@@ -189,7 +193,7 @@ class RealPolyProviderTest(unittest.TestCase):
                 )
                 self.assertEqual(hook_runtime.measure(selected[0][2], root), "5.9.8")
 
-    def test_git_lock_path_is_descriptive_and_unknown_lock_fields_are_accepted(self) -> None:
+    def test_git_lock_path_is_descriptive_and_unknown_lock_fields_are_rejected(self) -> None:
         poly = shutil.which("poly")
         self.assertIsNotNone(poly)
         reports = reports_root()
@@ -204,21 +208,31 @@ class RealPolyProviderTest(unittest.TestCase):
                     'path="producer"', f'git={json.dumps((root / "producer").as_uri())}\nrevision="{revision}"'
                 )
             )
-            updated = run([poly, "hooks", "update"], root, environment)
+            updated = run([poly, "lock"], root, environment)
             self.assertEqual(updated.returncode, 0, updated.stdout + updated.stderr)
-            path = root / "poly-hooks.lock"
+            path = root / "poly.lock"
             body = path.read_text()
-            locked = tomllib.loads(body)["sources"][0]
+            locked = tomllib.loads(body)["hook_sources"][0]
             self.assertEqual(locked["revision"], revision)
             decoy = root / "decoy"
             decoy.mkdir()
             (decoy / "poly-hooks.toml").write_text(fixtures.CATALOGUE.replace('run = "ai-rulez"', 'run = "false"'))
             body = body.replace(json.dumps(locked["path"]), json.dumps(str(decoy)))
-            body = body.replace("version = 1\n", "version = 1\nfuture_header=123\n")
-            path.write_text(body + '\nfuture_source="accepted"\n')
+            path.write_text(body)
             actual = execute_hook(poly, root, environment, commit=False)
             self.assertEqual(actual.returncode, 0, actual.stdout + actual.stderr)
             self.assertEqual((root / "trace").read_text().splitlines(), ["ai-rulez|validate --no-local"])
+            # Poly 0.36 parses poly.lock with deny_unknown_fields, so a lock extension stops the hook.
+            for extended in (
+                body.replace("version = 1\n", "version = 1\nfuture_header=123\n"),
+                body + '\nfuture_source="rejected"\n',
+            ):
+                (root / "trace").unlink(missing_ok=True)
+                path.write_text(extended)
+                refused = execute_hook(poly, root, environment, commit=False)
+                self.assertNotEqual(refused.returncode, 0, refused.stdout + refused.stderr)
+                self.assertIn("unknown field", refused.stdout + refused.stderr)
+                self.assertFalse((root / "trace").exists())
 
     def test_malformed_locks_fail_in_actual_poly_and_the_public_runtime_cli(self) -> None:
         poly = shutil.which("poly")
@@ -230,18 +244,18 @@ class RealPolyProviderTest(unittest.TestCase):
             original_config = (root / "poly.toml").read_text()
             initialize(root, environment)
             fixtures.configure(root)
-            cases = fixtures.invalid_locks((root / "poly-hooks.lock").read_text())
+            cases = fixtures.invalid_locks((root / "poly.lock").read_text())
             for name, body in cases:
                 with self.subTest(boundary=name):
                     (root / "trace").unlink(missing_ok=True)
                     (root / "poly.toml").write_text(original_config)
-                    (root / "poly-hooks.lock").write_text(body)
+                    (root / "poly.lock").write_text(body)
                     actual = execute_hook(poly, root, environment, commit=False)
                     self.assertNotEqual(actual.returncode, 0, f"Poly accepted {name}")
-                    self.assertIn("poly-hooks.lock", actual.stdout + actual.stderr)
+                    self.assertIn("poly.lock", actual.stdout + actual.stderr)
                     self.assertFalse((root / "trace").exists(), "invalid lock must not execute a hook")
                     fixtures.configure(root)
-                    (root / "poly-hooks.lock").write_text(body)
+                    (root / "poly.lock").write_text(body)
                     checked = run(
                         [sys.executable, "-c", PROBE, str(Path(__file__).parent), str(root)], root, environment
                     )

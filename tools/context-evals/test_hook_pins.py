@@ -46,7 +46,7 @@ class HookPinsTest(unittest.TestCase):
         events = config.get("on", config.get(True))
         for event in ("push", "pull_request"):
             patterns = events[event]["paths"]
-            for filename in ("poly.toml", "poly.lock", "poly-hooks.lock", "tools/context-evals/hook-pins.toml"):
+            for filename in ("poly.toml", "poly.lock", "tools/context-evals/hook-pins.toml"):
                 with self.subTest(event=event, filename=filename):
                     self.assertTrue(any(fnmatch.fnmatchcase(filename, pattern) for pattern in patterns))
             self.assertFalse(any(fnmatch.fnmatchcase("unrelated.txt", pattern) for pattern in patterns))
