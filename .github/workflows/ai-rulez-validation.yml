@@ -21,7 +21,6 @@ on:
       - "mise.*.lock"
       - "toolchains.toml"
       - "poly.lock"
-      - "poly-hooks.lock"
       - "mise-tasks/**"
       - "Cargo.toml"
       - "pyproject.toml"
@@ -48,7 +47,6 @@ on:
       - "mise.*.lock"
       - "toolchains.toml"
       - "poly.lock"
-      - "poly-hooks.lock"
       - "mise-tasks/**"
       - "Cargo.toml"
       - "pyproject.toml"
@@ -82,6 +80,7 @@ jobs:
   context-harness:
     runs-on: ubuntu-latest
     env:
+      POLY_TRUST: "1"
       # uv must use the interpreter mise installed, not download its own. ~keep
       UV_PYTHON_PREFERENCE: only-system
     steps:
@@ -111,6 +110,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     env:
+      POLY_TRUST: "1"
       UV_PYTHON_PREFERENCE: only-system
     steps:
       - uses: actions/checkout@v7

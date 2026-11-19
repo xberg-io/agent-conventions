@@ -7,6 +7,8 @@ jobs:
   native-transport:
     runs-on: windows-latest
     timeout-minutes: 10
+    env:
+      POLY_TRUST: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: xberg-io/actions/setup-mise@v1
