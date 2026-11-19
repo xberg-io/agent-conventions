@@ -89,7 +89,7 @@ Run linting and formatting validation in CI via the shared reusable workflow:
 uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
 ```
 
-This workflow pins poly through its `poly-version` input (default `v0.36.0`), sets `POLY_TRUST=1` and runs
+This workflow pins poly through its `poly-version` input (default `v0.36.1`), sets `POLY_TRUST=1` and runs
 `poly fmt .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
 
 After making changes, run the formatting dry run and `poly lint` on the changed paths.

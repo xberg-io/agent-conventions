@@ -4,7 +4,7 @@
 version = 1
 ai_rulez_version = '5.14.0'
 scope = 'all'
-tree = 'sha256:2b23f96f068e6774e9bf019c7ed1746f1d4a0053f017ade9c4f2e09a07323f5a'
+tree = 'sha256:c3cbd8abbffadf159b0c6a87e3ae183f3d424c02bb132d5d6035c3e02981dd16'
 
 [[served]]
 name = 'adr-authoring'
@@ -142,7 +142,7 @@ digest = 'sha256:2700d984ba10baa2e16ed19b48cc8fd5f7351776f2ce03f6712394d3912f91c
 name = 'poly-lint-format'
 source = 'include:public-core/skills/poly-lint-format/SKILL.md'
 commit = ''
-digest = 'sha256:f70135153cc112dfb30e3867ef5346ee828f6a810b650f5a229e9bf5d1dff7f0'
+digest = 'sha256:8aeecc81ec712d2eb0dae015b20501b0e9803459bb041eab46c54c6feb24d525'
 
 [[served]]
 name = 'pull-requests'
@@ -214,7 +214,7 @@ digest = 'sha256:3f46c86a0a78279769cdb8a90e9f7dd1c9f725e0f2441dc808d98d8065a3314
 kind = 'local-include'
 id = 'public-core'
 path = 'modules/core'
-digest = 'sha256:aa1c730678865453ba9b59ab281e7c2a54805d9f6c96d2be1f13dc6a50622736'
+digest = 'sha256:8def679f8173d98133036d9f1bd1acbf896d516f5195a79a22763b57f10f110e'
 
 [[item]]
 kind = 'local-include'

@@ -1,7 +1,7 @@
 ---
 name: poly-lint-format
 description: "poly, the multi-language linter and formatter: engines, lint and fmt commands, poly.toml, severity, the uncomment pass, CI workflow. Use when linting, formatting or configuring poly.toml."
-# Content-Hash: blake3:f474405a27c9903adf0abe18853c8853503ecdcf2bbc6e433b8a4019b9ce067e
+# Content-Hash: blake3:833a94ac5f6c51f8e4447c5b244887a5096571d605e7d0ef4dd992a0986e21c4
 ---
 
 # Poly
@@ -84,7 +84,7 @@ Run linting and formatting validation in CI via the shared reusable workflow:
 uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
 ```
 
-This workflow pins poly through its `poly-version` input (default `v0.36.0`), sets `POLY_TRUST=1` and runs
+This workflow pins poly through its `poly-version` input (default `v0.36.1`), sets `POLY_TRUST=1` and runs
 `poly fmt .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
 
 After making changes, run the formatting dry run and `poly lint` on the changed paths.
