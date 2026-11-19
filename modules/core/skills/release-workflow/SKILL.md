@@ -44,7 +44,7 @@ Never release a dirty or failing tree.
 
 ```bash
 poly lint .            # lint clean
-poly fmt .             # formatting clean (poly fmt --check . on poly 0.32 and older)
+poly fmt .             # formatting clean (a dry run; --fix writes)
 ```
 
 The repo's test task must pass too (find it with `mise tasks | grep -i test`). Apply

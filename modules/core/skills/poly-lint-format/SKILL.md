@@ -21,29 +21,39 @@ Poly is a single-binary multi-language linter and formatter, configured per repo
   Java, Kotlin, R, Swift, Dart, Gleam.
 - Whole-project phase: cargo clippy and the other configured workspace tools.
 - Git hooks: `poly hooks install` wires lint, format and Conventional-Commit message checks.
+- Opt-in engines: `[engines.<id>] enabled = true` (typos, harper, skif, tsrs and others).
 - Everything else (pyrefly, golangci-lint, checkstyle, credo, clang-format, actionlint) is a repo-configured
   `[tools.<name>]` or `[hooks.pre-commit.commands.<name>]` entry: read the repo's `poly.toml`.
 
 ## Commands
 
 - Lint: `poly lint <paths>`
-- Check formatting (dry run): `poly fmt <paths>` from poly 0.33, which rejects `--check` with exit 2; on 0.32 and
-  older a bare `poly fmt` rewrites files, so use `poly fmt --check <paths>` there. The repo's `mise.toml` pins the version.
+- Check formatting (dry run): `poly fmt <paths>`; `--check` is rejected with exit 2.
 - Apply formatting: `poly fmt --fix <paths>`
 - Apply lint autofixes: `poly lint --fix <paths>`
+- Pin hook sources, remote `extends` bases and downloaded tools: `poly lock`, which writes `poly.lock` (it
+  replaced `poly hooks update`, `poly config update`, `poly-hooks.lock` and `poly-config.lock`).
 
-A bare `poly lint` or `poly lint .` also runs the whole-project phase: cargo clippy and the other configured
-workspace tools, which compile. Naming paths runs only the per-file tier; `--no-workspace` (or `[lint]
-workspace = false`) skips the phase on a whole-repo run, and `--workspace` forces it for named paths.
+The repo's `mise.toml` pins the poly version. A bare `poly lint` or `poly lint .` also runs the whole-project
+phase: cargo clippy and the other configured workspace tools, which compile. Naming paths runs only the per-file
+tier; `--workspace never` (or `[workspace] run = "never"`) skips the phase on a whole-repo run, and
+`--workspace always` forces it for named paths.
+
+## Trust
+
+Config keys that run programs (`[tools]` overrides, `[hooks]` whole-project jobs, `[cache] dir` and others) are
+ignored, and `poly hooks run` and the git hooks refuse to run, until the repository is trusted. Run `poly trust`
+once per clone (`poly hooks install` also records it) and again after a change to those keys; `poly trust --show`
+lists them. CI sets `POLY_TRUST=1`.
 
 ## Configuration
 
 Per-repo `poly.toml` defines linting and formatting rules:
 
 - `[discovery]` — exclude globs
-- `[lint.<lang>.<tool>]` — select/ignore rules, settings like `pydocstyle_convention`, `line_length`
-- `[per-file-ignores]` — file-specific exemptions
-- `[fmt.<lang>.<tool>]` — formatter options
+- `[engines.<id>]` — select/ignore rules and settings like `line_length`, narrowed by `[engines.<id>.lint]`,
+  `[engines.<id>.format]` and `[engines.<id>.lang.<language>]`; `[engines.<id>.rules.<code>] level` remaps one rule
+- `[per_file_ignores]` — file-specific exemptions
 - `[hooks.builtin]` — git hook configuration
 - `[tools.<name>]` — an external tool poly runs
 - `[hooks.pre-commit.commands.<name>]` — an extra pre-commit command
@@ -52,7 +62,7 @@ The cache lives outside the repo (`poly cache stats`).
 
 ## Uncomment pass
 
-`[lint.uncomment]` in `poly.toml` reports removable comments; `poly lint --fix` deletes them.
+`[engines.uncomment]` in `poly.toml` reports removable comments; `poly lint --fix` deletes them.
 
 - `code_only = true` (the default) flags only comment blocks that read as commented-out code; prose
   comments are kept with or without a marker. `code_only = false` flags every comment that is not preserved.
@@ -62,7 +72,7 @@ The cache lives outside the repo (`poly cache stats`).
 - Doc comments are kept unless `remove_docs = true`; `remove_todos` / `remove_fixme = true` drop those markers.
 - Test a change to these settings against staged or committed content: an uncommitted scratch file
   reports clean whatever it contains.
-- Generated sources are exempted with `[per-file-ignores]` set to `["comment", "doc-comment"]` (the codes the
+- Generated sources are exempted with `[per_file_ignores]` set to `["comment", "doc-comment"]` (the codes the
   uncomment pass emits), not by adding markers.
 
 ## Severity
@@ -79,6 +89,7 @@ Run linting and formatting validation in CI via the shared reusable workflow:
 uses: xberg-io/actions/.github/workflows/reusable-validate.yml@v1
 ```
 
-This workflow pins poly through its `poly-version` input (default `v0.32.1`) and runs `poly fmt --check .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
+This workflow pins poly through its `poly-version` input (default `v0.36.0`), sets `POLY_TRUST=1` and runs
+`poly fmt .` then `poly lint .` with optional inputs `setup-rust` and `setup-python`.
 
 After making changes, run the formatting dry run and `poly lint` on the changed paths.

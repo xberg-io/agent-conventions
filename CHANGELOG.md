@@ -20,6 +20,10 @@ All notable changes to this project are documented in this file. The format is b
 - `areas.py` renders `domains.toml`'s `names` and compound terms as each area's `exclude`, and the acceptances that
   hold in a repository and harness as `[[accept]]`; `--harness` selects the harness. An `[[accept]]` gains
   `harnesses`, and paddle-to-onnx's stale `OCR` acceptance is removed.
+- The poly guidance follows poly 0.36 and the v2 config: the commit-procedure rule and release-workflow skill name
+  only `poly fmt` as the formatting dry run, the poly-lint-format skill covers `poly lock` and `poly.lock`,
+  `poly trust`, `--workspace never` and the `[engines.<id>]` and `[per_file_ignores]` tables, and the
+  comment-discipline and PHP rules name `[engines.uncomment]` and `[engines.mago]`.
 
 ### Removed
 
@@ -28,6 +32,9 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Fixed
 
+- The AI runtime probe (`hook_pins.py --runtime`, `hook_preflight.py`) refuses a hook source that `poly.lock` locked
+  for another revision (`ref`, recorded by poly 0.36), as poly does, and reports a malformed hook sources table
+  as an error instead of a traceback.
 - The commit-procedure and agent-workflow rules and the poly-lint-format and release-workflow skills no longer
   prescribe `poly fmt --check`, which poly 0.33 rejects with exit 2 now that the dry run is the default. They name the
   dry run on each side of that change, since a bare `poly fmt` on 0.32 and older rewrites files.
