@@ -112,6 +112,10 @@ domains = []
 [repos.homebrew-tap]
 domains = []
 
+# The marketplace only pins each product plugin to a release tag; it owns no product knowledge.
+[repos.plugins]
+domains = []
+
 [repos.python-wheels]
 domains = []
 

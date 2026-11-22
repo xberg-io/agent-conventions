@@ -8,6 +8,7 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Changed
 
+- `tools/context-evals/domains.toml` lists the `plugins` repository (the pinned plugin marketplace) with no owned domains.
 - `actions/context-exposure` gates with ai-rulez's native exposure checks instead of `exposure.py`: it renders the
   repository's area map from `tools/context-evals/domains.toml` and runs `ai-rulez exposure` for Claude Code and
   Codex and `ai-rulez exposure leakage`. Budgets come from the consumer's `[exposure] start_budget` (required) and
