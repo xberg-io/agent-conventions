@@ -200,6 +200,8 @@ def binary_fingerprint(name: str, environ: Mapping[str, str]) -> str:
 
 
 FROZEN_RECORD = "frozen-binaries.json"
+GENERATOR_HOME = "generator-home"
+GENERATOR_HOME_LINKS = (".gitconfig", ".config/git", ".ssh")
 
 
 def freeze_binary(name: str, environ: Mapping[str, str], bin_dir: Path) -> dict | None:
@@ -239,6 +241,24 @@ def frozen_environ(run_dir: Path, environ: Mapping[str, str]) -> dict[str, str]:
         return dict(environ)
     bin_dir = json.loads(record.read_text())["bin_dir"]
     return {**environ, "PATH": os.pathsep.join([bin_dir, environ.get("PATH", "/usr/bin:/bin")])}
+
+
+def generator_home(out: Path, environ: Mapping[str, str]) -> Path:
+    """A HOME private to the run, so ai-rulez's include cache ($HOME/.cache/ai-rulez) is not shared machine-wide.
+
+    ai-rulez honours only HOME for its cache. Git configuration and SSH keys are linked, not copied, so include
+    fetches authenticate as before and no secret is written into the run directory.
+    """
+    home = out / GENERATOR_HOME
+    (home / ".cache").mkdir(parents=True, exist_ok=True)
+    real = environ.get("HOME")
+    if real:
+        for rel in GENERATOR_HOME_LINKS:
+            source, link = Path(real) / rel, home / rel
+            if source.exists() and not link.is_symlink():
+                link.parent.mkdir(parents=True, exist_ok=True)
+                link.symlink_to(source)
+    return home
 
 
 def session_name(case_id: str, repeat: int) -> str:
@@ -322,6 +342,7 @@ class Runner:
         self.environ = environ
         self.bin_dir = (bin_dir or self.out / "bin").resolve()
         self.context_lock = threading.Lock()
+        self.generate_lock = threading.Lock()
 
     def freeze(self) -> None:
         """Pin the agent (and generator) binaries for the run and put the copies first on every child's PATH."""
@@ -368,8 +389,10 @@ class Runner:
     def generate(self, checkout: Path) -> None:
         if not self.config.generate:
             return
-        env = {"PATH": self.environ.get("PATH", "/usr/bin:/bin"), "HOME": self.environ.get("HOME", str(checkout))}
-        done = self.execute(["ai-rulez", "generate", "--no-local"], checkout, env, self.config.timeout)
+        home = generator_home(self.out, self.environ)
+        env = {"PATH": self.environ.get("PATH", "/usr/bin:/bin"), "HOME": str(home)}
+        with self.generate_lock:
+            done = self.execute(["ai-rulez", "generate", "--no-local"], checkout, env, self.config.timeout)
         if done.returncode != 0 or done.timed_out:
             raise RunnerError(f"ai-rulez generate failed: {done.stderr[-STDERR_TAIL:]}")
 

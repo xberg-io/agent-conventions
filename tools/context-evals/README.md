@@ -79,7 +79,9 @@ loaded, and estimates its start tokens when a transcript has no usage, with `sta
   At start the run copies the `claude` and `ai-rulez` executables it resolves on `PATH` into `--bin-dir` (default
   `RUN_DIR/bin`; share one directory across a round's runs), read-only, records them in `frozen-binaries.json` and
   puts that directory first on every child's `PATH`, judging included; an existing copy is reused, so an
-  auto-updating install cannot change the CLI mid-round. Script launchers are refused.
+  auto-updating install cannot change the CLI mid-round. Script launchers are refused. `ai-rulez generate` runs with
+  `HOME=RUN_DIR/generator-home` (its git and SSH configuration linked from the real home), so its include cache is
+  private to the run.
 Paid execution requires an explicit policy. `--hard-budget --budget-ledger PATH --budget-usd 55` routes
 agents and judges through the reserved egress gateway, caps output at 4,096 tokens and confines CLI network and
 credential-file access. See [the price bound, offline proofs and limitations](hard-budget.md) before use.

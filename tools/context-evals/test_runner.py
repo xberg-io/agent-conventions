@@ -355,6 +355,23 @@ class FrozenRoundTest(unittest.TestCase):
         self.assertEqual(environ["PATH"], f"{(self.out / 'bin').resolve()}:/usr/bin:/bin")
         self.assertEqual(runner.frozen_environ(Path(self.tmp.name) / "no-run", ENV), ENV)
 
+    def test_generation_uses_a_private_cache_home(self) -> None:
+        real = Path(self.tmp.name) / "real-home"
+        (real / ".cache" / "ai-rulez").mkdir(parents=True)
+        (real / ".cache" / "ai-rulez" / "stale-include").write_text("stale")
+        (real / ".ssh").mkdir()
+        (real / ".gitconfig").write_text("[user]\n")
+        fake = FakeAgent()
+        self.make(fake, environ={**ENV, "HOME": str(real)}).run(self.commit, self.cases[:1])
+        generate = [c for c in fake.calls if c["argv"][0] == "ai-rulez"]
+        home = (self.out / runner.GENERATOR_HOME).resolve()
+        self.assertEqual({c["env"]["HOME"] for c in generate}, {str(home)})
+        self.assertEqual(set(generate[0]["env"]), {"PATH", "HOME"})
+        self.assertEqual((home / ".gitconfig").readlink(), real / ".gitconfig")
+        self.assertEqual((home / ".ssh").readlink(), real / ".ssh")
+        self.assertFalse((home / ".config" / "git").exists())
+        self.assertEqual(list((home / ".cache").iterdir()), [])
+
 
 if __name__ == "__main__":
     unittest.main()
