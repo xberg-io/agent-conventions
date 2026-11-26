@@ -127,8 +127,8 @@ class HarnessTest(unittest.TestCase):
                 "model": "m-1",
                 "split": "tune",
                 "repeats": 2,
-                "judge_prompt_version": "judge-prompt-2",
-                "rubric_version": "rubric-2",
+                "judge_prompt_version": "judge-prompt-3",
+                "rubric_version": "rubric-3",
             },
         )
         self.assertEqual(meta["commit"], git(self.repo, "rev-parse", "HEAD"))
@@ -361,7 +361,7 @@ class HarnessTest(unittest.TestCase):
         code, _, err = self.main("compare", str(base), str(arm))
         self.assertEqual(code, 2)
         self.assertEqual(
-            err, "error: refusing to compare runs graded differently: rubric_version: 'rubric-2' != 'rubric-0'\n"
+            err, "error: refusing to compare runs graded differently: rubric_version: 'rubric-3' != 'rubric-0'\n"
         )
 
 

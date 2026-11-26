@@ -92,6 +92,14 @@ class PromptTest(unittest.TestCase):
         procedure = judge.primary_prompt(CORPUS["xberg-dpi-ambiguous"], "a", "")
         self.assertIn("grade the procedure, not the data", procedure)
 
+    def test_both_prompts_make_a_substituted_name_a_contradiction(self) -> None:
+        primary = judge.primary_prompt(DPI, "a", "")
+        independent = judge.independent_prompt(DPI, "a", "")
+        self.assertIn("A different name is a contradiction, not a paraphrase", primary)
+        self.assertIn("a path is right only when every segment the answer gives matches the reference", primary)
+        self.assertIn("the response is wrong on that point", independent)
+        self.assertIn("A path must match the ground truth segment by segment.", independent)
+
     def test_summary_lists_skills_files_and_turns(self) -> None:
         self.assertEqual(
             judge.summary(record("xberg-ocr-dpi", 0, "a")),
@@ -251,7 +259,7 @@ class JudgeSessionsTest(unittest.TestCase):
         self.assertEqual(rows[0]["verdicts"], {"names-dpi-default": True, "names-engine": True})
         self.assertEqual(
             {k: rows[0][k] for k in ("judge_model", "judge_prompt_version", "rubric_version")},
-            {"judge_model": "judge-m", "judge_prompt_version": "judge-prompt-2", "rubric_version": "rubric-2"},
+            {"judge_model": "judge-m", "judge_prompt_version": "judge-prompt-3", "rubric_version": "rubric-3"},
         )
         judge.apply(sessions, rows, {"xberg-ocr-dpi/names-engine", "xberg-ocr-module/names-file"})
         self.assertEqual([s.criteria for s in sessions], [
@@ -264,7 +272,7 @@ class JudgeSessionsTest(unittest.TestCase):
 
 class ClaudeGraderTest(unittest.TestCase):
     def test_both_prompt_cache_keys_include_the_no_tools_protocol(self) -> None:
-        for style, version in (("primary", "judge-prompt-2"), ("independent", "judge-prompt-independent-2")):
+        for style, version in (("primary", "judge-prompt-3"), ("independent", "judge-prompt-independent-3")):
             with self.subTest(style=style):
                 prompt = judge.PROMPTS[style](DPI, "answer", "")
                 self.assertIn(version, prompt)

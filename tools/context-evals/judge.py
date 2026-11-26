@@ -36,10 +36,10 @@ import transcript
 from cases import Case
 from records import SessionRecord
 
-JUDGE_PROMPT_VERSION = "judge-prompt-2"
-INDEPENDENT_PROMPT_VERSION = "judge-prompt-independent-2"
+JUDGE_PROMPT_VERSION = "judge-prompt-3"
+INDEPENDENT_PROMPT_VERSION = "judge-prompt-independent-3"
 TOOL_PROFILE_VERSION = "claude-judge-no-tools-1"
-RUBRIC_VERSION = "rubric-2"
+RUBRIC_VERSION = "rubric-3"
 MUTATION_VERSION = "mutation-2"
 KAPPA_MIN = 0.6
 MIN_ITEMS = 4
@@ -57,7 +57,13 @@ Verdicts = dict[str, bool | None]
 
 RUBRIC = """Grade each criterion independently as true (the answer clearly satisfies it), false (it does not, or \
 contradicts the reference) or null (you cannot decide from the material given). Judge only the final answer; the \
-reference is ground truth. Do not reward length, hedging or tool advice in place of a result."""
+reference is ground truth. Do not reward length, hedging or tool advice in place of a result.
+Before deciding, compare every concrete name the answer gives (file and directory paths, crates, repositories, \
+tools, commands, configuration files and keys, products) with the name the reference gives for the same thing. A \
+different name is a contradiction, not a paraphrase, even when the rest of the sentence matches: a path is right \
+only when every segment the answer gives matches the reference, and a product, tool or repository named in place of \
+the reference's is wrong. A criterion whose subject is a contradicted statement is false, even if other wording in \
+the answer would satisfy it."""
 
 
 def _criteria_block(case: Case) -> str:
@@ -111,6 +117,10 @@ def independent_prompt(case: Case, answer: str, summary: str) -> str:
         "Check a response for factual compliance. For every statement below decide whether the response satisfies it.",
         "Use the ground truth to decide; a response that only says how to find the answer does not satisfy a",
         "statement about the answer. Say null only when the statement cannot be decided.",
+        "Check each name in the response (paths, crates, repositories, tools, commands, config files and keys,",
+        "products) against the ground truth. Where the response names something other than what the ground truth",
+        "names for the same role, the response is wrong on that point: every statement about that point is",
+        "unsatisfied, however close the surrounding wording. A path must match the ground truth segment by segment.",
         _sandbox_note(case),
         "",
         "Statements:",
