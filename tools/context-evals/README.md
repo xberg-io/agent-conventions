@@ -76,6 +76,10 @@ loaded, and estimates its start tokens when a transcript has no usage, with `sta
   sessions. `--jobs N` gives each worker its own worktree; `--resume` reuses only saved sessions with identical
   run parameters. Immutable context/configuration fingerprints and agent/generator binary hashes must match
   before reuse; existing snapshots are never overwritten. Legacy runs without identity are refused. Writes `run.json`, `transcripts/` and `sessions.jsonl` (`records.py`).
+  At start the run copies the `claude` and `ai-rulez` executables it resolves on `PATH` into `--bin-dir` (default
+  `RUN_DIR/bin`; share one directory across a round's runs), read-only, records them in `frozen-binaries.json` and
+  puts that directory first on every child's `PATH`, judging included; an existing copy is reused, so an
+  auto-updating install cannot change the CLI mid-round. Script launchers are refused.
 Paid execution requires an explicit policy. `--hard-budget --budget-ledger PATH --budget-usd 55` routes
 agents and judges through the reserved egress gateway, caps output at 4,096 tokens and confines CLI network and
 credential-file access. See [the price bound, offline proofs and limitations](hard-budget.md) before use.
@@ -83,7 +87,9 @@ credential-file access. See [the price bound, offline proofs and limitations](ha
 Never mix policies or reuse the historical invalid attempt's ledger; `study.toml` records each round's choices.
 
 - `harness.py judge RUN_DIR --model M` grades criteria; `judge-validate RUN_DIR --model M --second-model M2` computes
-  Cohen's kappa per criterion and the mutation-test TPR/TNR. Judges use `--tools ""` and must advertise an empty
+  Cohen's kappa per criterion and the mutation-test TPR/TNR. Swap-domain and wrong-path mutants change only a term or
+  path a criterion names, and the validation sample adds a case's sessions until each criterion has the four graded
+  answers kappa needs. Judges use `--tools ""` and must advertise an empty
   tool set. Only validated criteria count. Harness 5 rejects older tool and execution profiles for resume and paid judging;
   comparisons, verdicts and validity reports retain protocol provenance. Both judge prompts include their
   no-tools protocol versions so prompt-digest caches cannot reuse replies from the earlier tool-enabled profile.

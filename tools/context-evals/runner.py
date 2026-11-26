@@ -199,6 +199,48 @@ def binary_fingerprint(name: str, environ: Mapping[str, str]) -> str:
     return hashlib.sha256(Path(binary).read_bytes()).hexdigest() if binary else "unavailable"
 
 
+FROZEN_RECORD = "frozen-binaries.json"
+
+
+def freeze_binary(name: str, environ: Mapping[str, str], bin_dir: Path) -> dict | None:
+    """Copy the executable `name` resolves to on PATH into `bin_dir`, once; later calls reuse that copy.
+
+    A read-only copy outlives an in-place update of the installed CLI (the interactive Claude Code install
+    updates itself), so every session of a round runs the bytes resolved at its start. None when `name` is not
+    on PATH: nothing then runs that could be mixed.
+    """
+    target = bin_dir / name
+    if not target.is_file():
+        found = shutil.which(name, path=environ.get("PATH"))
+        if found is None:
+            return None
+        source = Path(found).resolve()
+        data = source.read_bytes()
+        if data.startswith(b"#!"):
+            raise RunnerError(f"{name} resolves to the script launcher {source}; freezing needs the executable itself")
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        partial = bin_dir / f".{name}.partial-{os.getpid()}-{threading.get_ident()}"
+        partial.write_bytes(data)
+        partial.chmod(0o555)
+        partial.replace(target)
+        (bin_dir / f"{name}.source").write_text(f"{source}\n")
+    source_file = bin_dir / f"{name}.source"
+    return {
+        "path": str(target),
+        "sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
+        "source": source_file.read_text().strip() if source_file.is_file() else "",
+    }
+
+
+def frozen_environ(run_dir: Path, environ: Mapping[str, str]) -> dict[str, str]:
+    """`environ` with the run's frozen binaries first on PATH, so later stages (judging) run the same CLI."""
+    record = run_dir / FROZEN_RECORD
+    if not record.is_file():
+        return dict(environ)
+    bin_dir = json.loads(record.read_text())["bin_dir"]
+    return {**environ, "PATH": os.pathsep.join([bin_dir, environ.get("PATH", "/usr/bin:/bin")])}
+
+
 def session_name(case_id: str, repeat: int) -> str:
     return f"{case_id}.r{repeat}"
 
@@ -269,6 +311,7 @@ class Runner:
         execute: Execute = subprocess_execute,
         environ: Mapping[str, str] = os.environ,
         inherited: Mapping[tuple[str, int], SessionMeta] | None = None,
+        bin_dir: Path | None = None,
     ) -> None:
         self.inherited = inherited or {}
         self.repo = repo.resolve()
@@ -277,7 +320,21 @@ class Runner:
         self.adapter = adapter or ClaudeAdapter()
         self.execute = execute
         self.environ = environ
+        self.bin_dir = (bin_dir or self.out / "bin").resolve()
         self.context_lock = threading.Lock()
+
+    def freeze(self) -> None:
+        """Pin the agent (and generator) binaries for the run and put the copies first on every child's PATH."""
+        names = [self.adapter.name, *(["ai-rulez"] if self.config.generate else [])]
+        frozen = {name: info for name in names if (info := freeze_binary(name, self.environ, self.bin_dir))}
+        if not frozen:
+            return
+        self.environ = {
+            **self.environ,
+            "PATH": os.pathsep.join([str(self.bin_dir), self.environ.get("PATH", "/usr/bin:/bin")]),
+        }
+        record = {"bin_dir": str(self.bin_dir), "binaries": frozen}
+        (self.out / FROZEN_RECORD).write_text(json.dumps(record, indent=2) + "\n")
 
     def prepare_context(self, checkout: Path) -> None:
         with self.context_lock, tempfile.TemporaryDirectory(prefix="ctx-context-check-") as tmp:
@@ -384,6 +441,7 @@ class Runner:
         if shutil.which("git") is None:
             raise RunnerError("git is not on PATH")
         (self.out / "transcripts").mkdir(parents=True, exist_ok=True)
+        self.freeze()
         jobs = min(self.config.jobs, len(cases))
         if jobs <= 1:
             return self.run_worker(commit, cases)

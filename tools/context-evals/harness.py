@@ -210,7 +210,15 @@ def cmd_run(
     write_json(out / "cases.json", [asdict(c) for c in selected])
     inherited = continuation_plan.inherited(name) if continuation_plan else None
     guarded = continuation_plan.wrap(execute, out, name) if continuation_plan else execute
-    runner.Runner(args.repo, out, config, execute=guarded, environ=environ, inherited=inherited).run(commit, selected)
+    runner.Runner(
+        args.repo,
+        out,
+        config,
+        execute=guarded,
+        environ=environ,
+        inherited=inherited,
+        bin_dir=getattr(args, "bin_dir", None),
+    ).run(commit, selected)
     meta["finished_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     write_json(out / "run.json", meta)
     return score_run(out, load_domains(args.domains))
@@ -867,6 +875,11 @@ def parser() -> argparse.ArgumentParser:
     r.add_argument("--timeout", type=float, default=600.0)
     r.add_argument("--skip-generate", action="store_true", help="the ref has its generated outputs committed")
     r.add_argument("--out", type=Path, required=True)
+    r.add_argument(
+        "--bin-dir",
+        type=Path,
+        help="where the round's agent and generator binaries are frozen (default OUT/bin); share it across a round",
+    )
 
     continuation_parsers(sub)
 
@@ -929,6 +942,8 @@ def main(
                 execute,
                 allow_soft_limits=args.allow_soft_budget,
             )
+        if args.command in ("judge", "judge-validate"):
+            environ = runner.frozen_environ(args.run_dir, environ)
         factory = grader_factory or (lambda model: judge.ClaudeGrader(model, environ=environ, execute=execute))
         return dispatch(args, execute, environ, factory)
     except (HarnessError, runner.RunnerError, cases_mod.CaseError, continuation.ContinuationError) as exc:

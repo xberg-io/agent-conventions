@@ -587,6 +587,18 @@ print(json.dumps(rows))
             with self.assertRaises(gateway.GatewayError):
                 gateway_transport.file_profile(workspace, home)
 
+    def test_a_frozen_cli_under_the_original_home_stays_readable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            original, home = base / "original", base / "session"
+            workspace, frozen = original / "worktree", original / "runs" / "xberg" / "bin"
+            for path in (home, workspace, frozen):
+                path.mkdir(parents=True)
+            profile = gateway_transport.file_profile(workspace, home, original, frozen / "claude")
+            self.assertIn(f"(allow file-read* (subpath {json.dumps(str(frozen))}))", profile)
+            with self.assertRaises(gateway.GatewayError):
+                gateway_transport.file_profile(workspace, home, original, original / "claude")
+
 
 @unittest.skipUnless(sys.platform == "darwin", "macOS process boundary")
 class ProcessBoundaryTest(unittest.TestCase):

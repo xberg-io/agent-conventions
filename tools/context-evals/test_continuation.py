@@ -586,6 +586,7 @@ class CollectionFixture(ManifestFixture):
             patch("runner.worktree", side_effect=checkout),
             patch("runner.resolve_ref", side_effect=lambda repo, _: self.preflight_data["refs"][repo.name]),
             patch("runner.binary_fingerprint", side_effect=lambda name, _: "b" * 64 if name == "claude" else "c" * 64),
+            patch("runner.freeze_binary", return_value=None),
             patch("harness.cases_mod.load_corpus", return_value=self.corpus),
             patch("continuation.workspace_root", return_value=self.root),
             patch("gateway_transport.HardExecute", side_effect=lambda *_: FakeCollector(self.ledger_path, self.calls)),

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -275,6 +276,84 @@ class RunnerTest(unittest.TestCase):
     def test_unknown_ref_is_an_error(self) -> None:
         with self.assertRaises(runner.RunnerError):
             runner.resolve_ref(self.repo, "no-such-ref")
+
+
+class FrozenRoundTest(unittest.TestCase):
+    """The binaries and include cache a round starts with are the ones every one of its sessions uses."""
+
+    setUp = RunnerTest.setUp
+    tearDown = RunnerTest.tearDown
+    make = RunnerTest.make
+
+    def install(self, name: str, data: bytes) -> Path:
+        installed = Path(self.tmp.name) / "installed"
+        installed.mkdir(exist_ok=True)
+        binary = installed / name
+        binary.write_bytes(data)
+        binary.chmod(0o755)
+        return binary
+
+    def installed_env(self) -> dict[str, str]:
+        return {**ENV, "PATH": f"{Path(self.tmp.name) / 'installed'}:/usr/bin:/bin"}
+
+    def test_an_agent_update_mid_run_does_not_change_the_binary_sessions_run(self) -> None:
+        installed = self.install("claude", b"\x7fELF claude 2.1.318")
+        self.install("ai-rulez", b"\x7fELF ai-rulez 5.10.0")
+        fake = FakeAgent()
+
+        def updating(argv: list[str], cwd: Path, env: Mapping[str, str], timeout: float) -> runner.Completed:
+            if argv[0] == "claude":
+                installed.write_bytes(b"\x7fELF claude 2.1.319")
+            return fake(argv, cwd, env, timeout)
+
+        metas = self.make(updating, environ=self.installed_env()).run(self.commit, self.cases)
+        frozen = self.out / "bin"
+        self.assertEqual([m.error for m in metas], ["", "", "", ""])
+        self.assertEqual((frozen / "claude").read_bytes(), b"\x7fELF claude 2.1.318")
+        self.assertEqual({c["env"]["PATH"].split(":")[0] for c in fake.calls}, {str(frozen.resolve())})
+        identity = json.loads((self.out / "context-identity.json").read_text())
+        self.assertEqual(identity["agent_sha256"], hashlib.sha256(b"\x7fELF claude 2.1.318").hexdigest())
+        record = json.loads((self.out / runner.FROZEN_RECORD).read_text())
+        self.assertEqual(sorted(record["binaries"]), ["ai-rulez", "claude"])
+        self.assertEqual(record["binaries"]["claude"]["source"], str(installed.resolve()))
+
+    def test_resume_after_an_agent_update_reuses_the_frozen_copy(self) -> None:
+        installed = self.install("claude", b"\x7fELF claude 2.1.318")
+        self.make(FakeAgent(), generate=False, environ=self.installed_env()).run(self.commit, self.cases[:1])
+        installed.write_bytes(b"\x7fELF claude 2.1.319")
+        again = FakeAgent()
+        resumed = self.make(again, generate=False, environ=self.installed_env())
+        resumed.config.resume = True
+        (self.out / "transcripts" / "xberg-ocr-dpi.r1.jsonl").unlink()
+        metas = resumed.run(self.commit, self.cases[:1])
+        self.assertEqual([m.error for m in metas], ["", ""])
+        self.assertEqual(len([c for c in again.calls if c["argv"][0] == "claude"]), 1)
+        self.assertEqual((self.out / "bin" / "claude").read_bytes(), b"\x7fELF claude 2.1.318")
+
+    def test_a_changed_frozen_copy_is_still_refused(self) -> None:
+        self.install("claude", b"\x7fELF claude 2.1.318")
+        self.make(FakeAgent(), generate=False, environ=self.installed_env()).run(self.commit, self.cases[:1])
+        frozen = self.out / "bin" / "claude"
+        frozen.chmod(0o755)
+        frozen.write_bytes(b"\x7fELF tampered")
+        resumed = self.make(FakeAgent(), generate=False, environ=self.installed_env())
+        resumed.config.resume = True
+        with self.assertRaisesRegex(runner.RunnerError, "identity"):
+            resumed.run(self.commit, self.cases[:1])
+
+    def test_a_script_launcher_cannot_be_frozen(self) -> None:
+        self.install("claude", b"#!/bin/sh\nexec node cli.js\n")
+        fake = FakeAgent()
+        with self.assertRaisesRegex(runner.RunnerError, "script launcher"):
+            self.make(fake, generate=False, environ=self.installed_env()).run(self.commit, self.cases)
+        self.assertEqual(fake.calls, [])
+
+    def test_judging_runs_the_frozen_copy(self) -> None:
+        self.install("claude", b"\x7fELF claude 2.1.318")
+        self.make(FakeAgent(), generate=False, environ=self.installed_env()).run(self.commit, self.cases[:1])
+        environ = runner.frozen_environ(self.out, ENV)
+        self.assertEqual(environ["PATH"], f"{(self.out / 'bin').resolve()}:/usr/bin:/bin")
+        self.assertEqual(runner.frozen_environ(Path(self.tmp.name) / "no-run", ENV), ENV)
 
 
 if __name__ == "__main__":

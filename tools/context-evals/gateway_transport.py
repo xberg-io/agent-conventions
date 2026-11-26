@@ -298,6 +298,7 @@ def sandbox_command(
     workspace: Path | None = None,
     home: Path | str | None = None,
     original_home: Path | None = None,
+    executable: Path | None = None,
 ) -> list[str]:
     import sys
 
@@ -312,7 +313,7 @@ def sandbox_command(
         f'(allow network-outbound (remote tcp4 "localhost:{port}"))'
     )
     if workspace is not None:
-        profile += file_profile(workspace, home, original_home)
+        profile += file_profile(workspace, home, original_home, executable)
     return ["/usr/bin/sandbox-exec", "-p", profile, *command]
 
 
@@ -518,7 +519,9 @@ def validate_writable_home(home: Path, workspace: Path, original: Path) -> None:
             raise gateway.GatewayError("writable home contains a preexisting hardlink")
 
 
-def file_profile(workspace: Path, home: Path | str, original_home: Path | None = None) -> str:
+def file_profile(
+    workspace: Path, home: Path | str, original_home: Path | None = None, executable: Path | None = None
+) -> str:
     import pathlib
     import shutil
     import sys
@@ -536,6 +539,9 @@ def file_profile(workspace: Path, home: Path | str, original_home: Path | None =
     runtime = {pathlib.Path(sys.base_prefix)}
     if binary := shutil.which("claude"):
         runtime.add(pathlib.Path(binary).resolve().parent)
+    if executable is not None:
+        # ~keep A round's frozen CLI copy lives in the run directory, which may sit under the original home.
+        runtime.add(pathlib.Path(executable).resolve().parent)
     allowed = {pathlib.Path(workspace), pathlib.Path(home), *runtime}
     for path in allowed:
         if path.resolve() == original or path.resolve() in original.parents:
@@ -597,7 +603,11 @@ def isolated_process(
 ) -> runner.Completed:
     workspace = next((path for path in (cwd, *cwd.parents) if (path / ".git").exists()), cwd)
     command = sandbox_command(
-        int(environment["ANTHROPIC_BASE_URL"].rsplit(":", 1)[1]), argv, workspace=workspace, home=environment["HOME"]
+        int(environment["ANTHROPIC_BASE_URL"].rsplit(":", 1)[1]),
+        argv,
+        workspace=workspace,
+        home=environment["HOME"],
+        executable=Path(argv[0]) if argv else None,
     )
     process = subprocess.Popen(
         command,
