@@ -7,6 +7,7 @@ import re
 import sys
 import unittest
 from collections.abc import Mapping
+from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -120,6 +121,41 @@ class MutationTest(unittest.TestCase):
             },
         )
 
+    def test_wrong_path_replaces_only_a_path_a_criterion_names(self) -> None:
+        checks = [cases.Criterion("names-file", "The answer names ocr/mod.rs as where the default lives.")]
+        case = replace(MODULE, criteria=tuple(checks))
+        answer = "FFI/native goes through crates/xberg/src/lib.rs; the default is in crates/xberg/src/ocr/mod.rs."
+        self.assertEqual(
+            judge.wrong_path(answer, case),
+            "FFI/native goes through crates/xberg/src/lib.rs; the default is in src/nonexistent/wrong_module.rs.",
+        )
+        self.assertIsNone(judge.wrong_path("Pages/slides go through FFI/native.", case))
+        self.assertIsNone(judge.wrong_path("It lives in crates/xberg/src/other.rs.", case))
+
+    def test_a_path_named_only_by_file_name_must_leave_no_bare_mention(self) -> None:
+        case = replace(MODULE, criteria=(cases.Criterion("generated", "The answer says lib.rs is generated."),))
+        self.assertEqual(
+            judge.wrong_path("Do not edit crates/xberg-py/src/lib.rs by hand.", case),
+            "Do not edit src/nonexistent/wrong_module.rs by hand.",
+        )
+        self.assertIsNone(judge.wrong_path("Its own lib.rs, such as crates/xberg-py/src/lib.rs, is generated.", case))
+
+    def test_lowercase_segments_and_trailing_slashes_are_paths(self) -> None:
+        case = replace(MODULE, criteria=(cases.Criterion("dir", "The answer names tools/e2e-generator."),))
+        self.assertEqual(
+            judge.wrong_path("There is no tools/e2e-generator here.", case),
+            "There is no src/nonexistent/wrong_module.rs here.",
+        )
+
+    def test_swap_domain_replaces_only_terms_a_criterion_names(self) -> None:
+        domains = testkit.domains()
+        engine_only = replace(DPI, criteria=(cases.Criterion("names-engine", "The answer names Tesseract."),))
+        self.assertIsNone(judge.swap_domain(judge.reference_answer(DPI), engine_only, domains))
+        self.assertEqual(
+            judge.swap_domain(judge.reference_answer(DPI), DPI, domains),
+            "The default crawlberg DPI is 300. crawlberg uses Tesseract.",
+        )
+
     def test_mutations_that_do_not_apply_are_skipped(self) -> None:
         self.assertIsNone(judge.drop_fact("Nothing relevant here.", ("The DPI is 300.",)))
         self.assertIsNone(judge.drop_fact("x", ()))
@@ -175,6 +211,28 @@ class ValidateTest(unittest.TestCase):
         )
         self.assertIn("Judge valid: no.", judge.validity_markdown(report))
         self.assertIn("| tool-deflection | 0.00 | 2 |", judge.validity_markdown(report))
+
+    def test_validation_tops_up_sessions_until_every_criterion_has_enough_items(self) -> None:
+        sessions = [*self.sessions(), record("xberg-ocr-module", 1, "b"), record("xberg-ocr-module", 2, "c")]
+        primary, secondary = RuleGrader(RULES), RuleGrader(RULES)
+        plain = replace(MODULE, reference=cases.Reference())
+        corpus = {**CORPUS, MODULE.id: plain}
+        report = judge.validate(sessions, corpus, primary, secondary, testkit.domains(), per_domain=0)
+        # The DPI case's reference and its 3 mutants already reach MIN_ITEMS; the module case has no reference
+        # answer, so all three of its sessions are graded (fewer than MIN_ITEMS exist).
+        self.assertEqual(report["criteria"]["xberg-ocr-dpi/names-engine"]["items"], 4)
+        self.assertEqual(report["criteria"]["xberg-ocr-module/names-file"]["items"], 3)
+        self.assertEqual(report["validation_sessions"], 3)
+        self.assertEqual(report["mutation_version"], judge.MUTATION_VERSION)
+
+    def test_validation_sample_adds_first_repeats_only_where_items_are_short(self) -> None:
+        sessions = [record("xberg-ocr-module", k, "a") for k in range(3)]
+        short = replace(MODULE, criteria=(cases.Criterion("other", "The answer is short."),))
+        corpus = {MODULE.id: short}
+        self.assertEqual(judge.planned_items(short, testkit.domains()), 3)
+        sample = judge.validation_sample(sessions, corpus, testkit.domains(), per_domain=0)
+        self.assertEqual([(r.case_id, r.repeat) for r in sample], [("xberg-ocr-module", 0)])
+        self.assertEqual(judge.validation_sample(sessions, corpus, testkit.domains(), per_domain=1), sessions[:1])
 
     def test_stratified_sample_caps_each_domain_and_prefers_first_repeats(self) -> None:
         records = [record(f"c{i}", k, "a", domain=d) for d in ("x", "y") for i in range(3) for k in range(2)]

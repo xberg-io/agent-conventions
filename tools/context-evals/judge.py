@@ -11,10 +11,12 @@ A criterion's verdicts count only once the judge is validated for it:
   least MIN_ITEMS answers both graders decided.
 - mutations: the reference answer (the case's reference facts) is perturbed: the sentence carrying the key (first) fact dropped,
   the domain's term swapped for another domain's, the answer replaced with a deflection to a tool, a path replaced
-  with a wrong one. The primary grader must pass the originals (TPR) and fail the mutants (TNR).
+  with a wrong one. The primary grader must pass the originals (TPR) and fail the mutants (TNR). A swap or a path
+  replacement is made only where a criterion's check names that term or path: a change no criterion inspects is
+  not a wrong answer under any criterion, so a judge that passes it is not lenient.
 
-Every verdict row and report records JUDGE_PROMPT_VERSION and RUBRIC_VERSION; results from different versions are
-never compared.
+Every verdict row and report records JUDGE_PROMPT_VERSION and RUBRIC_VERSION, and the report MUTATION_VERSION;
+results from different versions are never compared.
 """
 
 from __future__ import annotations
@@ -38,6 +40,7 @@ JUDGE_PROMPT_VERSION = "judge-prompt-2"
 INDEPENDENT_PROMPT_VERSION = "judge-prompt-independent-2"
 TOOL_PROFILE_VERSION = "claude-judge-no-tools-1"
 RUBRIC_VERSION = "rubric-2"
+MUTATION_VERSION = "mutation-2"
 KAPPA_MIN = 0.6
 MIN_ITEMS = 4
 TPR_MIN = 0.9
@@ -45,6 +48,7 @@ TNR_MIN = 0.8
 TOOL_DEFLECTION = "Use tool X to find this out."
 WRONG_PATH = "src/nonexistent/wrong_module.rs"
 PATH = re.compile(r"(?<![\w/.-])[\w.-]+(?:/[\w.-]*[\w-])+")
+FILE_NAME = re.compile(r"[\w-]+\.[A-Za-z][\w]*$")
 WORD = re.compile(r"[a-z0-9_]{3,}|\d+")
 STOPWORDS = {"the", "and", "for", "are", "with", "that", "this", "from", "uses", "use", "its", "has", "was", "not"}
 
@@ -214,8 +218,12 @@ def drop_fact(answer: str, facts: tuple[str, ...]) -> str | None:
     return " ".join(s for i, s in enumerate(sentences) if i != -index)
 
 
+def _checks(case: Case | None) -> list[str]:
+    return [c.check for c in case.criteria] if case is not None else []
+
+
 def swap_domain(answer: str, case: Case, domains: dict) -> str | None:
-    """Replace the case domain's terms with the first term of a domain the case's repo does not own."""
+    """Replace the case domain's terms that a criterion names with the first term of a domain the repo does not own."""
     owned = {case.domain, *domains.get("repos", {}).get(case.repo, {}).get("domains", [])}
     foreign = next((spec["terms"][0] for name, spec in sorted(domains.get("domain", {}).items())
                     if name not in owned and spec.get("terms")), None)  # fmt: skip
@@ -223,15 +231,51 @@ def swap_domain(answer: str, case: Case, domains: dict) -> str | None:
         return None
     swapped = answer
     for term in domains.get("domain", {}).get(case.domain, {}).get("terms", []):
-        swapped = start_context.term_pattern(term).sub(foreign, swapped)
+        pattern = start_context.term_pattern(term)
+        if any(pattern.search(check) for check in _checks(case)):
+            swapped = pattern.sub(foreign, swapped)
     return swapped if swapped != answer else None
 
 
-def wrong_path(answer: str) -> str | None:
-    match = PATH.search(answer)
-    if match is None:
-        return None
-    return answer[: match.start()] + WRONG_PATH + answer[match.end() :]
+def _is_path(match: re.Match[str], text: str) -> bool:
+    """A file (the last segment has an extension), a directory written with its trailing slash, or lowercase segments.
+
+    Capitalised slash-joined words (`FFI/native`, `Office/ODF`) are not paths: replacing one is not a wrong path.
+    """
+    token = match.group()
+    return bool(FILE_NAME.search(token)) or text[match.end() : match.end() + 1] == "/" or token == token.lower()
+
+
+def _bare_name(name: str) -> re.Pattern[str]:
+    return re.compile(rf"(?<![\w/.-]){re.escape(name)}(?![\w-])")
+
+
+def _named_by(path: str, checks: list[str]) -> str:
+    """How a criterion names `path`: "path" (in full or by a path sharing its tail), "file" (by file name) or ""."""
+    name = path.rsplit("/", 1)[-1]
+    for check in checks:
+        if path in check or any(path.endswith(named) or named.endswith(path) for named in PATH.findall(check)):
+            return "path"
+    if FILE_NAME.fullmatch(name) and any(_bare_name(name).search(check) for check in checks):
+        return "file"
+    return ""
+
+
+def wrong_path(answer: str, case: Case | None = None) -> str | None:
+    """Replace the first path a criterion names; with no case, the first path.
+
+    A path a criterion names only by its file name counts only when the answer names that file nowhere else, so the
+    mutant no longer satisfies the criterion by the bare name.
+    """
+    checks = _checks(case)
+    for match in PATH.finditer(answer):
+        if not _is_path(match, answer):
+            continue
+        named = "path" if case is None else _named_by(match.group(), checks)
+        mutant = answer[: match.start()] + WRONG_PATH + answer[match.end() :]
+        if named == "path" or (named == "file" and not _bare_name(match.group().rsplit("/", 1)[-1]).search(mutant)):
+            return mutant
+    return None
 
 
 def mutants(answer: str, case: Case, domains: dict) -> dict[str, str]:
@@ -239,7 +283,7 @@ def mutants(answer: str, case: Case, domains: dict) -> dict[str, str]:
         "drop-fact": drop_fact(answer, case.reference.facts),
         "swap-domain": swap_domain(answer, case, domains),
         "tool-deflection": TOOL_DEFLECTION,
-        "wrong-path": wrong_path(answer),
+        "wrong-path": wrong_path(answer, case),
     }
     return {kind: text for kind, text in candidates.items() if text is not None and text != answer}
 
@@ -258,6 +302,28 @@ def stratified_sample(records: list[SessionRecord], per_domain: int, seed: int =
         pool.sort(key=lambda r: r.repeat)
         out += pool[:per_domain]
     return out
+
+
+def planned_items(case: Case, domains: dict) -> int:
+    """Answers validation grades for a case before any session: its reference answer and that answer's mutants."""
+    if not case.reference.facts:
+        return 0
+    return 1 + len(mutants(reference_answer(case), case, domains))
+
+
+def validation_sample(
+    records: list[SessionRecord], cases: dict[str, Case], domains: dict, per_domain: int, seed: int = 0
+) -> list[SessionRecord]:
+    """The stratified sample, topped up with a case's further sessions (first repeats first) until each of its
+    criteria has at least MIN_ITEMS graded answers; a criterion with fewer can never be valid."""
+    sample = stratified_sample(records, per_domain, seed)
+    chosen = {(r.case_id, r.repeat) for r in sample}
+    for case_id in sorted({r.case_id for r in records}):
+        have = planned_items(cases[case_id], domains) + sum(r.case_id == case_id for r in sample)
+        spare = sorted((r for r in records if r.case_id == case_id and (r.case_id, r.repeat) not in chosen),
+                       key=lambda r: r.repeat)  # fmt: skip
+        sample += spare[: max(0, MIN_ITEMS - have)]
+    return sample
 
 
 def _both(case: Case, text: str, a: Grader, b: Grader, context: str = "") -> tuple[Verdicts, Verdicts]:
@@ -284,7 +350,8 @@ def validate(
             labels.setdefault(f"{case.id}/{cid}", []).append((va[cid], vb.get(cid)))
 
     ran = [r for r in records if not r.error and r.case_id in cases and cases[r.case_id].criteria]
-    for r in stratified_sample(ran, per_domain, seed):
+    sample = validation_sample(ran, cases, domains, per_domain, seed)
+    for r in sample:
         case = cases[r.case_id]
         record_pair(case, *_both(case, r.answer, primary, secondary, summary(r)))
     for case in sorted(cases.values(), key=lambda c: c.id):
@@ -312,7 +379,9 @@ def validate(
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
         "independent_prompt_version": INDEPENDENT_PROMPT_VERSION,
         "rubric_version": RUBRIC_VERSION,
+        "mutation_version": MUTATION_VERSION,
         "judge_tool_profile_version": TOOL_PROFILE_VERSION,
+        "validation_sessions": len(sample),
         "kappa_min": KAPPA_MIN,
         "min_items": MIN_ITEMS,
         "criteria": criteria,
@@ -339,7 +408,8 @@ def validity_markdown(report: dict) -> str:
         "",
         (
             f"Prompt `{report['judge_prompt_version']}` / `{report['independent_prompt_version']}`, "
-            f"rubric `{report['rubric_version']}`. Models: {report.get('models', {})}."
+            f"rubric `{report['rubric_version']}`, mutations `{report.get('mutation_version', 'mutation-1')}`. "
+            f"Models: {report.get('models', {})}."
         ),
         "",
         (
