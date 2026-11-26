@@ -14,7 +14,7 @@
   expect: ['alef\(skip\)']
   criteria:
     - id: on-struct
-      check: "The answer says the attribute must be on the struct declaration, not the impl block."
+      check: "The answer says #[cfg_attr(alef, alef(skip))] must be on the DjvuExtractor struct declaration because the attribute on the impl block alone is not enough. Adding it to the struct while keeping it on the impl satisfies this; keeping it only on the impl, or moving it elsewhere, does not."
     - id: global-abort
       check: "The answer says a missing skip aborts the whole regen, leaving the tree stale."
   reference:
@@ -245,7 +245,7 @@
   behaviour: ask
   criteria:
     - id: which-binding
-      check: "The answer asks which binding or language and what failure (build error, test failure, stale generated output) before changing anything."
+      check: "The answer asks the user both which binding or language is broken and what failure they see (for example a build error, a test failure or stale generated output). It may inspect the repository first, but it does not present a diagnosis or a fix as settled before the user answers."
   reference:
     facts:
       - >-

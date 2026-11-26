@@ -39,7 +39,7 @@
   expect: ['\[crates\.e2e\]']
   criteria:
     - id: crates-e2e
-      check: 'The answer says e2e generation is configured under [crates.e2e] (fixtures = "fixtures", output = "e2e"), not a top-level [e2e] table.'
+      check: "The answer names the [crates.e2e] table in alef.toml as where e2e generation is configured. Naming its fixtures and output keys, or saying outright that there is no top-level [e2e] table, is not required; naming a top-level [e2e] table as the place fails."
     - id: languages
       check: "The answer says languages are listed in the languages array of [crates.e2e], with per-language call overrides under [crates.e2e.call.overrides.<lang>]."
   reference:
